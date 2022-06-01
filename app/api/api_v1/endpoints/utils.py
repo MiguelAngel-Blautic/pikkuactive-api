@@ -1,0 +1,188 @@
+import json
+from typing import Any, List
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from pydantic.networks import EmailStr
+from sqlalchemy.orm import Session
+from app import models, schemas
+from app.api import deps
+from app.api.api_v1.endpoints import nn_ecg, nn
+from app.api.api_v1.endpoints.models import read_model
+from app.models import Model
+from app.models.model import TrainingStatus, History
+from app.utils import send_test_email
+import requests
+from app.db.session import SessionLocal
+import firebase_admin
+from firebase_admin import ml
+from firebase_admin import credentials
+import tensorflow as tf
+
+router = APIRouter()
+serverToken = 'AAAAyNDqQ8c:APA91bEETtU_JtV_41C71VDqsr3bsZvRlBaDFHezOO0zm1Iac5UhUURVylMJVPCOAmTev6D-oCq-qWmtT7EjzJm9jEHp5BgreYK8nVfK5wqKKuzqg4SD-mblR-QM0XtYTlzNKPRX7Ppm'
+firebase_admin.initialize_app(
+    credentials.Certificate('app/blautic-ai-firebase.json'),
+    options={
+        'storageBucket': 'blautic-ai-9632f.appspot.com',
+    })
+
+
+@router.post("/training/", response_model=schemas.Msg, status_code=201)
+def training_model(
+        *,
+        db: Session = Depends(deps.get_db),
+        id_model: int,
+        current_user: models.User = Depends(deps.get_current_active_user),
+        background_tasks: BackgroundTasks
+) -> Any:
+    """
+    Get model by ID.
+    """
+    # Check that the model belongs to the user or if it is superuser
+    model: Model = read_model(db=db, id=id_model, current_user=current_user)
+    if model.status == TrainingStatus.training_started:
+        raise HTTPException(status_code=404, detail="Training task already exists")
+    background_tasks.add_task(training_task, id_model)
+    return {"msg": "ok"}
+
+
+def training_task(id_model: int):
+    print("training_task")
+    db: Session = SessionLocal()
+    model = db.query(models.Model).filter(models.Model.id == id_model).first()
+
+    # try:
+    user = db.query(models.User).filter(models.User.id == model.owner_id).first()
+    movements = db.query(models.Movement).filter(models.Movement.owner_id == model.id).all()
+    ids_movements = [mov.id for mov in movements]
+
+    # version_last_mpu = db.query(models.Version).filter(models.Version.owner_id == model.id).order_by(
+    #     desc(models.Version.create_time)).first()
+    # if version_last_mpu is None:
+    #     captures_mpu = db.query(models.Capture).filter(models.Capture.owner_id.in_(ids_movements)).all()
+    # else:
+    #     captures_mpu = db.query(models.Capture).filter(and_(models.Capture.owner_id.in_(ids_movements),
+    #                                                         models.Capture.create_time > version_last_mpu.create_time)).all()
+
+
+
+    version_last_mpu = None
+    captures_mpu = db.query(models.Capture).filter(models.Capture.owner_id.in_(ids_movements)).all()
+
+    if not captures_mpu or len(captures_mpu) < 2:
+        send_notification(fcm_token=user.fcm_token, title='Model: ' + model.name,
+                          body='There is not pending captures')
+        return False
+
+    model.status = TrainingStatus.training_started
+    db.commit()
+    db.refresh(model)
+
+    # Aqui agregar el la funcion de entrenamiento devolver el link donde se ha guarado el modelo
+    # df = nn.data_adapter(model, captures)
+    df_ecg = nn_ecg.data_adapter(model, captures_mpu)
+    version_ecg = nn_ecg.train_model(model, df_ecg, version_last_mpu)
+    version_ecg.owner_id = model.id
+
+    df_mpu = nn.data_adapter(model, captures_mpu)
+    version_mpu = nn.train_model(model, df_mpu, version_last_mpu)
+    version_mpu.owner_id = model.id
+
+    db.add(version_mpu)
+    db.add(version_ecg)
+
+    db.commit()
+    db.refresh(version_mpu)
+    db.refresh(version_ecg)
+
+    history = []
+    for capture in captures_mpu:
+        history.append(History(id_capture=capture.id, owner_id=version_mpu.id))
+    version_mpu.history = history
+    db.commit()
+    db.refresh(version_mpu)
+
+    model.status = TrainingStatus.training_succeeded
+    db.commit()
+    db.refresh(model)
+    publish_model_firebase(model, version_mpu.url, 'mpu_')
+    publish_model_firebase(model, version_ecg.url, 'ecg_')
+
+    if user.fcm_token:
+        send_notification(fcm_token=user.fcm_token, title='Model: ' + model.name, body='finished training')
+    db.close()
+    return True
+    # except BaseException as e:
+    #     print('Failed to do something: ' + str(e))
+    #     model.status = TrainingStatus.training_failed
+    #     db.commit()
+    #     db.refresh(model)
+    #     db.close()
+    #     return False
+
+
+@router.post("/notification/", response_model=schemas.Msg, status_code=201)
+def send_notification(
+        fcm_token: str,
+        title: str,
+        body: str
+) -> Any:
+    """
+    send notification when finishing training.
+    """
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'key=' + serverToken,
+    }
+    body = {
+        'notification': {'title': title,
+                         'body': body
+                         },
+        'to': fcm_token,
+        'priority': 'high',
+        #   'data': dataPayLoad,
+    }
+    response = requests.post("https://fcm.googleapis.com/fcm/send", headers=headers, data=json.dumps(body))
+    print("send_notification: {}".format(response.status_code))
+
+    return {"msg": response.status_code}
+
+
+def publish_model_firebase(
+        model_db: models.Model,
+        url: str,
+        sub_fij: str
+):
+    if not model_db.versions:
+        return
+
+    model_keras = tf.keras.models.load_model(url)
+    exist_model = ml.list_models(list_filter="display_name:" + sub_fij + str(model_db.id)).iterate_all()
+    exist_model_id = -1
+    for model in exist_model:
+        exist_model_id = model.model_id
+    if exist_model_id != -1:
+        model = ml.get_model(exist_model_id)
+        source = ml.TFLiteGCSModelSource.from_keras_model(model_keras)
+        model.model_format = ml.TFLiteFormat(model_source=source)
+        updated_model = ml.update_model(model)
+        ml.publish_model(updated_model.model_id)
+    else:
+        source = ml.TFLiteGCSModelSource.from_keras_model(model_keras)
+        tflite_format = ml.TFLiteFormat(model_source=source)
+        model = ml.Model(
+            display_name=sub_fij + str(model_db.id),  # This is the name you use from your app to load the model.
+            model_format=tflite_format)
+        new_model = ml.create_model(model)
+        ml.publish_model(new_model.model_id)
+
+
+@router.post("/test-email/", response_model=schemas.Msg, status_code=201)
+def test_email(
+        email_to: EmailStr,
+        current_user: models.User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Test emails.
+    """
+    send_test_email(email_to=email_to)
+    return {"msg": "Test email sent"}
