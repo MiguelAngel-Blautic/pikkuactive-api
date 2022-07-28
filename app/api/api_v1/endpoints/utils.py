@@ -7,8 +7,8 @@ from app import models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints import nn_ecg, nn
 from app.api.api_v1.endpoints.models import read_model
-from app.models import Model
-from app.models.model import TrainingStatus, History
+from app.models import tbl_model
+from app.models.tbl_model import TrainingStatus, tbl_history
 from app.utils import send_test_email
 import requests
 from app.db.session import SessionLocal
@@ -31,15 +31,15 @@ def training_model(
         *,
         db: Session = Depends(deps.get_db),
         id_model: int,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
         background_tasks: BackgroundTasks
 ) -> Any:
     """
     Get model by ID.
     """
     # Check that the model belongs to the user or if it is superuser
-    model: Model = read_model(db=db, id=id_model, current_user=current_user)
-    if model.status == TrainingStatus.training_started:
+    model: tbl_model = read_model(db=db, id=id_model, current_user=current_user)
+    if model.fldSStats == TrainingStatus.training_started:
         raise HTTPException(status_code=404, detail="Training task already exists")
     background_tasks.add_task(training_task, id_model)
     return {"msg": "ok"}
@@ -48,11 +48,11 @@ def training_model(
 def training_task(id_model: int):
     print("training_task")
     db: Session = SessionLocal()
-    model = db.query(models.Model).filter(models.Model.id == id_model).first()
+    model = db.query(models.tbl_model).filter(models.tbl_model.id == id_model).first()
 
     # try:
-    user = db.query(models.User).filter(models.User.id == model.owner_id).first()
-    movements = db.query(models.Movement).filter(models.Movement.owner_id == model.id).all()
+    user = db.query(models.tbl_user).filter(models.tbl_user.id == model.fkOwner).first()
+    movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all()
     ids_movements = [mov.id for mov in movements]
 
     # version_last_mpu = db.query(models.Version).filter(models.Version.owner_id == model.id).order_by(
@@ -66,14 +66,14 @@ def training_task(id_model: int):
 
 
     version_last_mpu = None
-    captures_mpu = db.query(models.Capture).filter(models.Capture.owner_id.in_(ids_movements)).all()
+    captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
 
     if not captures_mpu or len(captures_mpu) < 2:
-        send_notification(fcm_token=user.fcm_token, title='Model: ' + model.name,
+        send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName,
                           body='There is not pending captures')
         return False
 
-    model.status = TrainingStatus.training_started
+    model.fldSStats = TrainingStatus.training_started
     db.commit()
     db.refresh(model)
 
@@ -81,11 +81,11 @@ def training_task(id_model: int):
     # df = nn.data_adapter(model, captures)
     df_ecg = nn_ecg.data_adapter(model, captures_mpu)
     version_ecg = nn_ecg.train_model(model, df_ecg, version_last_mpu)
-    version_ecg.owner_id = model.id
+    version_ecg.fkOwner = model.id
 
     df_mpu = nn.data_adapter(model, captures_mpu)
     version_mpu = nn.train_model(model, df_mpu, version_last_mpu)
-    version_mpu.owner_id = model.id
+    version_mpu.fkOwner = model.id
 
     db.add(version_mpu)
     db.add(version_ecg)
@@ -96,19 +96,19 @@ def training_task(id_model: int):
 
     history = []
     for capture in captures_mpu:
-        history.append(History(id_capture=capture.id, owner_id=version_mpu.id))
+        history.append(tbl_history(id_capture=capture.id, owner_id=version_mpu.id))
     version_mpu.history = history
     db.commit()
     db.refresh(version_mpu)
 
-    model.status = TrainingStatus.training_succeeded
+    model.fldSStats = TrainingStatus.training_succeeded
     db.commit()
     db.refresh(model)
-    publish_model_firebase(model, version_mpu.url, 'mpu_')
-    publish_model_firebase(model, version_ecg.url, 'ecg_')
+    publish_model_firebase(model, version_mpu.fldSUrl, 'mpu_')
+    publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
 
-    if user.fcm_token:
-        send_notification(fcm_token=user.fcm_token, title='Model: ' + model.name, body='finished training')
+    if user.fldSFcmToken:
+        send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName, body='finished training')
     db.close()
     return True
     # except BaseException as e:
@@ -148,7 +148,7 @@ def send_notification(
 
 
 def publish_model_firebase(
-        model_db: models.Model,
+        model_db: models.tbl_model,
         url: str,
         sub_fij: str
 ):
@@ -179,7 +179,7 @@ def publish_model_firebase(
 @router.post("/test-email/", response_model=schemas.Msg, status_code=201)
 def test_email(
         email_to: EmailStr,
-        current_user: models.User = Depends(deps.get_current_active_superuser),
+        current_user: models.tbl_user = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Test emails.

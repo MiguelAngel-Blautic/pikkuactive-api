@@ -6,8 +6,8 @@ from .crud_capture import capture
 # For a new basic set of CRUD operations you could just do
 
 from .base import CRUDBase
-from app.models.position import Position
+from app.models.tbl_position import tbl_position
 from app.schemas.position import PositionCreate, PositionUpdate
 
 # item = CRUDBase[Item, ItemCreate, ItemUpdate](Item)
-position = CRUDBase[Position, PositionCreate, PositionUpdate](Position)
+position = CRUDBase[tbl_position, PositionCreate, PositionUpdate](tbl_position)

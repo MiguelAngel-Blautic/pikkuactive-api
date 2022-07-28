@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 # Shared properties
-from app.models.model import TrainingStatus
+from app.models.tbl_model import TrainingStatus
 from app.schemas.device import DeviceCreate, Device
 from app.schemas.movement import Movement, MovementCreate
 from app.schemas.version import Version

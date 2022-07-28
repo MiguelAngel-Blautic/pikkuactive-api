@@ -10,7 +10,7 @@ from tensorflow.keras.layers import Flatten, Dense
 from tensorflow.keras.layers import Conv2D, MaxPool2D
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from app.models import Version
+from app.models import tbl_version
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.optimizers import Adadelta
 
@@ -21,7 +21,7 @@ SENS_NUMBER = 1
 
 def create_model(model,output_size=2):
     n_devices = len(model.devices)
-    samples = model.duration * DATA_FREQ
+    samples = model.fldNDuration * DATA_FREQ
     input_shape = (n_devices*samples,)
 
     modelEmg = Sequential()
@@ -57,19 +57,19 @@ def train_model(model, df, version_last, max_value = 1):
 
     tf_model.save(url)
     evaluation = tf_model.evaluate(X_test_Emg, y_test)
-    version = Version(url=url,
-                      accuracy=float(evaluation[1]),
-                      epoch=num_epoch,
-                      loss=float(evaluation[0]),
-                      optimizer='SGD',
-                      learning_rate=0.0045)
+    version = tbl_version(url=url,
+                          accuracy=float(evaluation[1]),
+                          epoch=num_epoch,
+                          loss=float(evaluation[0]),
+                          optimizer='SGD',
+                          learning_rate=0.0045)
 
     return version
 
 
 def split_normalize_data(model, df , max_value):
     label_enc = LabelEncoder()
-    label_enc.fit([x.label for x in model.movements])
+    label_enc.fit([x.fldSLabel for x in model.movements])
 
     # Normalize
     filter_emg_col = [col for col in df if col.startswith('emg')]
@@ -96,7 +96,7 @@ def generate_columns_index(end):
 
 def data_adapter(model, captures):
     n_devices = len(model.devices)
-    samples = model.duration * DATA_FREQ
+    samples = model.fldNDuration * DATA_FREQ
 
     columns_list = generate_columns_index(n_devices*samples)
 
@@ -112,18 +112,18 @@ def data_adapter(model, captures):
                 for i in range(len(model.devices)):
                     data_x.append(capture.ecg[i_data + i])
 
-                sorted_data = sorted(data_x, key=lambda data: data.device.number_device)
+                sorted_data = sorted(data_x, key=lambda data: data.device.fldNNumberDevice)
 
                 list_sorted = []
                 for data in sorted_data:
-                    list_sorted.append(data.data)
+                    list_sorted.append(data.fldFData)
 
                 only_data.append(list_sorted)
 
 
                 # print(i_data)
 
-            labels.append(capture.owner.label)
+            labels.append(capture.owner.fldSLabel)
             np_data = np.resize(only_data, (1, len(only_data) * len(only_data[0])))
             df_length = len(df)
             df.loc[df_length] = np_data[0].tolist()

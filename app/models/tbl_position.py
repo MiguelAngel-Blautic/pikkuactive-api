@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String
 from app.db.base_class import Base
 
 
-class Position(Base):
+class tbl_position(Base):
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
-    description = Column(String)
+    fldSName = Column(String(255), nullable=False)
+    fldSDescription = Column(String)

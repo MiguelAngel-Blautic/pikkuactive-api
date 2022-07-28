@@ -19,22 +19,22 @@ def read_captures(
         skip: int = 0,
         limit: int = 100,
         pending: bool = False,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve captures.
     """
     model = read_model(db=db, id=id_model, current_user=current_user)
     if pending:
-        movements = db.query(models.Movement).filter(models.Movement.owner_id == model.id).all()
+        movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all()
         ids_movements = [mov.id for mov in movements]
-        version_last = db.query(models.Version).filter(models.Version.owner_id == model.id).order_by(
-            desc(models.Version.create_time)).first()
+        version_last = db.query(models.tbl_version).filter(models.tbl_version.fkOwner == model.id).order_by(
+            desc(models.tbl_version.fldDTimeCreateTime)).first()
         if version_last is None:
-            captures = db.query(models.Capture).filter(models.Capture.owner_id.in_(ids_movements)).all()
+            captures = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
         else:
-            captures = db.query(models.Capture).filter(and_(models.Capture.owner_id.in_(ids_movements),
-                                                            models.Capture.create_time > version_last.create_time)).all()
+            captures = db.query(models.tbl_capture).filter(and_(models.tbl_capture.fkOwner.in_(ids_movements),
+                                                                models.tbl_capture.fldDTimeCreateTime > version_last.fldDTimeCreateTime)).all()
     else:
         captures = crud.capture.get_all_by_model(
             db=db, model=model, skip=skip, limit=limit
@@ -47,24 +47,24 @@ def count_captures(
         id_model: int,
         db: Session = Depends(deps.get_db),
         pending: bool = False,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Count captures.
     """
     model = read_model(db=db, id=id_model, current_user=current_user)
-    movements = db.query(models.Movement).filter(models.Movement.owner_id == model.id).all()
+    movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all()
     ids_movements = [mov.id for mov in movements]
     if pending:
-        version_last = db.query(models.Version).filter(models.Version.owner_id == model.id).order_by(
-            desc(models.Version.create_time)).first()
+        version_last = db.query(models.tbl_version).filter(models.tbl_version.fkOwner == model.id).order_by(
+            desc(models.tbl_version.fldDTimeCreateTime)).first()
         if version_last is None:
-            captures = db.query(models.Capture).filter(models.Capture.owner_id.in_(ids_movements)).count()
+            captures = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).count()
         else:
-            captures = db.query(models.Capture).filter(and_(models.Capture.owner_id.in_(ids_movements),
-                                                            models.Capture.create_time > version_last.create_time)).count()
+            captures = db.query(models.tbl_capture).filter(and_(models.tbl_capture.fkOwner.in_(ids_movements),
+                                                                models.tbl_capture.fldDTimeCreateTime > version_last.fldDTimeCreateTime)).count()
     else:
-        captures = db.query(models.Capture).filter(models.Capture.owner_id.in_(ids_movements)).count()
+        captures = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).count()
     return captures
 
 
@@ -74,7 +74,7 @@ def create_capture(
         id_movement: int,
         db: Session = Depends(deps.get_db),
         capture_in: schemas.CaptureCreate,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Create new capture.
@@ -112,7 +112,7 @@ def read_capture(
         *,
         db: Session = Depends(deps.get_db),
         id: int,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Get capture by ID.
@@ -121,7 +121,7 @@ def read_capture(
     if not capture:
         raise HTTPException(status_code=404, detail="Capture not found")
     # Check owner is current_user
-    read_movement(db=db, id=capture.owner_id, current_user=current_user)
+    read_movement(db=db, id=capture.fkOwner, current_user=current_user)
     return capture
 
 
@@ -130,7 +130,7 @@ def delete_capture(
         *,
         db: Session = Depends(deps.get_db),
         id: int,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Delete an capture.

@@ -4,33 +4,33 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
-from app.models import Device, Movement
-from app.models.model import Model, TrainingStatus
+from app.models import tbl_device, tbl_movement
+from app.models.tbl_model import tbl_model, TrainingStatus
 from app.schemas.model import ModelCreate, ModelUpdate
 
 
-class CRUDModel(CRUDBase[Model, ModelCreate, ModelUpdate]):
+class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
     def create_with_owner(
         self, db: Session, *, obj_in: ModelCreate, owner_id: int
-    ) -> Model:
+    ) -> tbl_model:
         obj_in_data = obj_in.dict()
         devices_in_model = obj_in_data.pop('devices', None)
         movements_in_model = obj_in_data.pop('movements', None)
 
         db_obj = self.model(**obj_in_data, owner_id=owner_id)
-        db_obj.status = TrainingStatus.no_training
+        db_obj.fldSStats = TrainingStatus.no_training
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         id_model = db_obj.id
         for device in devices_in_model:
-            device = Device(**device, owner_id=id_model)
+            device = tbl_device(**device, owner_id=id_model)
             db.add(device)
             db.commit()
             db.refresh(device)
 
         for movement in movements_in_model:
-            movement = Movement(** movement, owner_id=id_model)
+            movement = tbl_movement(** movement, owner_id=id_model)
             db.add(movement)
             db.commit()
             db.refresh(movement)
@@ -38,14 +38,14 @@ class CRUDModel(CRUDBase[Model, ModelCreate, ModelUpdate]):
 
     def get_multi_by_owner(
         self, db: Session, *, owner_id: int, skip: int = 0, limit: int = 100
-    ) -> List[Model]:
+    ) -> List[tbl_model]:
         return (
             db.query(self.model)
-            .filter(Model.owner_id == owner_id)
+            .filter(tbl_model.fkOwner == owner_id)
             .offset(skip)
             .limit(limit)
             .all()
         )
 
 
-model = CRUDModel(Model)
+model = CRUDModel(tbl_model)

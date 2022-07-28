@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
-from app.models import Model
+from app.models import tbl_model
 
 router = APIRouter()
 
@@ -15,13 +15,13 @@ def read_models(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve models.
     """
     if crud.user.is_superuser(current_user):
-        model: List[Model] = crud.model.get_multi(db, skip=skip, limit=limit)
+        model: List[tbl_model] = crud.model.get_multi(db, skip=skip, limit=limit)
     else:
         model = crud.model.get_multi_by_owner(
             db=db, owner_id=current_user.id, skip=skip, limit=limit
@@ -34,7 +34,7 @@ def create_model(
     *,
     db: Session = Depends(deps.get_db),
     model_in: schemas.ModelCreate,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Create new model.
@@ -49,7 +49,7 @@ def update_model(
     db: Session = Depends(deps.get_db),
     id: int,
     model_in: schemas.ModelUpdate,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update an model.
@@ -64,7 +64,7 @@ def read_model(
     *,
     db: Session = Depends(deps.get_db),
     id: int,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Get model by ID.
@@ -72,7 +72,7 @@ def read_model(
     model = crud.model.get(db=db, id=id)
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
-    if not crud.user.is_superuser(current_user) and (model.owner_id != current_user.id):
+    if not crud.user.is_superuser(current_user) and (model.fkOwner != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     return model
 
@@ -82,7 +82,7 @@ def delete_model(
     *,
     db: Session = Depends(deps.get_db),
     id: int,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Delete an model.

@@ -44,7 +44,7 @@ def test_create_user_new_email(
     created_user = r.json()
     user = crud.user.get_by_email(db, email=username)
     assert user
-    assert user.email == created_user["email"]
+    assert user.fldSEmail == created_user["email"]
 
 
 def test_get_existing_user(
@@ -62,7 +62,7 @@ def test_get_existing_user(
     api_user = r.json()
     existing_user = crud.user.get_by_email(db, email=username)
     assert existing_user
-    assert existing_user.email == api_user["email"]
+    assert existing_user.fldSEmail == api_user["email"]
 
 
 def test_create_user_existing_username(

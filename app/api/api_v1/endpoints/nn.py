@@ -10,7 +10,7 @@ from tensorflow.keras.layers import Flatten, Dense
 from tensorflow.keras.layers import Conv2D, MaxPool2D
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from app.models import Version
+from app.models import tbl_version
 
 # CONFIG
 DATA_FREQ = 20
@@ -19,7 +19,7 @@ SENS_NUMBER = 6
 
 def create_model(model,output_size=2):
     columns = len(model.devices) * 6
-    rows = model.duration * 20
+    rows = model.fldNDuration * 20
     input_shape = (rows, columns, 1)
 
     cnn = Sequential()
@@ -55,19 +55,19 @@ def train_model(model, df, version_last):
                            validation_data=(X_reshaped_test, y_test), verbose=1)
     tf_model.save(url)
     evaluation = tf_model.evaluate(X_reshaped_test, y_test)
-    version = Version(url=url,
-                      accuracy=float(evaluation[1]),
-                      epoch=num_epoch,
-                      loss=float(evaluation[0]),
-                      optimizer='SGD',
-                      learning_rate=0.0045)
+    version = tbl_version(url=url,
+                          accuracy=float(evaluation[1]),
+                          epoch=num_epoch,
+                          loss=float(evaluation[0]),
+                          optimizer='SGD',
+                          learning_rate=0.0045)
 
     return version
 
 
 def split_normalize_data(model, df):
     label_enc = LabelEncoder()
-    label_enc.fit([x.label for x in model.movements])
+    label_enc.fit([x.fldSLabel for x in model.movements])
 
     # Normalize
     filter_ac_col = [col for col in df if col.startswith('ac')]
@@ -86,9 +86,9 @@ def split_normalize_data(model, df):
 
     # Reshape
     X_train = X_train.to_numpy()
-    X_reshaped_train = X_train.reshape(X_train.shape[0], model.duration * DATA_FREQ, len(model.devices) * SENS_NUMBER,
+    X_reshaped_train = X_train.reshape(X_train.shape[0], model.fldNDuration * DATA_FREQ, len(model.devices) * SENS_NUMBER,
                                        1)
-    X_reshaped_test = X_test.to_numpy().reshape(X_test.shape[0], model.duration * DATA_FREQ,
+    X_reshaped_test = X_test.to_numpy().reshape(X_test.shape[0], model.fldNDuration * DATA_FREQ,
                                                 len(model.devices) * SENS_NUMBER, 1)
 
     return X_reshaped_train, X_reshaped_test, y_train, y_test
@@ -108,7 +108,7 @@ def generate_columns_index(end):
 
 def data_adapter(model, captures):
     columns = len(model.devices) * SENS_NUMBER
-    rows = model.duration * DATA_FREQ
+    rows = model.fldNDuration * DATA_FREQ
 
     input_shape = (rows, columns, 1)
     columns_list = generate_columns_index(columns * rows)
@@ -125,22 +125,22 @@ def data_adapter(model, captures):
                 for i in range(len(model.devices)):
                     data_x.append(capture.mpu[i_data + i])
 
-                sorted_data = sorted(data_x, key=lambda data: data.device.number_device)
+                sorted_data = sorted(data_x, key=lambda data: data.device.fldNNumberDevice)
 
                 list_sorted = []
                 for data in sorted_data:
-                    list_sorted.append(data.acc_x)
-                    list_sorted.append(data.acc_y)
-                    list_sorted.append(data.acc_z)
-                    list_sorted.append(data.gyr_x)
-                    list_sorted.append(data.gyr_y)
-                    list_sorted.append(data.gyr_z)
+                    list_sorted.append(data.fldFAccX)
+                    list_sorted.append(data.fldFAccY)
+                    list_sorted.append(data.fldFAccZ)
+                    list_sorted.append(data.fldFGyrX)
+                    list_sorted.append(data.fldFGyrY)
+                    list_sorted.append(data.fldFGyrZ)
 
                 only_data.append(list_sorted)
 
                 # print(i_data)
 
-            labels.append(capture.owner.label)
+            labels.append(capture.owner.fldSLabel)
             np_data = np.resize(only_data, (1, len(only_data) * len(only_data[0])))
             df_length = len(df)
             df.loc[df_length] = np_data[0].tolist()

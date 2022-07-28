@@ -33,16 +33,16 @@ class Settings(BaseSettings):
         return v
 
     POSTGRES_SERVER: str = "82.223.19.236:5432"  # 82.223.19.236
-    #POSTGRES_SERVER: str
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "Ht12wy0"
     POSTGRES_DB: str = "pikku-active"
-    SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
+    SQLALCHEMY_DATABASE_URI: Optional[str] = 'mariadb+mariadbconnector://root:$Sqnon2022!@82.223.19.236:3306/ziven-active' # Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
+        return MariadbDsn
         return PostgresDsn.build(
             scheme="postgresql",
             user=values.get("POSTGRES_USER"),

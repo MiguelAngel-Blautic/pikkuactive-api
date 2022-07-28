@@ -30,6 +30,6 @@ def test_read_item(
     assert response.status_code == 200
     content = response.json()
     assert content["title"] == item.title
-    assert content["description"] == item.description
+    assert content["description"] == item.fldSDescription
     assert content["id"] == item.id
-    assert content["owner_id"] == item.owner_id
+    assert content["owner_id"] == item.fkOwner

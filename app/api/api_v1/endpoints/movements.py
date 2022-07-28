@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints.models import read_models, read_model
-from app.models import Model
+from app.models import tbl_model
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ def read_movements(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve movements.
@@ -27,7 +27,7 @@ def read_movements(
         movements = crud.movement.get_all_by_owner(db=db, models=models_user, skip=skip, limit=limit)
     else:
         model = read_model(db=db, id=id_model, current_user=current_user)
-        models_user: List[Model] = [model]
+        models_user: List[tbl_model] = [model]
         movements = crud.movement.get_all_by_owner(
             db=db, models=models_user, skip=skip, limit=limit
         )
@@ -40,7 +40,7 @@ def create_movement(
         id_model: int,
         db: Session = Depends(deps.get_db),
         movement_in: schemas.MovementCreate,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Create new movement.
@@ -56,7 +56,7 @@ def update_movement(
         db: Session = Depends(deps.get_db),
         id: int,
         movement_in: schemas.MovementUpdate,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update an movement.
@@ -71,7 +71,7 @@ def read_movement(
         *,
         db: Session = Depends(deps.get_db),
         id: int,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Get movement by ID.
@@ -80,7 +80,7 @@ def read_movement(
     if not movement:
         raise HTTPException(status_code=404, detail="Movement not found")
     # Check owner is current_user
-    read_model(db=db, id=movement.owner_id, current_user=current_user)
+    read_model(db=db, id=movement.fkOwner, current_user=current_user)
     return movement
 
 
@@ -89,7 +89,7 @@ def delete_movement(
         *,
         db: Session = Depends(deps.get_db),
         id: int,
-        current_user: models.User = Depends(deps.get_current_active_user),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Delete an movement.

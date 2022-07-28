@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import crud
 from app.core.config import settings
-from app.models.user import User
+from app.models.tbl_user import tbl_user
 from app.schemas.user import UserCreate, UserUpdate
 from app.tests.utils.utils import random_email, random_lower_string
 
@@ -22,7 +22,7 @@ def user_authentication_headers(
     return headers
 
 
-def create_random_user(db: Session) -> User:
+def create_random_user(db: Session) -> tbl_user:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(username=email, email=email, password=password)
