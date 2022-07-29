@@ -46,7 +46,7 @@ def create_movement(
     Create new movement.
     """
     model = read_model(db=db, id=id_model, current_user=current_user)
-    movement = crud.movement.create_with_owner(db=db, obj_in=movement_in, owner_id=model.id)
+    movement = crud.movement.create_with_owner(db=db, obj_in=movement_in, fkOwner=model.id)
     return movement
 
 

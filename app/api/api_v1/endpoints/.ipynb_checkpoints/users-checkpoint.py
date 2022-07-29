@@ -46,7 +46,7 @@ def create_user(
     user = crud.user.create(db, obj_in=user_in)
     if settings.EMAILS_ENABLED and user_in.email:
         send_new_account_email(
-            email_to=user_in.email, username=user_in.email, password=user_in.password
+            email_to=user_in.email, username=user_in.email, password=user_in.fldSHashedPassword
         )
     return user
 
@@ -68,9 +68,9 @@ def update_user_me(
     if password is not None:
         user_in.password = password
     if full_name is not None:
-        user_in.full_name = full_name
+        user_in.fldSFullName = full_name
     if email is not None:
-        user_in.email = email
+        user_in.fldSEmail = email
     user = crud.user.update(db, db_obj=current_user, obj_in=user_in)
     return user
 

@@ -26,8 +26,8 @@ class CaptureUpdate(CaptureBase):
 # Properties shared by movement stored in DB
 class CaptureInDBBase(CaptureBase):
     id: int
-    owner_id: int
-    create_time: datetime
+    fkOwner: int
+    fldDTimeCreateTime: datetime
     mpu: List[Mpu]
     ecg: List[Ecg]
     max_value: Optional[int]

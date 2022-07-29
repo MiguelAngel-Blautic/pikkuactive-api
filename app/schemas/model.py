@@ -11,18 +11,19 @@ from app.schemas.version import Version
 
 
 class ModelBase(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    duration: Optional[int] = None
-    auto_training: bool = False
-    image: Optional[str] = None
-    video: Optional[str] = None
+    fldSName: Optional[str] = None
+    fldSDescription: Optional[str] = None
+    fldNDuration: Optional[int] = None
+    fldBAutoTraining: bool = False
+    fldSImage: Optional[str] = None
+    fldSVideo: Optional[str] = None
+    fkTipo: Optional[int] = 1
 
 
 # Properties to receive on item creation
 class ModelCreate(ModelBase):
-    name: str
-    duration: int
+    fldSName: str
+    fldNDuration: int
     devices: List[DeviceCreate]
     movements: Optional[List[MovementCreate]]
 
@@ -35,13 +36,14 @@ class ModelUpdate(ModelBase):
 # Properties shared by models stored in DB
 class ModelInDBBase(ModelBase):
     id: int
-    name: str
-    duration: int
-    owner_id: int
-    url: Optional[str] = None
-    create_time: datetime
-    status: Optional[TrainingStatus] = None
-    progress: Optional[int] = None
+    fldSName: str
+    fldNDuration: int
+    fkOwner: int
+    fkTipo: int
+    fldSUrl: Optional[str] = None
+    fldDTimeCreateTime: datetime
+    fldSStatus: Optional[TrainingStatus] = None
+    fldNProgress: Optional[int] = None
     movements: List[Movement] = []
     devices: List[Device] = []
     versions: List[Version] = []

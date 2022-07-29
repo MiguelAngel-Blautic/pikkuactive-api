@@ -6,13 +6,13 @@ from datetime import datetime
 
 # Shared properties
 class MovementBase(BaseModel):
-    label: Optional[str] = None
-    description: Optional[str] = None
+    fldSLabel: Optional[str] = None
+    fldSDescription: Optional[str] = None
 
 
 # Properties to receive on movement creation
 class MovementCreate(MovementBase):
-    label: str
+    fldSLabel: str
 
 
 # Properties to receive on movement update
@@ -23,10 +23,10 @@ class MovementUpdate(MovementBase):
 # Properties shared by movement stored in DB
 class MovementInDBBase(MovementBase):
     id: int
-    label: str
-    description: Optional[str]
-    owner_id: int
-    create_time: datetime
+    fldSLabel: str
+    fldSDescription: Optional[str]
+    fkOwner: int
+    fldDTimeCreateTime: datetime
 
     class Config:
         orm_mode = True

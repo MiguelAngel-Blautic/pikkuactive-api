@@ -26,11 +26,12 @@ class tbl_model(Base):
     fldBAutoTraining = Column(Boolean())
     fldSImage = Column(String)
     fldSVideo = Column(String)
-    fldSStats = Column(Enum(TrainingStatus))
+    fldSStatus = Column(Enum(TrainingStatus))
     fldNProgress = Column(Integer)
 
     fkOwner = Column(Integer, ForeignKey("tbl_user.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_user", back_populates="models")
+    fkCreador = Column(Integer)
     fkTipo = Column(Integer, ForeignKey("tbl_tipo_modelo.id", ondelete="CASCADE", onupdate="CASCADE"))
     tipo = relationship("tbl_tipo_modelo")
 

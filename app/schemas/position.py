@@ -5,13 +5,13 @@ from pydantic import BaseModel
 
 # Shared properties
 class PositionBase(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
+    fldSName: Optional[str] = None
+    fldSDescription: Optional[str] = None
 
 
 # Properties to receive on position creation
 class PositionCreate(PositionBase):
-    name: str
+    fldSName: str
 
 
 # Properties to receive on position update

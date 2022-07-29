@@ -6,13 +6,13 @@ from app.schemas.position import Position
 
 # Shared properties
 class DeviceBase(BaseModel):
-    number_device: Optional[int] = None
+    fldNNumberDevice: Optional[int] = None
 
 
 # Properties to receive on item creation
 class DeviceCreate(DeviceBase):
-    number_device: int
-    position_id: int
+    fldNNumberDevice: int
+    fkPosition: int
 
 
 # Properties to receive on item update
@@ -23,9 +23,9 @@ class DeviceUpdate(DeviceCreate):
 # Properties shared by models stored in DB
 class DeviceInDBBase(DeviceBase):
     id: int
-    number_device: int
-    position_id: int
-    owner_id: int
+    fldNNumberDevice: int
+    fkPosition: int
+    fkOwner: int
     position: Optional[Position]
 
     class Config:

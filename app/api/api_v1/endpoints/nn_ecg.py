@@ -57,12 +57,12 @@ def train_model(model, df, version_last, max_value = 1):
 
     tf_model.save(url)
     evaluation = tf_model.evaluate(X_test_Emg, y_test)
-    version = tbl_version(url=url,
-                          accuracy=float(evaluation[1]),
-                          epoch=num_epoch,
-                          loss=float(evaluation[0]),
-                          optimizer='SGD',
-                          learning_rate=0.0045)
+    version = tbl_version(fldSUrl=url,
+                          fldFAccuracy=float(evaluation[1]),
+                          fldNEpoch=num_epoch,
+                          fldFLoss=float(evaluation[0]),
+                          fldSOptimizer='SGD',
+                          fldFLearningRate=0.0045)
 
     return version
 

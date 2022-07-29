@@ -14,11 +14,11 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
 
     def create(self, db: Session, *, obj_in: UserCreate) -> tbl_user:
         db_obj = tbl_user(
+            fldSFullName=obj_in.fldSFullName,
             fldSEmail=obj_in.email,
-            fldSHashedPassword=get_password_hash(obj_in.password),
-            fldSFullName=obj_in.full_name,
-            #is_superuser=obj_in.is_superuser,
-            fldBActive=obj_in.is_active,
+            fldSHashedPassword=get_password_hash(obj_in.fldSHashedPassword),
+            fldBActive=obj_in.fldBActive,
+            fkRol=obj_in.fkRol,
         )
         db.add(db_obj)
         db.commit()

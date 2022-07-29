@@ -39,7 +39,7 @@ def training_model(
     """
     # Check that the model belongs to the user or if it is superuser
     model: tbl_model = read_model(db=db, id=id_model, current_user=current_user)
-    if model.fldSStats == TrainingStatus.training_started:
+    if model.fldSStatus == TrainingStatus.training_started:
         raise HTTPException(status_code=404, detail="Training task already exists")
     background_tasks.add_task(training_task, id_model)
     return {"msg": "ok"}
@@ -73,7 +73,7 @@ def training_task(id_model: int):
                           body='There is not pending captures')
         return False
 
-    model.fldSStats = TrainingStatus.training_started
+    model.fldSStatus = TrainingStatus.training_started
     db.commit()
     db.refresh(model)
 
@@ -96,12 +96,12 @@ def training_task(id_model: int):
 
     history = []
     for capture in captures_mpu:
-        history.append(tbl_history(id_capture=capture.id, owner_id=version_mpu.id))
+        history.append(tbl_history(fkCapture=capture.id, fkOwner=version_mpu.id))
     version_mpu.history = history
     db.commit()
     db.refresh(version_mpu)
 
-    model.fldSStats = TrainingStatus.training_succeeded
+    model.fldSStatus = TrainingStatus.training_succeeded
     db.commit()
     db.refresh(model)
     publish_model_firebase(model, version_mpu.fldSUrl, 'mpu_')

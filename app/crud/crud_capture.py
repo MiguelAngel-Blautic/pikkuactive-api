@@ -19,7 +19,7 @@ class CRUDCapture(CRUDBase[tbl_capture, CaptureCreate, CaptureUpdate]):
         mpu_in_capture = obj_in_data.pop('mpu', None)
         ecg_in_capture = obj_in_data.pop('ecg', None)
 
-        db_obj = self.model(**obj_in_data, owner_id=movement.id)
+        db_obj = self.model(**obj_in_data, fkOwner=movement.id)
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
@@ -28,24 +28,26 @@ class CRUDCapture(CRUDBase[tbl_capture, CaptureCreate, CaptureUpdate]):
         ecg_list: List[tbl_ecg] = []
 
         for mpu in mpu_in_capture:
-            n_device = mpu.pop('n_device', None)
+            n_device = mpu.pop('fkDevice', None)
+            print(n_device)
+            print(movement.fkOwner)
             device = db.query(tbl_device).filter(
                     and_(tbl_device.fkOwner == movement.fkOwner, tbl_device.fldNNumberDevice == n_device)).first()
             if device is None:
                 raise HTTPException(status_code=404, detail="device position {} not found".format(n_device))
-            mpu.pop('n_device', None)
-            data = tbl_mpu(**mpu, owner_id=id_capture, device_id=device.id)
+            mpu.pop('fkDevice', None)
+            data = tbl_mpu(**mpu, fkOwner=id_capture, fkDevice=device.id)
             mpu_list.append(data)
 
         for ecg in ecg_in_capture:
-            n_device = ecg.get('n_device')
+            n_device = ecg.get('fkDevice')
             device = db.query(tbl_device).filter(
                     and_(tbl_device.fkOwner == movement.fkOwner, tbl_device.fldNNumberDevice == n_device)).first()
             if device is None:
                 raise HTTPException(status_code=404, detail="device position {} not found".format(n_device))
 
-            ecg.pop('n_device', None)
-            ecg = tbl_ecg(**ecg, owner_id=id_capture, device_id=device.id)
+            ecg.pop('fkDevice', None)
+            ecg = tbl_ecg(**ecg, fkOwner=id_capture, fkDevice=device.id)
             ecg_list.append(ecg)
 
         db.add_all(mpu_list)

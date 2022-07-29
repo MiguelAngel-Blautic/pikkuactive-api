@@ -17,20 +17,20 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
         devices_in_model = obj_in_data.pop('devices', None)
         movements_in_model = obj_in_data.pop('movements', None)
 
-        db_obj = self.model(**obj_in_data, owner_id=owner_id)
-        db_obj.fldSStats = TrainingStatus.no_training
+        db_obj = self.model(**obj_in_data, fkOwner=owner_id, fkCreador=owner_id)
+        db_obj.fldSStatus = TrainingStatus.no_training
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         id_model = db_obj.id
         for device in devices_in_model:
-            device = tbl_device(**device, owner_id=id_model)
+            device = tbl_device(**device, fkOwner=id_model)
             db.add(device)
             db.commit()
             db.refresh(device)
 
         for movement in movements_in_model:
-            movement = tbl_movement(** movement, owner_id=id_model)
+            movement = tbl_movement(** movement, fkOwner=id_model)
             db.add(movement)
             db.commit()
             db.refresh(movement)

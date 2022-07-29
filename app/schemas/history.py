@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 class History(BaseModel):
     id: int
-    id_capture: int
-    owner_id: int
+    fkCapture: int
+    fkOwner: int
 
     class Config:
         orm_mode = True

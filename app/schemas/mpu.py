@@ -7,25 +7,25 @@ from datetime import datetime
 
 
 class MpuBase(BaseModel):
-    sample: Optional[int] = None
-    acc_x: Optional[float] = None
-    acc_y: Optional[float] = None
-    acc_z: Optional[float] = None
-    gyr_x: Optional[float] = None
-    gyr_y: Optional[float] = None
-    gyr_z: Optional[float] = None
+    fldNSample: Optional[int] = None
+    fldFAccX: Optional[float] = None
+    fldFAccY: Optional[float] = None
+    fldFAccZ: Optional[float] = None
+    fldFGyrX: Optional[float] = None
+    fldFGyrY: Optional[float] = None
+    fldFGyrZ: Optional[float] = None
 
 
 # Properties to receive on movement creation
 class MpuCreate(MpuBase):
-    n_device: int
-    sample: int
-    acc_x: float
-    acc_y: float
-    acc_z: float
-    gyr_x: float
-    gyr_y: float
-    gyr_z: float
+    fkDevice: int
+    fldNSample: int
+    fldFAccX: float
+    fldFAccY: float
+    fldFAccZ: float
+    fldFGyrX: float
+    fldFGyrY: float
+    fldFGyrZ: float
 
 
 # Properties to receive on movement update
@@ -35,8 +35,8 @@ class MpuUpdate(MpuBase):
 
 # Properties shared by movement stored in DB
 class MpuInDBBase(MpuBase):
-    owner_id: int
-    device_id: int
+    fkOwner: int
+    fkDevice: int
 
     class Config:
         orm_mode = True

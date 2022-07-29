@@ -8,20 +8,20 @@ from app.schemas.history import History
 
 
 class VersionBase(BaseModel):
-    accuracy: Optional[float] = None
-    epoch: Optional[int] = None
-    loss: Optional[float] = None
-    optimizer: Optional[str] = None
-    learning_rate: Optional[float] = None
+    fldFAccuracy: Optional[float] = None
+    fldNEpoch: Optional[int] = None
+    fldFLoss: Optional[float] = None
+    fldSOptimizer: Optional[str] = None
+    fldFLearningRate: Optional[float] = None
 
 
 # Properties to receive on movement creation
 class VersionCreate(VersionBase):
-    accuracy: float
-    epoch: int
-    loss: float
-    optimizer: str
-    learning_rate: float
+    fldFAccuracy: float
+    fldNEpoch: int
+    fldFLoss: float
+    fldSOptimizer: str
+    fldFLearningRate: float
 
 
 # Properties to receive on movement update
@@ -32,8 +32,8 @@ class VersionUpdate(VersionBase):
 # Properties shared by movement stored in DB
 class VersionInDBBase(VersionBase):
     id: int
-    owner_id: int
-    create_time: datetime
+    fkOwner: int
+    fldDTimeCreateTime: datetime
 
     class Config:
         orm_mode = True
