@@ -7,7 +7,9 @@ from pydantic import BaseModel, EmailStr
 class UserBase(BaseModel):
     fldSEmail: Optional[EmailStr] = None
     fldBActive: Optional[bool] = True
-    # is_superuser: bool = False
+    fldSDireccion: Optional[str] = None
+    fldSTelefono: Optional[str] = None
+    fldSImagen: Optional[str] = None
     fkRol: Optional[int] = 1
     fldSFullName: Optional[str] = None
 

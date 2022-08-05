@@ -37,16 +37,16 @@ def create_user(
     """
     Create new user.
     """
-    user = crud.user.get_by_email(db, email=user_in.email)
+    user = crud.user.get_by_email(db, email=user_in.fldSEmail)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this username already exists in the system.",
         )
     user = crud.user.create(db, obj_in=user_in)
-    if settings.EMAILS_ENABLED and user_in.email:
+    if settings.EMAILS_ENABLED and user_in.fldSEmail:
         send_new_account_email(
-            email_to=user_in.email, username=user_in.email, password=user_in.fldSHashedPassword
+            email_to=user_in.fldSEmail, username=user_in.fldSEmail, password=user_in.fldSHashedPassword
         )
     return user
 
@@ -107,26 +107,23 @@ def read_user_me(
 def create_user_open(
     *,
     db: Session = Depends(deps.get_db),
-    password: str = Body(...),
-    email: EmailStr = Body(...),
-    full_name: str = Body(None),
+    user_in: schemas.UserCreate,
 ) -> Any:
     """
-    Create new user without the need to be logged in.
+    Create new user.
     """
-    if not settings.USERS_OPEN_REGISTRATION:
-        raise HTTPException(
-            status_code=403,
-            detail="Open user registration is forbidden on this server",
-        )
-    user = crud.user.get_by_email(db, email=email)
+    user = crud.user.get_by_email(db, email=user_in.fldSEmail)
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this username already exists in the system",
+            detail="The user with this username already exists in the system.",
         )
-    user_in = schemas.UserCreate(password=password, email=email, full_name=full_name)
+    user_in.fkRol = 1
     user = crud.user.create(db, obj_in=user_in)
+    if settings.EMAILS_ENABLED and user_in.fldSEmail:
+        send_new_account_email(
+            email_to=user_in.fldSEmail, username=user_in.fldSEmail, password=user_in.fldSHashedPassword
+        )
     return user
 
 
