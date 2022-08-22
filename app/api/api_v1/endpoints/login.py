@@ -39,6 +39,7 @@ def login_access_token(
             user.id, expires_delta=access_token_expires, it_expire=False
         ),
         "token_type": "bearer",
+        "rol": user.fkRol,
     }
 
 
