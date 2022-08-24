@@ -57,6 +57,13 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
         if rol == 4:
             return db.query(self.model).filter(tbl_ejercicio.fkPlan == id).offset(skip).limit(limit).all()
 
+    def asigned(
+            self, *, db: Session, user: int, model: int,
+    ) -> bool:
+        ejercicios = db.query(tbl_ejercicio).join(tbl_asignado, tbl_ejercicio.fkPlan == tbl_asignado.fkPlan). \
+            filter(tbl_asignado.fkUsuario == user).filter(tbl_ejercicio.fkEjercicio == model).all()
+        return (len(ejercicios) > 0)
+
     def readUser(
             self, *, db: Session, user: int,
     ) -> List[EjercicioResumen]:

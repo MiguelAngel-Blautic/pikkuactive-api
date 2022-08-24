@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
 from app.models import tbl_device, tbl_movement
-from app.models.tbl_model import tbl_model, TrainingStatus
+from app.models.tbl_model import tbl_model, TrainingStatus, tbl_pertenece
 from app.schemas.model import ModelCreate, ModelUpdate
 
 
@@ -47,5 +47,10 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
             .all()
         )
 
+    def pertenece(
+        self, db: Session, *, user: int, model: int,
+    ) -> bool:
+        asignaciones = db.query(tbl_pertenece).filter(tbl_pertenece.fkUsuario == user).filter(tbl_pertenece.fkModel == model).all()
+        return (len(asignaciones) > 0)
 
 model = CRUDModel(tbl_model)

@@ -66,3 +66,10 @@ class tbl_history(Base):
 class tbl_tipo_modelo(Base):
     id = Column(Integer, primary_key=True)
     fkSNombre = Column(Integer)
+
+
+class tbl_pertenece(Base):
+    fkUsuario = Column(Integer, primary_key=True)
+    fkModel = Column(Integer, primary_key=True)
+    fkAsignado = Column(Integer)
+    fldBPermiso = Column(Boolean)
