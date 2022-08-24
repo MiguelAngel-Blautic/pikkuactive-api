@@ -11,6 +11,6 @@ from .mpu import Mpu, MpuCreate, MpuInDB, MpuUpdate
 from .version import Version, VersionCreate, VersionInDB, VersionUpdate
 from .asignado import Asignado, AsignadoCreate, AsignadoUpdate
 from .entrena import Entrena, EntrenaCreate, EntrenaUpdate
-from .ejercicio import Ejercicio, EjercicioCreate, EjercicioUpdate
+from .ejercicio import Ejercicio, EjercicioCreate, EjercicioUpdate, EjercicioResumen
 from .umbral import Umbral, UmbralCreate, UmbralUpdate
 from .resultado import Resultado, ResultadoCreate, ResultadoUpdate

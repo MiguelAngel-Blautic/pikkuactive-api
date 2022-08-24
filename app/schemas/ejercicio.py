@@ -3,7 +3,6 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
-
 # Shared properties
 from app.schemas import Model
 from app.schemas.umbral import Umbral, UmbralCreate
@@ -20,6 +19,13 @@ class EjercicioCreate(EjercicioBase):
     fkEjercicio: int
     umbrales: List[UmbralCreate]
     fldNRepeticiones: int
+
+
+class EjercicioResumen(EjercicioBase):
+    imagen: Optional[str] = None
+    nombre: Optional[str] = None
+    id: Optional[int] = None
+    progreso: Optional[int] = None
 
 
 # Properties to receive via API on update

@@ -72,6 +72,16 @@ def update_Ejercicio(
     return ejercicio
 
 
+@router.get("/usuario", response_model=List[schemas.EjercicioResumen])
+def readEjercicios(
+        *,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    ejercicios = crud.ejercicio.readUser(db=db, user=current_user.id)
+    return ejercicios
+
+
 @router.get("/{id}", response_model=schemas.Ejercicio)
 def read_ejercicio(
         *,
