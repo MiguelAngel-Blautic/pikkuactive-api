@@ -13,8 +13,20 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
     def get_by_email(self, db: Session, *, email: str) -> Optional[tbl_user]:
         return db.query(tbl_user).filter(tbl_user.fldSEmail == email).first()
 
-    def get_centros(self, db: Session, *, skip:int = 0, limit: int = 100) -> Optional[List[tbl_user]]:
+    def get_centros(self, db: Session, *, skip: int = 0, limit: int = 100) -> Optional[List[tbl_user]]:
         return db.query(tbl_user).filter(tbl_user.fkRol == 3).offset(skip).limit(limit).all()
+
+    def get_clientes(self, db: Session, *, user: int, rol: int) -> Optional[List[tbl_user]]:
+        if rol == 2:
+            aux = db.query(tbl_entrena.fkProfesional).filter(tbl_entrena.fkUsuario == user).first()
+            id = aux[0]
+            if not id:
+                return []
+            return db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id).filter(tbl_user.fkRol == 1).all()
+        else:
+            id = user
+            return db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id).all()
+
 
     def get_profesionales(self, db: Session, *, skip: int = 0, limit: int = 100, user: tbl_user) -> Optional[List[tbl_user]]:
         if user.fkRol == 3:
@@ -73,7 +85,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         return user.fldBActive
 
     def is_superuser(self, user: tbl_user) -> bool:
-        return (user.fkRol == 3)
+        return (user.fkRol == 4)
 
     def getRol(self, user: tbl_user) -> int:
         return user.fkRol

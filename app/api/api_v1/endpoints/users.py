@@ -18,12 +18,21 @@ def read_users(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: models.tbl_user = Depends(deps.get_current_active_superuser),
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve users.
     """
-    users = crud.user.get_multi(db, skip=skip, limit=limit)
+    if current_user.fkRol == 1:
+        users = crud.user.get_centros(db, skip=skip, limit=limit)
+    if current_user.fkRol == 2:
+        users = crud.user.get_clientes(db, user=current_user.id, rol=current_user.fkRol)
+    if current_user.fkRol == 3:
+        users = crud.user.get_clientes(db, user=current_user.id, rol=current_user.fkRol)
+    if current_user.fkRol == 4:
+        print("Dentro")
+        users = crud.user.get_multi(db, skip=skip, limit=limit)
+
     return users
 
 
