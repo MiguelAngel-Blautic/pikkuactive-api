@@ -19,14 +19,15 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
     def get_clientes(self, db: Session, *, user: int, rol: int) -> Optional[List[tbl_user]]:
         if rol == 2:
             aux = db.query(tbl_entrena.fkProfesional).filter(tbl_entrena.fkUsuario == user).first()
-            id = aux[0]
-            if not id:
+            print(aux)
+            if not aux:
                 return []
-            return db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id).filter(tbl_user.fkRol == 1).all()
+            id = aux[0]
+            return db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id).filter(
+                tbl_user.fkRol == 1).all()
         else:
             id = user
             return db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id).all()
-
 
     def get_profesionales(self, db: Session, *, skip: int = 0, limit: int = 100, user: tbl_user) -> Optional[List[tbl_user]]:
         if user.fkRol == 3:
@@ -61,7 +62,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         return db_obj
 
     def update(
-        self, db: Session, *, db_obj: tbl_user, obj_in: Union[UserUpdate, Dict[str, Any]]
+            self, db: Session, *, db_obj: tbl_user, obj_in: Union[UserUpdate, Dict[str, Any]]
     ) -> tbl_user:
         if isinstance(obj_in, dict):
             update_data = obj_in

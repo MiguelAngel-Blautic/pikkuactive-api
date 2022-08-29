@@ -40,6 +40,7 @@ def login_access_token(
         ),
         "token_type": "bearer",
         "rol": user.fkRol,
+        "id": user.id,
     }
 
 

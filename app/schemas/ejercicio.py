@@ -10,6 +10,7 @@ from app.schemas.umbral import Umbral, UmbralCreate
 
 class EjercicioBase(BaseModel):
     fkEjercicio: Optional[int] = None
+    ejercicio: Optional[Model] = None
     fldNRepeticiones: Optional[int] = None
     fldDDia: Optional[datetime] = None
 
@@ -25,6 +26,7 @@ class EjercicioResumen(EjercicioBase):
     imagen: Optional[str] = None
     nombre: Optional[str] = None
     id: Optional[int] = None
+    umbral: Optional[float] = None
     progreso: Optional[int] = None
 
 

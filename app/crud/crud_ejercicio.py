@@ -42,7 +42,7 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100, id: int,
     ) -> List[tbl_ejercicio]:
         if rol == 1:
-            return db.query(tbl_ejercicio).outerjoin(tbl_planes, tbl_planes.id == tbl_ejercicio.fkPlan). \
+            return db.query(self.model).outerjoin(tbl_planes, tbl_planes.id == tbl_ejercicio.fkPlan). \
                 filter(tbl_ejercicio.fkPlan == id).outerjoin(tbl_asignado, tbl_planes.id == tbl_asignado.fkPlan). \
                 filter(tbl_asignado.fkUsuario == user).offset(skip).limit(limit).all()
         if rol == 2:
@@ -84,6 +84,10 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
             obj.imagen = modelo.fldSImage
             obj.nombre = modelo.fldSName
             obj.progreso = len(resultados)
+            if len(ejercicio.umbrales) > 0:
+                obj.umbral = ejercicio.umbrales[0].fldFValor
+            else:
+                obj.umbral = 0.5
             res.append(obj)
         return res
 
