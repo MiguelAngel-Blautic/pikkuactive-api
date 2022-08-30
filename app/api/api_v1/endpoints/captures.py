@@ -85,8 +85,8 @@ def create_capture(
     # if movementlen(capture_in.data)
 
     capture = crud.capture.create_with_owner(db=db, obj_in=capture_in, movement=movement)
-    capture.ecg = []
-    capture.mpu = []
+    #capture.ecg = []
+    #capture.mpu = []
     return capture
 
 

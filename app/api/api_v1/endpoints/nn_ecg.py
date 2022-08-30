@@ -46,7 +46,6 @@ def train_model(model, df, version_last, max_value = 1):
 
     num_epoch = 500
     tf_model = tf.keras.models.load_model(url)
-
     X_train_Emg, X_test_Emg, y_train, y_test = split_normalize_data(model, df, max_value)
 
     tf_model.compile(optimizer=Adam(learning_rate=0.0035), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
@@ -77,11 +76,9 @@ def split_normalize_data(model, df , max_value):
     normalized_df[filter_emg_col] = normalized_df[filter_emg_col] / max_value
 
     # Split
-    X = normalized_df.drop(['label'], axis=1)
-    y = normalized_df['label']
-    print(y)
+    X = normalized_df.drop(['fldSLabel'], axis=1)
+    y = normalized_df['fldSLabel']
     y = label_enc.transform(y)
-    print(y)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0, stratify=y)
 
     return X_train, X_test, y_train, y_test
@@ -128,7 +125,7 @@ def data_adapter(model, captures):
             df_length = len(df)
             df.loc[df_length] = np_data[0].tolist()
     pd.set_option('display.max_columns', n_devices * samples)
-    df['label'] = labels
+    df['fldSLabel'] = labels
     # print(df.shape)
     # print(df)
 
