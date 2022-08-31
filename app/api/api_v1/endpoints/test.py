@@ -9,4 +9,4 @@ router = APIRouter()
 def test(
         id: int,
 ) -> Any:
-    return id
+    return "Prueba 1"
