@@ -17,11 +17,13 @@ class CRUDEntrena(CRUDBase[tbl_entrena, EntrenaCreate, EntrenaUpdate]):
             self, db: Session, *, obj_in: EntrenaCreate, user: tbl_user,
     ) -> tbl_ejercicio:
         obj_in_data = obj_in.dict()
-        aceptado = (user.fkRol > 1)
+        if user.fkRol > 1:
+            aceptado = 2
+        else:
+            aceptado = 1
         entrena = tbl_entrena(**obj_in_data, fldBConfirmed=aceptado)
         db.add(entrena)
         db.commit()
-        db.refresh(entrena)
         return entrena
 
 

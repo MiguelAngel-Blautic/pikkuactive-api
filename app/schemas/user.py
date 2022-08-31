@@ -36,7 +36,9 @@ class UserInDBBase(UserBase):
 
 # Additional properties to return via API
 class User(UserInDBBase):
-    pass
+    estado: int = 0
+    progreso: Optional[int] = 0
+    idRelacion: Optional[int] = 0
 
 
 # Additional properties stored in DB

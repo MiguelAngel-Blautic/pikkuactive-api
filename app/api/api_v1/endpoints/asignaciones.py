@@ -57,20 +57,7 @@ def read(
     return resultado
 
 
-@router.put("/entrenar", response_model=schemas.Entrena)
-def entrenar(
-        *,
-        db: Session = Depends(deps.get_db),
-        entrena_in: schemas.EntrenaCreate,
-        current_user: models.tbl_user = Depends(deps.get_current_active_user),
-) -> Any:
-    if not (entrena_in.fkUsuario == current_user.id or entrena_in.fkProfesional == current_user.id):
-        raise HTTPException(status_code=400, detail="Not involved")
-    resultado = crud.entrena.create_with_owner(db=db, obj_in=entrena_in, user=current_user)
-    return resultado
-
-
-@router.delete("/entrenar", response_model=schemas.Entrena)
+@router.post("/entrenar", response_model=int)
 def entrenar(
         *,
         db: Session = Depends(deps.get_db),
@@ -80,12 +67,58 @@ def entrenar(
     entrena = crud.entrena.get(db=db, id=id)
     if not entrena:
         raise HTTPException(status_code=404, detail="Relation not found")
-    if current_user.fkRol < 2:
-        raise HTTPException(status_code=400, detail="Not enough permissions")
     if not (entrena.fkUsuario == current_user.id or entrena.fkProfesional == current_user.id):
         raise HTTPException(status_code=400, detail="Not involved")
     entrena = crud.entrena.remove(db=db, id=id)
-    return entrena
+    entrena_in = schemas.EntrenaCreate(fkProfesional=entrena.fkProfesional, fkUsuario=entrena.fkUsuario)
+    res = crud.entrena.create_with_owner(db=db, obj_in=entrena_in, user=current_user)
+    if res:
+        if res.fldBConfirmed:
+            return 2
+        else:
+            return 1
+    else:
+        return 0
+
+
+@router.put("/entrenar", response_model=int)
+def entrenar(
+        *,
+        db: Session = Depends(deps.get_db),
+        profesional: int,
+        usuario: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    entrena_in = schemas.EntrenaCreate(fkProfesional=profesional, fkUsuario=usuario)
+    if not (entrena_in.fkUsuario == current_user.id or entrena_in.fkProfesional == current_user.id):
+        raise HTTPException(status_code=400, detail="Not involved")
+    resultado = crud.entrena.create_with_owner(db=db, obj_in=entrena_in, user=current_user)
+    if resultado:
+        if current_user.fkRol > 1:
+            return 2
+        else:
+            return 1
+    else:
+        return 0
+
+
+@router.delete("/entrenar", response_model=int)
+def entrenar(
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    entrena = crud.entrena.get(db=db, id=id)
+    if not entrena:
+        raise HTTPException(status_code=404, detail="Relation not found")
+    if not (entrena.fkUsuario == current_user.id or entrena.fkProfesional == current_user.id):
+        raise HTTPException(status_code=400, detail="Not involved")
+    entrena = crud.entrena.remove(db=db, id=id)
+    if entrena:
+        return 1
+    else:
+        return 0
 
 
 @router.put("/plan", response_model=schemas.Asignado)

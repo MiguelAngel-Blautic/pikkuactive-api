@@ -6,28 +6,75 @@ from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
 from app.models.tbl_entrena import tbl_entrena
 from app.models.tbl_user import tbl_user
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import UserCreate, UserUpdate, User
 
 
 class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
     def get_by_email(self, db: Session, *, email: str) -> Optional[tbl_user]:
         return db.query(tbl_user).filter(tbl_user.fldSEmail == email).first()
 
-    def get_centros(self, db: Session, *, skip: int = 0, limit: int = 100) -> Optional[List[tbl_user]]:
-        return db.query(tbl_user).filter(tbl_user.fkRol == 3).offset(skip).limit(limit).all()
+    def get_centros(self, db: Session, *, user: int, skip: int = 0, limit: int = 100) -> Optional[List[User]]:
+        centros = db.query(tbl_user).filter(tbl_user.fkRol == 3).offset(skip).limit(limit).all()
+        res = []
+        for centro in centros:
+            obj = User()
+            obj.id = centro.id
+            obj.fldSFullName = centro.fldSFullName
+            obj.fldSEmail = centro.fldSEmail
+            obj.fldBActive = centro.fldBActive
+            obj.fldSDireccion = centro.fldSDireccion
+            obj.fldSTelefono = centro.fldSTelefono
+            obj.fldSImagen = centro.fldSImagen
+            obj.fkRol = centro.fkRol
+            obj.progreso = 50
+            aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == user).filter(tbl_entrena.fkProfesional == centro.id).first()
+            if aux:
+                obj.idRelacion = aux.id
+                if aux.fldBConfirmed:
+                    obj.estado = 2
+                else:
+                    obj.estado = 1
+            else:
+                obj.estado = 0
+            res.append(obj)
+        return res
 
-    def get_clientes(self, db: Session, *, user: int, rol: int) -> Optional[List[tbl_user]]:
+    def get_clientes(self, db: Session, *, user: int, rol: int) -> Optional[List[User]]:
+        global clientes
+        res = []
         if rol == 2:
             aux = db.query(tbl_entrena.fkProfesional).filter(tbl_entrena.fkUsuario == user).first()
             print(aux)
-            if not aux:
-                return []
-            id = aux[0]
-            return db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id).filter(
-                tbl_user.fkRol == 1).all()
+            if aux:
+                id = aux[0]
+                clientes = db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id). \
+                    filter(tbl_user.fkRol == 1).filter(tbl_entrena.fldBConfirmed).all()
         else:
             id = user
-            return db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id).all()
+            clientes = db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id).all()
+
+        for cliente in clientes:
+            obj = User()
+            obj.id = cliente.id
+            obj.fldSFullName = cliente.fldSFullName
+            obj.fldSEmail = cliente.fldSEmail
+            obj.fldBActive = cliente.fldBActive
+            obj.fldSDireccion = cliente.fldSDireccion
+            obj.fldSTelefono = cliente.fldSTelefono
+            obj.fldSImagen = cliente.fldSImagen
+            obj.fkRol = cliente.fkRol
+            obj.progreso = 50
+            aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == obj.id).filter(tbl_entrena.fkProfesional == id).first()
+            if aux:
+                obj.idRelacion = aux.id
+                if aux.fldBConfirmed:
+                    obj.estado = 2
+                else:
+                    obj.estado = 1
+            else:
+                obj.estado = 0
+            res.append(obj)
+        return res
 
     def get_profesionales(self, db: Session, *, skip: int = 0, limit: int = 100, user: tbl_user) -> Optional[List[tbl_user]]:
         if user.fkRol == 3:

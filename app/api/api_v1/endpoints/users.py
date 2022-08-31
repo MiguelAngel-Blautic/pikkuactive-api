@@ -24,7 +24,7 @@ def read_users(
     Retrieve users.
     """
     if current_user.fkRol == 1:
-        users = crud.user.get_centros(db, skip=skip, limit=limit)
+        users = crud.user.get_centros(db, user=current_user.id, skip=skip, limit=limit)
     if current_user.fkRol == 2:
         users = crud.user.get_clientes(db, user=current_user.id, rol=current_user.fkRol)
     if current_user.fkRol == 3:

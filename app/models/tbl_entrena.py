@@ -12,6 +12,6 @@ if TYPE_CHECKING:
 
 class tbl_entrena(Base):
     id = Column(Integer, primary_key=True, index=True)
-    fkUsuario = Column(Integer, primary_key=True)
-    fkProfesional = Column(Integer, primary_key=True)
-    fldBConfirmed = Column(Boolean)
+    fkUsuario = Column(Integer)
+    fkProfesional = Column(Integer)
+    fldBConfirmed = Column(Integer)
