@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -32,14 +33,15 @@ def read_resultados(
 
 
 @router.post("/", response_model=schemas.Resultado)
-def create_umbral(
+def create_resultado(
         *,
         db: Session = Depends(deps.get_db),
         id: int,
         resultado_in: schemas.ResultadoCreate,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
-    umbral = read_umbral(db=db, id=id, current_user=current_user)  # Check model exists
+    resultado_in.fldDTimeFecha = datetime.today()
+    umbral = crud.umbral.get(db=db, id=id)
     if not umbral:
         raise HTTPException(status_code=404, detail="Umbral not found")
     resultado = crud.resultado.create_with_owner(db=db, db_obj=umbral, obj_in=resultado_in)
@@ -84,7 +86,7 @@ def read_resultado(
 
 
 @router.delete("/{id}", response_model=schemas.Resultado)
-def delete_umbral(
+def delete_resultado(
         *,
         db: Session = Depends(deps.get_db),
         id: int,

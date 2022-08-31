@@ -75,7 +75,7 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
         for ejercicio in ejercicios:
             modelo = db.query(tbl_model).filter(tbl_model.id == ejercicio.fkEjercicio).first()
             resultados = db.query(tbl_historico_valores).outerjoin(tbl_umbrales, tbl_historico_valores.fkUmbral == tbl_umbrales.id). \
-                filter(tbl_umbrales.fkEjercicio == ejercicio.id).filter(tbl_umbrales.fldFValor <= tbl_historico_valores.fldFValor).all()
+                filter(tbl_umbrales.fkEjercicio == ejercicio.id).all()
             obj = EjercicioResumen()
             obj.id = ejercicio.id
             obj.fkEjercicio = modelo.id
@@ -85,9 +85,10 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
             obj.nombre = modelo.fldSName
             obj.progreso = len(resultados)
             if len(ejercicio.umbrales) > 0:
+                obj.fkUmbral = ejercicio.umbrales[0].id
                 obj.umbral = ejercicio.umbrales[0].fldFValor
             else:
-                obj.umbral = 0.5
+                obj.umbral = 50
             res.append(obj)
         return res
 

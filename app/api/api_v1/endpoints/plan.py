@@ -111,7 +111,7 @@ def check_permission(
         rol: int,
 ) -> Any:
     if rol == 1:
-        res = crud.asignado.count(db=db, user=user, plan_owner=plan.id) > 1
+        res = crud.asignado.count(db=db, user=user, plan=plan.id) > 1
     else:
         if rol == 2:
             res = (user == plan.fkCreador)

@@ -28,6 +28,7 @@ class EjercicioResumen(EjercicioBase):
     id: Optional[int] = None
     umbral: Optional[float] = None
     progreso: Optional[int] = None
+    fkUmbral: Optional[int] = None
 
 
 # Properties to receive via API on update

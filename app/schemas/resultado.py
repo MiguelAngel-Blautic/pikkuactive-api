@@ -13,7 +13,7 @@ class ResultadoBase(BaseModel):
 # Properties to receive via API on creation
 class ResultadoCreate(ResultadoBase):
     fldFValor: float
-    fldDTimeFecha: datetime
+    fldDTimeFecha: Optional[datetime] = None
     fldNIntento: int
 
 # Properties to receive via API on update

@@ -39,6 +39,7 @@ class User(UserInDBBase):
     estado: int = 0
     progreso: Optional[int] = 0
     idRelacion: Optional[int] = 0
+    adherencia: Optional[int] = 0
 
 
 # Additional properties stored in DB
