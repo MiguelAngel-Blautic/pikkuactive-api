@@ -67,8 +67,6 @@ def entrenar(
     entrena = crud.entrena.get(db=db, id=id)
     if not entrena:
         raise HTTPException(status_code=404, detail="Relation not found")
-    if not (entrena.fkUsuario == current_user.id or entrena.fkProfesional == current_user.id):
-        raise HTTPException(status_code=400, detail="Not involved")
     entrena = crud.entrena.remove(db=db, id=id)
     entrena_in = schemas.EntrenaCreate(fkProfesional=entrena.fkProfesional, fkUsuario=entrena.fkUsuario)
     res = crud.entrena.create_with_owner(db=db, obj_in=entrena_in, user=current_user)
@@ -90,8 +88,6 @@ def entrenar(
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     entrena_in = schemas.EntrenaCreate(fkProfesional=profesional, fkUsuario=usuario)
-    if not (entrena_in.fkUsuario == current_user.id or entrena_in.fkProfesional == current_user.id):
-        raise HTTPException(status_code=400, detail="Not involved")
     resultado = crud.entrena.create_with_owner(db=db, obj_in=entrena_in, user=current_user)
     if resultado:
         if current_user.fkRol > 1:
@@ -112,8 +108,6 @@ def entrenar(
     entrena = crud.entrena.get(db=db, id=id)
     if not entrena:
         raise HTTPException(status_code=404, detail="Relation not found")
-    if not (entrena.fkUsuario == current_user.id or entrena.fkProfesional == current_user.id):
-        raise HTTPException(status_code=400, detail="Not involved")
     entrena = crud.entrena.remove(db=db, id=id)
     if entrena:
         return 1
