@@ -78,10 +78,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == obj.id).filter(tbl_entrena.fkProfesional == id).first()
             if aux:
                 obj.idRelacion = aux.id
-                if aux.fldBConfirmed:
-                    obj.estado = 2
-                else:
-                    obj.estado = 1
+                obj.estado = aux.fldBConfirmed
             else:
                 obj.estado = 0
             res.append(obj)
