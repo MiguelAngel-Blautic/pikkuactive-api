@@ -7,6 +7,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     rol: int
+    id: int
 
 
 class TokenPayload(BaseModel):
