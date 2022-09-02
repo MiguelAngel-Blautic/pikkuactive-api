@@ -11,7 +11,7 @@ from app.models.tbl_plan import tbl_planes
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.Plan])
+@router.get("/", response_model=List[schemas.PlanResumen])
 def read_plans(
         db: Session = Depends(deps.get_db),
         skip: int = 0,

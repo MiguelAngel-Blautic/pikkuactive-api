@@ -11,13 +11,14 @@ from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales
 from app.models.tbl_entrena import tbl_entrena
 from app.models.tbl_model import tbl_model, TrainingStatus
 from app.models.tbl_plan import tbl_planes
-from app.schemas import PlanCreate, PlanUpdate, EjercicioCreate
+from app.schemas import PlanCreate, PlanUpdate, EjercicioCreate, EjercicioResumen
+from app.schemas.plan import PlanResumen
 
 
 class CRUDPlan(CRUDBase[tbl_planes, PlanCreate, PlanUpdate]):
 
     def create_with_owner(
-        self, db: Session, *, obj_in: PlanCreate,
+            self, db: Session, *, obj_in: PlanCreate,
     ) -> tbl_planes:
         obj_in_data = obj_in.dict()
 
@@ -28,7 +29,7 @@ class CRUDPlan(CRUDBase[tbl_planes, PlanCreate, PlanUpdate]):
         return db_obj
 
     def add_ejercicio(
-            self, db: Session, *, db_obj:tbl_planes, obj_in: EjercicioCreate,
+            self, db: Session, *, db_obj: tbl_planes, obj_in: EjercicioCreate,
     ) -> tbl_ejercicio:
         obj_in_data = obj_in.dict()
         umbrales_in_ej = obj_in_data.pop('umbrales', None)
@@ -48,25 +49,46 @@ class CRUDPlan(CRUDBase[tbl_planes, PlanCreate, PlanUpdate]):
         return ejercicio
 
     def get_multi_by_rol(
-            self, db: Session, *, user: int, rol:int, skip: int = 0, limit: int = 100
-    ) -> List[tbl_planes]:
-        print(rol)
+            self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100
+    ) -> List[PlanResumen]:
+        global planes
+        resultado = []
         if rol == 1:
-            return db.query(self.model, tbl_asignado).filter(tbl_asignado.fkPlan == tbl_planes.id).filter(tbl_asignado.fkUsuario == user).\
-                offset(skip).limit(limit).all()
+            return []
         if rol == 2:
-            return db.query(self.model).filter(tbl_planes.fkCreador == user).offset(skip).limit(limit).all()
+            planes = db.query(self.model).filter(tbl_planes.fkCreador == user).offset(skip).limit(limit).all()
         if rol == 3:
-            res = db.query(tbl_planes).outerjoin(tbl_entrena, tbl_planes.fkCreador == tbl_entrena.fkUsuario). \
-                filter(or_(tbl_entrena.fkProfesional == user, tbl_planes.fkCreador == user)).\
+            planes = db.query(tbl_planes).outerjoin(tbl_entrena, tbl_planes.fkCreador == tbl_entrena.fkUsuario). \
+                filter(or_(tbl_entrena.fkProfesional == user, tbl_planes.fkCreador == user)). \
                 offset(skip).limit(limit).all()
-            print(res)
-            return res
         if rol == 4:
-            return db.query(self.model).offset(skip).limit(limit).all()
+            planes = db.query(self.model).offset(skip).limit(limit).all()
+
+        for plan in planes:
+            obj = PlanResumen()
+            obj.fldSNombre = plan.fldSNombre
+            obj.id = plan.id
+            obj.ejercicios = []
+            for ejercicio in plan.ejercicios:
+                modelo = db.query(tbl_model).filter(tbl_model.id == ejercicio.fkEjercicio).first()
+                aux = EjercicioResumen()
+                aux.id = ejercicio.id
+                aux.fkEjercicio = modelo.id
+                aux.fldNRepeticiones = ejercicio.fldNRepeticiones
+                aux.fldDDia = ejercicio.fldDDia
+                aux.imagen = modelo.fldSImage
+                aux.nombre = modelo.fldSName
+                if len(ejercicio.umbrales) > 0:
+                    aux.fkUmbral = ejercicio.umbrales[0].id
+                    aux.umbral = ejercicio.umbrales[0].fldFValor
+                else:
+                    aux.umbral = 50
+                obj.ejercicios.append(aux)
+            resultado.append(obj)
+        return resultado
 
     def asignar_plan(
-            self, db: Session, *, paciente: int, plan:int, user: tbl_user
+            self, db: Session, *, paciente: int, plan: int, user: tbl_user
     ) -> tbl_asignado:
         plan = tbl_asignado(fkUsuario=paciente, fkAsignador=user.id, fkPlan=plan)
         db.add(plan)
@@ -80,5 +102,6 @@ class CRUDPlan(CRUDBase[tbl_planes, PlanCreate, PlanUpdate]):
         db.delete(tbl_asignado).where(tbl_asignado.fkUsuario == paciente).where(tbl_asignado.fkPlan == plan)
         db.commit()
         return plan
+
 
 plan = CRUDPlan(tbl_planes)

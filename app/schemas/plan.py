@@ -3,9 +3,8 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
-
 # Shared properties
-from app.schemas.ejercicio import Ejercicio
+from app.schemas.ejercicio import Ejercicio, EjercicioResumen
 
 
 class PlanBase(BaseModel):
@@ -19,6 +18,11 @@ class PlanCreate(PlanBase):
     fldSNombre: str
     fkCreador: int
     fldBGenerico: bool
+
+
+class PlanResumen(PlanBase):
+    ejercicios: Optional[List[EjercicioResumen]] = None
+    id: Optional[int] = None
 
 
 # Properties to receive via API on update
