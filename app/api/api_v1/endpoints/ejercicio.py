@@ -50,6 +50,28 @@ def create_ejercicio(
     return ejercicio
 
 
+@router.put("/repeticiones", response_model=int)
+def update_Repeticiones(
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        repeticiones: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    return crud.ejercicio.repeticiones(db=db, id=id, valor=repeticiones)
+
+
+@router.put("/umbral", response_model=int)
+def update_Umbral(
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        umbral: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    return crud.ejercicio.umbral(db=db, id=id, valor=umbral)
+
+
 @router.put("/{id}", response_model=schemas.Ejercicio)
 def update_Ejercicio(
         *,

@@ -161,11 +161,16 @@ def update_user(
     db: Session = Depends(deps.get_db),
     user_id: int,
     user_in: schemas.UserUpdate,
-    current_user: models.tbl_user = Depends(deps.get_current_active_superuser),
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update a user.
     """
+    if (user_id != current_user.id) and (current_user.fkRol < 3):
+        raise HTTPException(
+            status_code=400,
+            detail="Only can update your user",
+        )
     user = crud.user.get(db, id=user_id)
     if not user:
         raise HTTPException(

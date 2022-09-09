@@ -6,6 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import or_, not_
 from sqlalchemy.orm import Session
 
+from app import crud
 from app.crud.base import CRUDBase
 from app.models import tbl_device, tbl_movement
 from app.models.tbl_asignado import tbl_asignado
@@ -91,6 +92,35 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
                 obj.umbral = 50
             res.append(obj)
         return res
+
+    def repeticiones(
+            self,
+            db: Session,
+            *,
+            id: int,
+            valor: int
+    ) -> int:
+        res = db.query(tbl_ejercicio).filter(tbl_ejercicio.id == id).update({tbl_ejercicio.fldNRepeticiones: valor}, synchronize_session=False)
+        if res:
+            db.commit()
+            return 1
+        else:
+            return 0
+
+    def umbral(
+            self,
+            db: Session,
+            *,
+            id: int,
+            valor: int
+    ) -> int:
+        res = db.query(tbl_umbrales).filter(tbl_umbrales.fkEjercicio == id).update({tbl_umbrales.fldFValor: valor}, synchronize_session=False)
+        if res:
+            db.commit()
+            return 1
+        else:
+            return 0
+
 
 
 ejercicio = CRUDEjercicio(tbl_ejercicio)
