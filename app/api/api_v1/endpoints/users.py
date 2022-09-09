@@ -172,10 +172,13 @@ def update_user(
             detail="Only can update your user",
         )
     user = crud.user.get(db, id=user_id)
+    if not user_in.password:
+        user_in.password = ""
     if not user:
         raise HTTPException(
             status_code=404,
             detail="The user with this username does not exist in the system",
         )
+    user_in.fldSFcmToken = user.fldSFcmToken
     user = crud.user.update(db, db_obj=user, obj_in=user_in)
     return user
