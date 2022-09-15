@@ -16,7 +16,7 @@ class PlanBase(BaseModel):
 # Properties to receive via API on creation
 class PlanCreate(PlanBase):
     fldSNombre: str
-    fkCreador: int
+    fkCreador: Optional[int]
     fldBGenerico: bool
 
 

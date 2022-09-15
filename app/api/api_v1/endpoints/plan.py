@@ -36,6 +36,8 @@ def create_plan(
     """
     Create new model.
     """
+    if not plan_in.fkCreador:
+        plan_in.fkCreador = current_user.id
     if current_user.fkRol > 1:
         plan = crud.plan.create_with_owner(db=db, obj_in=plan_in)
     else:
