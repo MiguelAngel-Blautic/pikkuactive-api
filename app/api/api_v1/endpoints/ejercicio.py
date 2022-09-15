@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -98,9 +98,14 @@ def update_Ejercicio(
 def readEjercicios(
         *,
         db: Session = Depends(deps.get_db),
+        id: Optional[int] = None,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
-    ejercicios = crud.ejercicio.readUser(db=db, user=current_user.id)
+    if id:
+        usuario = id
+    else:
+        usuario = current_user.id
+    ejercicios = crud.ejercicio.readUser(db=db, user=usuario)
     return ejercicios
 
 

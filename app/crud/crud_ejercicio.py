@@ -24,12 +24,13 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
     ) -> tbl_ejercicio:
         obj_in_data = obj_in.dict()
         umbrales_in_ej = obj_in_data.pop('umbrales', None)
+        obj_in_data.pop('ejercicio', None)
 
-        ejercicio = tbl_ejercicio(**obj_in_data, fkPlan=db_obj.id, plan=db_obj)
-        db.add(ejercicio)
+        ejercicio1 = tbl_ejercicio(**obj_in_data, fkPlan=db_obj.id, plan=db_obj)
+        db.add(ejercicio1)
         db.commit()
-        db.refresh(ejercicio)
-        id_ejercicio = ejercicio.id
+        db.refresh(ejercicio1)
+        id_ejercicio = ejercicio1.id
         for umbral in umbrales_in_ej:
             umbral.pop('resultados', None)
             umbral = tbl_umbrales(**umbral, fkEjercicio=id_ejercicio)
@@ -69,14 +70,13 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
             self, *, db: Session, user: int,
     ) -> List[EjercicioResumen]:
         res = []
-        current_time = date.today()
         ejercicios = db.query(tbl_ejercicio).join(tbl_asignado, tbl_ejercicio.fkPlan == tbl_asignado.fkPlan). \
-            filter(tbl_asignado.fkUsuario == user).filter(not_(tbl_ejercicio.fldDDia < current_time)). \
+            filter(tbl_asignado.fkUsuario == user). \
             order_by(tbl_ejercicio.fldDDia).all()
         for ejercicio in ejercicios:
             modelo = db.query(tbl_model).filter(tbl_model.id == ejercicio.fkEjercicio).first()
             resultados = db.query(tbl_historico_valores).outerjoin(tbl_umbrales, tbl_historico_valores.fkUmbral == tbl_umbrales.id). \
-                filter(tbl_umbrales.fkEjercicio == ejercicio.id).all()
+                filter(tbl_umbrales.fkEjercicio == ejercicio.id).filter(tbl_umbrales.fldFValor <= tbl_historico_valores.fldFValor).all()
             obj = EjercicioResumen()
             obj.id = ejercicio.id
             obj.fkEjercicio = modelo.id
