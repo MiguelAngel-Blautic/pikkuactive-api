@@ -97,7 +97,10 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
                 hechas = hechas + len(resultados)
         print(hechas)
         print(repeticiones)
-        return (hechas / repeticiones) * 100
+        if repeticiones > 0:
+            return (hechas / repeticiones) * 100
+        else:
+            return 0
 
     def get_progreso(self, db: Session, *, plan: int):
         current_time = datetime.today()
@@ -105,7 +108,11 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         pendientes = db.query(tbl_ejercicio).filter(tbl_ejercicio.fkPlan == plan).filter(tbl_ejercicio.fldDDia >= current_time).all()
         hn = len(hechos)
         pn = len(pendientes)
-        return (hn / (pn + hn))*100
+        if (pn + hn) > 0:
+            return (hn / (pn + hn))*100
+        else:
+            return 0
+
 
     def get_profesionales(self, db: Session, *, skip: int = 0, limit: int = 100, user: tbl_user) -> Optional[List[tbl_user]]:
         if user.fkRol == 3:
