@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import or_
+from sqlalchemy import or_, false
 from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
@@ -56,7 +56,7 @@ class CRUDPlan(CRUDBase[tbl_planes, PlanCreate, PlanUpdate]):
         if rol == 1:
             return []
         if rol == 2:
-            planes = db.query(self.model).filter(tbl_planes.fkCreador == user).offset(skip).limit(limit).all()
+            planes = db.query(self.model).filter(tbl_planes.fkCreador == user).filter(tbl_planes.fldBGenerico == 1).offset(skip).limit(limit).all()
         if rol == 3:
             planes = db.query(tbl_planes).outerjoin(tbl_entrena, tbl_planes.fkCreador == tbl_entrena.fkUsuario). \
                 filter(or_(tbl_entrena.fkProfesional == user, tbl_planes.fkCreador == user)). \
