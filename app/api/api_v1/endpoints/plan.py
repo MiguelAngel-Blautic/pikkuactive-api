@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -6,8 +7,9 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.models import tbl_plan
+from app.models.tbl_ejercicio import tbl_ejercicio
 from app.models.tbl_plan import tbl_planes
-from app.schemas import PlanCreate
+from app.schemas import PlanCreate, EjercicioCreate, Umbral
 
 router = APIRouter()
 
@@ -46,8 +48,13 @@ def create_plan(
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
     if plan.fldBGenerico is not None:
-        asignar = schemas.AsignadoCreate(fkUsuario=user, fkPlan=plan.id)
+        asignar = schemas.AsignadoCreate(fkUsuario=user, fkPlan=plan.id, fldDTimeAsignacion=datetime.today())
         crud.asignado.create_with_validation(db=db, obj_in=asignar, user=current_user)
+        ejercicios: List[tbl_ejercicio] = crud.ejercicio.get_multi_by_rol(db=db, user=current_user.id, rol=current_user.fkRol, id=plan_in.fldBGenerico)
+        for ejercicio in ejercicios:
+            umbrales = [Umbral(fldFValor=ejercicio.umbrales[0].fldFValor, fkTipo=1)]
+            add = EjercicioCreate(fkEjercicio=ejercicio.fkEjercicio, umbrales=  umbrales, fldNRepeticiones=ejercicio.fldNRepeticiones)
+            crud.ejercicio.create_with_owner(db=db, db_obj=plan, obj_in=add)
     return plan
 
 
