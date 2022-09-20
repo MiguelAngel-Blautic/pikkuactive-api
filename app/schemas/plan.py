@@ -10,14 +10,14 @@ from app.schemas.ejercicio import Ejercicio, EjercicioResumen
 class PlanBase(BaseModel):
     fldSNombre: Optional[str] = None
     fkCreador: Optional[int] = None
-    fldBGenerico: bool = True
+    fldBGenerico: Optional[int] = None
 
 
 # Properties to receive via API on creation
 class PlanCreate(PlanBase):
     fldSNombre: str
     fkCreador: Optional[int]
-    fldBGenerico: bool
+    fldBGenerico: Optional[int] = None
 
 
 class PlanResumen(PlanBase):

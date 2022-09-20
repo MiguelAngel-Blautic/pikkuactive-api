@@ -56,7 +56,7 @@ class CRUDPlan(CRUDBase[tbl_planes, PlanCreate, PlanUpdate]):
         if rol == 1:
             return []
         if rol == 2:
-            planes = db.query(self.model).filter(tbl_planes.fkCreador == user).filter(tbl_planes.fldBGenerico == 1).offset(skip).limit(limit).all()
+            planes = db.query(self.model).filter(tbl_planes.fkCreador == user).filter(tbl_planes.fldBGenerico == None).offset(skip).limit(limit).all()
         if rol == 3:
             planes = db.query(tbl_planes).outerjoin(tbl_entrena, tbl_planes.fkCreador == tbl_entrena.fkUsuario). \
                 filter(or_(tbl_entrena.fkProfesional == user, tbl_planes.fkCreador == user)). \
@@ -65,6 +65,7 @@ class CRUDPlan(CRUDBase[tbl_planes, PlanCreate, PlanUpdate]):
             planes = db.query(self.model).offset(skip).limit(limit).all()
 
         for plan in planes:
+            print(plan.fldBGenerico)
             obj = PlanResumen()
             obj.fldSNombre = plan.fldSNombre
             obj.id = plan.id

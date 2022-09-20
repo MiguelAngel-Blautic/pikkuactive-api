@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class tbl_planes(Base):
     id = Column(Integer, primary_key=True, index=True)
     fldSNombre = Column(String, index=True)
-    fldBGenerico = Column(Boolean())
+    fldBGenerico = Column(Integer)
 
     fkCreador = Column(Integer, ForeignKey("tbl_user.id", ondelete="CASCADE", onupdate="CASCADE"))
     creador = relationship("tbl_user")

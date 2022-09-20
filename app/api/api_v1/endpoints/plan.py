@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -7,6 +7,7 @@ from app import crud, models, schemas
 from app.api import deps
 from app.models import tbl_plan
 from app.models.tbl_plan import tbl_planes
+from app.schemas import PlanCreate
 
 router = APIRouter()
 
@@ -31,6 +32,7 @@ def create_plan(
         *,
         db: Session = Depends(deps.get_db),
         plan_in: schemas.PlanCreate,
+        user: Optional[int] = None,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -42,6 +44,10 @@ def create_plan(
         plan = crud.plan.create_with_owner(db=db, obj_in=plan_in)
     else:
         raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    if plan.fldBGenerico is not None:
+        asignar = schemas.AsignadoCreate(fkUsuario=user, fkPlan=plan.id)
+        crud.asignado.create_with_validation(db=db, obj_in=asignar, user=current_user)
     return plan
 
 
