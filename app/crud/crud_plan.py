@@ -88,6 +88,37 @@ class CRUDPlan(CRUDBase[tbl_planes, PlanCreate, PlanUpdate]):
             resultado.append(obj)
         return resultado
 
+    def get_pendientes(
+            self, db: Session, *, user: int
+    ) -> List[PlanResumen]:
+        global planes
+        resultado = []
+        planes = db.query(self.model).filter(tbl_planes.fkCreador == user).all()
+
+        for plan in planes:
+            print(plan.fldBGenerico)
+            obj = PlanResumen()
+            obj.fldSNombre = plan.fldSNombre
+            obj.id = plan.id
+            obj.ejercicios = []
+            for ejercicio in plan.ejercicios:
+                modelo = db.query(tbl_model).filter(tbl_model.id == ejercicio.fkEjercicio).first()
+                aux = EjercicioResumen()
+                aux.id = ejercicio.id
+                aux.fkEjercicio = modelo.id
+                aux.fldNRepeticiones = ejercicio.fldNRepeticiones
+                aux.fldDDia = ejercicio.fldDDia
+                aux.imagen = modelo.fldSImage
+                aux.nombre = modelo.fldSName
+                if len(ejercicio.umbrales) > 0:
+                    aux.fkUmbral = ejercicio.umbrales[0].id
+                    aux.umbral = ejercicio.umbrales[0].fldFValor
+                else:
+                    aux.umbral = 50
+                obj.ejercicios.append(aux)
+            resultado.append(obj)
+        return resultado
+
     def asignar_plan(
             self, db: Session, *, paciente: int, plan: int, user: tbl_user
     ) -> tbl_asignado:

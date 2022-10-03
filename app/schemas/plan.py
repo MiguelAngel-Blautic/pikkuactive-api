@@ -23,6 +23,7 @@ class PlanCreate(PlanBase):
 class PlanResumen(PlanBase):
     ejercicios: Optional[List[EjercicioResumen]] = None
     id: Optional[int] = None
+    adherencia: Optional[int] = None
 
 
 # Properties to receive via API on update
