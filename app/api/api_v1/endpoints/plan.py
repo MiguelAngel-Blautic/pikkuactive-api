@@ -55,9 +55,8 @@ def read_plans_user(
                         left join tbl_asignado ta on (ta.fkPlan = tp.id)
                         where ta.fkUsuario = """ + str(user) + """ and (Select max(te.fldDDia)
                             from tbl_ejercicio te 
-                            WHERE te.fkPlan = tp.id) <= '""" + str(today) + """';
+                            WHERE te.fkPlan = tp.id) < '""" + str(today) + """';
                     """)
-        print(sql_text)
         res = db.execute(sql_text)
     resultado.append(completar(db=db, res=res))
 
