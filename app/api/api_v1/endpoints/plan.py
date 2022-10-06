@@ -103,7 +103,10 @@ def completar(db: Session, res: Any) -> List[schemas.PlanResumen]:
         obj = PlanResumen()
         obj.fldSNombre = plan.fldSNombre
         obj.id = plan.id
-        obj.adherencia = row[1]*100
+        if(row[1]):
+            obj.adherencia = row[1]*100
+        else:
+            obj.adherencia = 0
         obj.ejercicios = []
         for ejercicio in plan.ejercicios:
             modelo = db.query(tbl_model).filter(tbl_model.id == ejercicio.fkEjercicio).first()
