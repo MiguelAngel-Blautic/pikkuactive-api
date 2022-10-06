@@ -57,6 +57,7 @@ def read_plans_user(
                             from tbl_ejercicio te 
                             WHERE te.fkPlan = tp.id) < '""" + str(today) + """';
                     """)
+        print(sql_text)
         res = db.execute(sql_text)
     resultado.append(completar(db=db, res=res))
 
@@ -68,7 +69,7 @@ def read_plans_user(
                             (select (count(*)/sum(te2.fldNRepeticiones)) from tbl_historico_valores thv left join tbl_umbrales tu on (thv.fkUmbral = tu.id) left join tbl_ejercicio te2 on (te2.id = tu.fkEjercicio) where te2.fkPlan = tp.id and thv.fldFvalor >= tu.fldFValor) as accurate
                         from  tbl_planes tp
                         left join tbl_asignado ta on (ta.fkPlan = tp.id)
-                        where ta.fkUsuario = 19 and (Select max(te.fldDDia)
+                        where ta.fkUsuario = """ + str(user) + """ and (Select max(te.fldDDia)
                             from tbl_ejercicio te 
                             WHERE te.fkPlan = tp.id) >= '""" + str(today) + """'
                            and (Select min(te.fldDDia)
@@ -86,7 +87,7 @@ def read_plans_user(
                                 (select (count(*)/sum(te2.fldNRepeticiones)) from tbl_historico_valores thv left join tbl_umbrales tu on (thv.fkUmbral = tu.id) left join tbl_ejercicio te2 on (te2.id = tu.fkEjercicio) where te2.fkPlan = tp.id and thv.fldFvalor >= tu.fldFValor) as accurate
                             from  tbl_planes tp
                             left join tbl_asignado ta on (ta.fkPlan = tp.id)
-                            where ta.fkUsuario = 19 and not((Select min(te.fldDDia)
+                            where ta.fkUsuario = """ + str(user) + """ and not((Select min(te.fldDDia)
                                 from tbl_ejercicio te 
                                 WHERE te.fkPlan = tp.id) <= '""" + str(today) + """');
                         """)
