@@ -20,6 +20,7 @@ class EjercicioCreate(EjercicioBase):
     fkEjercicio: int
     umbrales: List[UmbralCreate]
     fldNRepeticiones: int
+    fldDDia: Optional[datetime] = None
 
 
 class EjercicioResumen(EjercicioBase):

@@ -12,6 +12,7 @@ from app.models import tbl_plan
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales, tbl_historico_valores
 from app.models.tbl_plan import tbl_planes
 from app.api.api_v1.endpoints.plan import read_plan, check_permission
+from app.schemas import Graficas
 
 router = APIRouter()
 
@@ -83,6 +84,19 @@ def read_resultado(
     if not umbral:
         raise HTTPException(status_code=400, detail="Not enough permissions")
     return resultado
+
+
+@router.get("/graficas/{id}", response_model=schemas.Graficas)
+def leer_graficas(
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user)
+) -> Any:
+    graficas = crud.resultado.get_graficas(db=db, user=id, profesional=current_user.id)
+    print(graficas)
+    return graficas
+
 
 
 @router.delete("/{id}", response_model=schemas.Resultado)
