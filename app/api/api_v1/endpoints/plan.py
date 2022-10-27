@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
-from app.models import tbl_plan, tbl_model
+from app.models import tbl_sesion, tbl_model
 from app.models.tbl_ejercicio import tbl_ejercicio
-from app.models.tbl_plan import tbl_planes
+from app.models.tbl_sesion import tbl_planes
 from app.schemas import PlanCreate, EjercicioCreate, Umbral, PlanResumen, EjercicioResumen
 
 router = APIRouter()

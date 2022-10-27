@@ -10,7 +10,7 @@ from app.models.tbl_asignado import tbl_asignado
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales
 from app.models.tbl_entrena import tbl_entrena
 from app.models.tbl_model import tbl_model, TrainingStatus
-from app.models.tbl_plan import tbl_planes
+from app.models.tbl_sesion import tbl_planes
 from app.schemas import PlanCreate, PlanUpdate, EjercicioCreate, EjercicioResumen
 from app.schemas.plan import PlanResumen
 

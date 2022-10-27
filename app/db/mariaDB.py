@@ -7,10 +7,10 @@ class mariaDB:
     def test(
             self: str,
     ) -> Any:
-        MARIADB_DB: str = 'ziven-active'
-        MARIADB_PASSWORD: str = '$Sqnon2022!'
+        MARIADB_DB: str = 'motionia'
+        MARIADB_PASSWORD: str = '$Sq0709!'
         MARIADB_USER: str = 'root'
-        MARIADB_SERVER: str = '82.223.19.236'
+        MARIADB_SERVER: str = '82.223.121.8'
         MARIADB_PORT: str = '3306'
 
         conn = mariadb.connect(

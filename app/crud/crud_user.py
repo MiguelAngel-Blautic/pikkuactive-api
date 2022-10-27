@@ -8,7 +8,7 @@ from app.crud.base import CRUDBase
 from app.models.tbl_asignado import tbl_asignado
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales, tbl_historico_valores
 from app.models.tbl_entrena import tbl_entrena
-from app.models.tbl_plan import tbl_planes
+from app.models.tbl_sesion import tbl_planes
 from app.models.tbl_user import tbl_user
 from app.schemas.user import UserCreate, UserUpdate, User
 

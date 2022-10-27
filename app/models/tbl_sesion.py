@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from .tbl_user import tbl_user  # noqa: F401
 
 
-class tbl_planes(Base):
+class tbl_sesion(Base):
     id = Column(Integer, primary_key=True, index=True)
     fldSNombre = Column(String, index=True)
     fldBGenerico = Column(Integer)

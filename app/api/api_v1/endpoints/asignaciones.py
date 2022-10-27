@@ -7,9 +7,9 @@ from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints.ejercicio import read_ejercicio
 from app.api.api_v1.endpoints.umbral import read_umbral
-from app.models import tbl_plan, tbl_user
+from app.models import tbl_sesion, tbl_user
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales, tbl_historico_valores
-from app.models.tbl_plan import tbl_planes
+from app.models.tbl_sesion import tbl_planes
 from app.api.api_v1.endpoints.plan import read_plan, check_permission
 
 router = APIRouter()
