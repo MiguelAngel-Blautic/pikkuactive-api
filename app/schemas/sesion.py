@@ -7,31 +7,25 @@ from pydantic import BaseModel
 from app.schemas.ejercicio import Ejercicio, EjercicioResumen
 
 
-class PlanBase(BaseModel):
+class SesionBase(BaseModel):
     fldSNombre: Optional[str] = None
     fkCreador: Optional[int] = None
     fldBGenerico: Optional[int] = None
 
 
 # Properties to receive via API on creation
-class PlanCreate(PlanBase):
+class SesionCreate(SesionBase):
     fldSNombre: str
     fkCreador: Optional[int]
     fldBGenerico: Optional[int] = None
 
 
-class PlanResumen(PlanBase):
-    ejercicios: Optional[List[EjercicioResumen]] = None
-    id: Optional[int] = None
-    adherencia: Optional[int] = None
-
-
 # Properties to receive via API on update
-class PlanUpdate(PlanBase):
+class SesionUpdate(SesionBase):
     pass
 
 
-class PlanInDBBase(PlanBase):
+class SesionInDBBase(SesionBase):
     id: Optional[int] = None
     ejercicios: Optional[List[Ejercicio]] = None
 
@@ -40,5 +34,5 @@ class PlanInDBBase(PlanBase):
 
 
 # Properties to return to client
-class Plan(PlanInDBBase):
+class Sesion(SesionInDBBase):
     pass

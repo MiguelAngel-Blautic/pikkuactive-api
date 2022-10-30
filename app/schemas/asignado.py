@@ -11,13 +11,13 @@ from app.schemas.ejercicio import Ejercicio
 
 class AsignadoBase(BaseModel):
     fkUsuario: Optional[int] = None
-    fkPlan: Optional[int] = None
+    fkSesion: Optional[int] = None
     fldDTimeAsignacion: Optional[datetime] = None
 
 # Properties to receive via API on creation
 class AsignadoCreate(AsignadoBase):
     fkUsuario: int
-    fkPlan: int
+    fkSesion: int
 
 
 # Properties to receive via API on update

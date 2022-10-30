@@ -9,12 +9,14 @@ class ResultadoBase(BaseModel):
     fldFValor: Optional[float] = None
     fldDTimeFecha: Optional[datetime] = None
     fldNIntento: Optional[int] = None
+    fldFUmbral: Optional[float] = None
 
 # Properties to receive via API on creation
 class ResultadoCreate(ResultadoBase):
     fldFValor: float
     fldDTimeFecha: Optional[datetime] = None
     fldNIntento: int
+    fldFUmbral: float
 
 # Properties to receive via API on update
 class ResultadoUpdate(ResultadoBase):

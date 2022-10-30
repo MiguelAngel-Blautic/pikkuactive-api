@@ -30,7 +30,6 @@ def read_users(
     if current_user.fkRol == 3:
         users = crud.user.get_clientes(db, user=current_user.id, rol=current_user.fkRol)
     if current_user.fkRol == 4:
-        print("Dentro")
         users = crud.user.get_multi(db, skip=skip, limit=limit)
 
     return users

@@ -9,56 +9,12 @@ from app.api.api_v1.endpoints.ejercicio import read_ejercicio
 from app.api.api_v1.endpoints.umbral import read_umbral
 from app.models import tbl_sesion, tbl_user
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales, tbl_historico_valores
-from app.models.tbl_sesion import tbl_planes
 from app.api.api_v1.endpoints.plan import read_plan, check_permission
 
 router = APIRouter()
 
-
-@router.get("/centros", response_model=List[schemas.User])
-def read(
-        db: Session = Depends(deps.get_db),
-        skip: int = 0,
-        limit: int = 100,
-        current_user: models.tbl_user = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Retrieve models.
-    """
-    resultado: List[tbl_user] = crud.user.get_centros(db=db, skip=skip, limit=limit)
-    return resultado
-
-
-@router.get("/profesionales", response_model=List[schemas.User])
-def read(
-        db: Session = Depends(deps.get_db),
-        skip: int = 0,
-        limit: int = 100,
-        current_user: models.tbl_user = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Retrieve models.
-    """
-    resultado: List[tbl_user] = crud.user.get_profesionales(db=db, skip=skip, limit=limit, user=current_user)
-    return resultado
-
-
-@router.get("/pacientes", response_model=List[schemas.User])
-def read(
-        db: Session = Depends(deps.get_db),
-        skip: int = 0,
-        limit: int = 100,
-        current_user: models.tbl_user = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Retrieve models.
-    """
-    resultado: List[tbl_user] = crud.user.get_pacientes(db=db, skip=skip, limit=limit, user=current_user)
-    return resultado
-
-
 @router.post("/entrenar", response_model=int)
-def entrenar(
+def updatete_entrenar(
         *,
         db: Session = Depends(deps.get_db),
         id: int,
@@ -80,7 +36,7 @@ def entrenar(
 
 
 @router.put("/entrenar", response_model=int)
-def entrenar(
+def add_entrenar(
         *,
         db: Session = Depends(deps.get_db),
         profesional: int,
@@ -99,7 +55,7 @@ def entrenar(
 
 
 @router.delete("/entrenar", response_model=int)
-def entrenar(
+def remove_entrenar(
         *,
         db: Session = Depends(deps.get_db),
         id: int,
@@ -116,7 +72,7 @@ def entrenar(
 
 
 @router.put("/plan", response_model=schemas.Asignado)
-def asignar(
+def create_asignar(
         *,
         db: Session = Depends(deps.get_db),
         entrena_in: schemas.AsignadoCreate,
@@ -124,7 +80,7 @@ def asignar(
 ) -> Any:
     if not current_user.fkRol > 1:
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    plan = read_plan(db=db, id=entrena_in.fkPlan, current_user=current_user)  # Check model exists
+    plan = read_plan(db=db, id=entrena_in.fkSesion, current_user=current_user)  # Check model exists
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     if plan.fkCreador != current_user.id:

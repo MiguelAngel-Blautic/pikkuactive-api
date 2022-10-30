@@ -1,5 +1,5 @@
 from .crud_model import model
-from .crud_plan import plan
+from .crud_sesion import sesion
 from .crud_user import user
 from .crud_movement import movement
 from .crud_capture import capture
