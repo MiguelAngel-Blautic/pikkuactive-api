@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.api_v1.endpoints import models, login, users, utils, movements, position, captures, test, plan, ejercicio, umbral, resultado, \
+from app.api.api_v1.endpoints import models, login, users, utils, movements, position, captures, test, ejercicio, umbral, resultado, \
     asignaciones, sesion
 
 api_router = APIRouter()

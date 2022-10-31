@@ -23,7 +23,7 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    PROJECT_NAME: str = "Pikku Active"
+    PROJECT_NAME: str = "Motion IA"
     SENTRY_DSN: Optional[HttpUrl] = "https://4fc41f93f095413cbbf5d7d5d5de5e79@o926394.ingest.sentry.io/5889110"
 
     @validator("SENTRY_DSN", pre=True)
