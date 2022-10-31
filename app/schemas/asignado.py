@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 
 # Shared properties
-from app.schemas import Plan, User
 from app.schemas.ejercicio import Ejercicio
 
 
