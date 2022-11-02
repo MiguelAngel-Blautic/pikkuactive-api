@@ -13,14 +13,14 @@ from app.models.tbl_asignado import tbl_asignado
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales, tbl_historico_valores
 from app.models.tbl_entrena import tbl_entrena
 from app.models.tbl_model import tbl_model, TrainingStatus
-from app.models.tbl_sesion import tbl_planes
-from app.schemas import PlanCreate, PlanUpdate, EjercicioCreate, EjercicioUpdate, Plan, EjercicioResumen
+from app.models.tbl_sesion import tbl_sesion
+from app.schemas import SesionCreate, SesionUpdate, EjercicioCreate, EjercicioUpdate, Sesion, EjercicioResumen
 
 
 class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
 
     def create_with_owner(
-            self, db: Session, *, db_obj: tbl_planes, obj_in: EjercicioCreate,
+            self, db: Session, *, db_obj: tbl_sesion, obj_in: EjercicioCreate,
     ) -> tbl_ejercicio:
         obj_in_data = obj_in.dict()
         umbrales_in_ej = obj_in_data.pop('umbrales', None)
@@ -44,16 +44,16 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100, id: int,
     ) -> List[tbl_ejercicio]:
         if rol == 1:
-            return db.query(self.model).outerjoin(tbl_planes, tbl_planes.id == tbl_ejercicio.fkPlan). \
-                filter(tbl_ejercicio.fkPlan == id).outerjoin(tbl_asignado, tbl_planes.id == tbl_asignado.fkPlan). \
+            return db.query(self.model).outerjoin(tbl_sesion, tbl_sesion.id == tbl_ejercicio.fkPlan). \
+                filter(tbl_ejercicio.fkPlan == id).outerjoin(tbl_asignado, tbl_sesion.id == tbl_asignado.fkPlan). \
                 filter(tbl_asignado.fkUsuario == user).offset(skip).limit(limit).all()
         if rol == 2:
-            return db.query(tbl_ejercicio).outerjoin(tbl_planes, tbl_planes.id == tbl_ejercicio.fkPlan).filter(tbl_planes.fkCreador == user). \
+            return db.query(tbl_ejercicio).outerjoin(tbl_sesion, tbl_sesion.id == tbl_ejercicio.fkPlan).filter(tbl_sesion.fkCreador == user). \
                 filter(tbl_ejercicio.fkPlan == id).offset(skip).limit(limit).all()
         if rol == 3:
-            res = db.query(tbl_ejercicio).outerjoin(tbl_planes, tbl_planes.id == tbl_ejercicio.fkPlan).outerjoin(tbl_entrena,
-                                                                                                                 tbl_planes.fkCreador == tbl_entrena.fkUsuario). \
-                filter(or_(tbl_entrena.fkProfesional == user, tbl_planes.fkCreador == user)). \
+            res = db.query(tbl_ejercicio).outerjoin(tbl_sesion, tbl_sesion.id == tbl_ejercicio.fkPlan).outerjoin(tbl_entrena,
+                                                                                                                 tbl_sesion.fkCreador == tbl_entrena.fkUsuario). \
+                filter(or_(tbl_entrena.fkProfesional == user, tbl_sesion.fkCreador == user)). \
                 filter(tbl_ejercicio.fkPlan == id).offset(skip).limit(limit).all()
             return res
         if rol == 4:

@@ -11,7 +11,8 @@ from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales
 from app.models.tbl_entrena import tbl_entrena
 from app.models.tbl_model import tbl_model, TrainingStatus
 from app.models.tbl_sesion import tbl_sesion
-from app.schemas import SesionCreate, SesionUpdate, EjercicioCreate, EjercicioResumen
+from app.schemas import SesionCreate, SesionUpdate, EjercicioCreate, EjercicioResumen, Sesion
+
 
 class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
 
@@ -28,7 +29,7 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
 
     def get_multi_by_rol(
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100
-    ) -> List[PlanResumen]:
+    ) -> List[Sesion]:
         global planes
         resultado = []
         if rol == 1:
@@ -41,29 +42,6 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
                 offset(skip).limit(limit).all()
         if rol == 4:
             planes = db.query(self.model).offset(skip).limit(limit).all()
-
-        for plan in planes:
-            print(plan.fldBGenerico)
-            obj = PlanResumen()
-            obj.fldSNombre = plan.fldSNombre
-            obj.id = plan.id
-            obj.ejercicios = []
-            for ejercicio in plan.ejercicios:
-                modelo = db.query(tbl_model).filter(tbl_model.id == ejercicio.fkEjercicio).first()
-                aux = EjercicioResumen()
-                aux.id = ejercicio.id
-                aux.fkEjercicio = modelo.id
-                aux.fldNRepeticiones = ejercicio.fldNRepeticiones
-                aux.fldDDia = ejercicio.fldDDia
-                aux.imagen = modelo.fldSImage
-                aux.nombre = modelo.fldSName
-                if len(ejercicio.umbrales) > 0:
-                    aux.fkUmbral = ejercicio.umbrales[0].id
-                    aux.umbral = ejercicio.umbrales[0].fldFValor
-                else:
-                    aux.umbral = 50
-                obj.ejercicios.append(aux)
-            resultado.append(obj)
         return resultado
 
 

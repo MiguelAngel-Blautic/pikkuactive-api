@@ -8,7 +8,6 @@ from app.api import deps
 from app.api.api_v1.endpoints.ejercicio import read_ejercicio
 from app.models import tbl_sesion
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales
-from app.api.api_v1.endpoints.plan import read_plan, check_permission
 
 router = APIRouter()
 

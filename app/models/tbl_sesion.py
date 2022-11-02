@@ -18,4 +18,4 @@ class tbl_sesion(Base):
     fkCreador = Column(Integer, ForeignKey("tbl_user.id", ondelete="CASCADE", onupdate="CASCADE"))
     creador = relationship("tbl_user")
 
-    ejercicios = relationship("tbl_ejercicio", back_populates="plan", cascade="all,delete", single_parent=True)
+    ejercicios = relationship("tbl_ejercicio", back_populates="sesion", cascade="all,delete", single_parent=True)

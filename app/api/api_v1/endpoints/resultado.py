@@ -10,8 +10,6 @@ from app.api.api_v1.endpoints.ejercicio import read_ejercicio
 from app.api.api_v1.endpoints.umbral import read_umbral
 from app.models import tbl_sesion
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales, tbl_historico_valores
-from app.api.api_v1.endpoints.plan import read_plan, check_permission
-from app.schemas import Graficas
 
 router = APIRouter()
 

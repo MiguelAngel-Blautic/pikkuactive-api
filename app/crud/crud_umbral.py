@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.crud.base import CRUDBase
 from app.models import tbl_device, tbl_movement
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales, tbl_historico_valores
-from app.schemas import PlanCreate, PlanUpdate, EjercicioCreate, EjercicioUpdate, Plan, UmbralUpdate, UmbralCreate
+from app.schemas import SesionCreate, SesionUpdate, EjercicioCreate, EjercicioUpdate, Sesion, UmbralUpdate, UmbralCreate
 
 
 class CRUDUmbral(CRUDBase[tbl_umbrales, UmbralCreate, UmbralUpdate]):

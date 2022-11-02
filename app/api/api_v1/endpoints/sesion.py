@@ -14,7 +14,7 @@ from app.schemas import SesionCreate, EjercicioCreate, Umbral, EjercicioResumen
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.PlanResumen])
+@router.get("/", response_model=List[schemas.Sesion])
 def read_sesiones(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -29,11 +29,11 @@ def read_sesiones(
     return plan
 
 
-@router.post("/", response_model=schemas.Plan)
+@router.post("/", response_model=schemas.Sesion)
 def create_plan(
         *,
         db: Session = Depends(deps.get_db),
-        plan_in: schemas.PlanCreate,
+        plan_in: schemas.SesionCreate,
         user: Optional[int] = None,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -43,7 +43,7 @@ def create_plan(
     if not plan_in.fkCreador:
         plan_in.fkCreador = current_user.id
     if current_user.fkRol > 1:
-        plan = crud.plan.create_with_owner(db=db, obj_in=plan_in)
+        plan = crud.sesion.create_with_owner(db=db, obj_in=plan_in)
     else:
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
@@ -59,12 +59,12 @@ def create_plan(
     return plan
 
 
-@router.put("/{id}", response_model=schemas.Plan)
+@router.put("/{id}", response_model=schemas.Sesion)
 def update_plan(
         *,
         db: Session = Depends(deps.get_db),
         id: int,
-        plan_in: schemas.PlanUpdate,
+        plan_in: schemas.SesionUpdate,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -74,13 +74,13 @@ def update_plan(
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     if check_permission(db=db, user=current_user.id, plan=plan, rol=current_user.fkRol):
-        plan = crud.plan.update(db=db, db_obj=plan, obj_in=plan_in)
+        plan = crud.sesion.update(db=db, db_obj=plan, obj_in=plan_in)
     else:
         raise HTTPException(status_code=400, detail="Not enough permissions")
     return plan
 
 
-@router.get("/{id}", response_model=schemas.Plan)
+@router.get("/{id}", response_model=schemas.Sesion)
 def read_plan(
         *,
         db: Session = Depends(deps.get_db),
@@ -90,7 +90,7 @@ def read_plan(
     """
     Get model by ID.
     """
-    plan = crud.plan.get(db=db, id=id)
+    plan = crud.sesion.get(db=db, id=id)
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     if not check_permission(db=db, user=current_user.id, plan=plan, rol=current_user.fkRol):
@@ -98,7 +98,7 @@ def read_plan(
     return plan
 
 
-@router.delete("/{id}", response_model=schemas.Plan)
+@router.delete("/{id}", response_model=schemas.Sesion)
 def delete_plan(
         *,
         db: Session = Depends(deps.get_db),

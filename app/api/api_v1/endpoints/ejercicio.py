@@ -7,7 +7,7 @@ from app import crud, models, schemas
 from app.api import deps
 from app.models import tbl_sesion
 from app.models.tbl_ejercicio import tbl_ejercicio
-from app.api.api_v1.endpoints.plan import read_plan, check_permission
+from app.api.api_v1.endpoints.sesion import read_plan, check_permission
 
 router = APIRouter()
 

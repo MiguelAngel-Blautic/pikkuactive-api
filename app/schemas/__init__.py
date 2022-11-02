@@ -14,4 +14,3 @@ from .entrena import Entrena, EntrenaCreate, EntrenaUpdate
 from .ejercicio import Ejercicio, EjercicioCreate, EjercicioUpdate, EjercicioResumen
 from .umbral import Umbral, UmbralCreate, UmbralUpdate
 from .resultado import Resultado, ResultadoCreate, ResultadoUpdate
-from .graficas import Graficas
