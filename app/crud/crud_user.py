@@ -29,8 +29,6 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             obj.fldSTelefono = centro.fldSTelefono
             obj.fldSImagen = centro.fldSImagen
             obj.fkRol = centro.fkRol
-            obj.progreso = 50
-            obj.adherencia = 50
             aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == user).filter(tbl_entrena.fkProfesional == centro.id).first()
             if aux:
                 obj.idRelacion = aux.id
