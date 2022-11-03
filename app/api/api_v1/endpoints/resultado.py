@@ -101,3 +101,17 @@ def delete_resultado(
         raise HTTPException(status_code=404, detail="Umbral not found")
     resultado = crud.resultado.remove(db=db, id=id)
     return resultado
+
+
+@router.get("/user/{id}", response_model=schemas.Grafica)
+def obtener_graficas(
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Obtener las graficas de un usuario
+    """
+    resultado = crud.resultado.get_graficas(db=db, user=id, profesional=current_user.id)
+    return resultado
