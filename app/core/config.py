@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
     # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = ["http://0.0.0.0:8000","http://localhost:8000", "http://localhost", "http://localhost:4200", "http://localhost:3000",  "http://localhost:8080"]
+    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = ["http://0.0.0.0:8000", "http://localhost:8000", "http://localhost", "http://localhost:4200",
+                                              "http://localhost:3000", "http://localhost:8080"]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
@@ -36,7 +37,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "Ht12wy0"
     POSTGRES_DB: str = "pikku-active"
-    SQLALCHEMY_DATABASE_URI: Optional[str] = 'mariadb+mariadbconnector://root:$Sqnon2022!@82.223.19.236:3306/ziven-active' # Optional[PostgresDsn] = None
+    SQLALCHEMY_DATABASE_URI: Optional[str] = 'mariadb+mariadbconnector://root:$Sqnon2022!@82.223.121.8:3306/motionia'  # Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
