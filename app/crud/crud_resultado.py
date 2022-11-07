@@ -107,7 +107,7 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
 
         if plan != 0:
             sql_text = text("""
-                select e.id, p.fldSNombre,
+                select p.id, p.fldSNombre,
                     (select count(*)
                     from tbl_historico_valores hv
                         left join tbl_umbrales u on (hv.fkUmbral = u.id)
