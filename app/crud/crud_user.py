@@ -95,6 +95,9 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             fldSEmail=obj_in.fldSEmail,
             fldSHashedPassword=get_password_hash(obj_in.fldSHashedPassword),
             fldBActive=obj_in.fldBActive,
+            fldSDireccion=obj_in.fldSDireccion,
+            fldSTelefono=obj_in.fldSTelefono,
+            fldSImagen=obj_in.fldSImagen,
             fkRol=obj_in.fkRol,
         )
         db.add(db_obj)
