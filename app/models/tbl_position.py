@@ -8,3 +8,4 @@ class tbl_position(Base):
     id = Column(Integer, primary_key=True, index=True)
     fldSName = Column(String(255), nullable=False)
     fldSDescription = Column(String)
+    positions = relationship("tbl_device", back_populates="position", cascade="all,delete", single_parent=True)
