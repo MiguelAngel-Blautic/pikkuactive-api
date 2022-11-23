@@ -54,7 +54,7 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
         return (
             db.query(self.model)
             .join(tbl_entrena, tbl_model.fkOwner == tbl_entrena.fkProfesional)
-            .filter(tbl_entrena.fkUsuario == owner_id)
+            .filter(tbl_entrena.fkUsuario == owner_id).filter(tbl_entrena.fldBConfirmed == 2)
             .offset(skip)
             .limit(limit)
             .all()
