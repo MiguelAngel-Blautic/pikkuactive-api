@@ -85,7 +85,7 @@ def read_model(
     model = crud.model.get(db=db, id=id)
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
-    if not crud.user.is_superuser(current_user) and (model.fkOwner != current_user.id) and not(crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id) and not(crud.model.pertenece(db=db, user=current_user.id, model=model.id))):
+    if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     return model
 
