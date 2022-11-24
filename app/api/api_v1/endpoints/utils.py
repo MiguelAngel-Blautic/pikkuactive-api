@@ -18,11 +18,11 @@ from firebase_admin import credentials
 import tensorflow as tf
 
 router = APIRouter()
-serverToken = 'AAAAyNDqQ8c:APA91bEETtU_JtV_41C71VDqsr3bsZvRlBaDFHezOO0zm1Iac5UhUURVylMJVPCOAmTev6D-oCq-qWmtT7EjzJm9jEHp5BgreYK8nVfK5wqKKuzqg4SD-mblR-QM0XtYTlzNKPRX7Ppm'
+serverToken = 'AAAAmpw87-E:APA91bGxqsAff2uwrO0uMaaujmiy7nBNCm82HcTFvM0LwsR_7DL-39mNc1JtVj1yEWbjAxepY-ZgdLWkBLo9IoTcUQpuddDoYQJtthQwNriRbJkNDmbfH_v1-UydDVDRinMAW0-9FKF3'
 firebase_admin.initialize_app(
-    credentials.Certificate('app/blautic-ai-firebase.json'),
+    credentials.Certificate('app/motionia-firebase.json'),
     options={
-        'storageBucket': 'blautic-ai-9632f.appspot.com',
+        'storageBucket': 'motionia-4f3c9.appspot.com',
     })
 
 
