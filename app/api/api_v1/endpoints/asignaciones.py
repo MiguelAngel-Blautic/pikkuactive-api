@@ -55,6 +55,23 @@ def add_entrenar(
         return 0
 
 
+@router.post("/aceptar", response_model=int)
+def aceptar(
+        *,
+        db: Session = Depends(deps.get_db),
+        profesional: int,
+        usuario: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    sql_text = text("""
+            update tbl_entrena set fldBConfirmed = 2 where fkProfesional = """ + str(profesional) + """ and fkUsuario = """ + str(usuario))
+    db.execute(sql_text)
+    if db.commit():
+        return 1
+    else:
+        return 0
+
+
 @router.delete("/entrenar", response_model=int)
 def remove_entrenar(
         *,
