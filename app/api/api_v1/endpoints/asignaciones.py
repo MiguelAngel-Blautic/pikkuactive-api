@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
@@ -66,6 +67,23 @@ def remove_entrenar(
         raise HTTPException(status_code=404, detail="Relation not found")
     entrena = crud.entrena.remove(db=db, id=id)
     if entrena:
+        return 1
+    else:
+        return 0
+
+
+@router.delete("/entrenar_user", response_model=int)
+def remove_entrenar_user(
+        *,
+        db: Session = Depends(deps.get_db),
+        profesional: int,
+        usuario: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    sql_text = text("""
+        delete from tbl_entrena where fkProfesional = """+str(profesional)+""" and fkUsuario = """+str(usuario))
+    db.execute(sql_text)
+    if db.commit():
         return 1
     else:
         return 0
