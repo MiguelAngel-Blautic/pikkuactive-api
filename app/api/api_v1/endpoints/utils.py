@@ -79,20 +79,20 @@ def training_task(id_model: int):
 
     # Aqui agregar el la funcion de entrenamiento devolver el link donde se ha guarado el modelo
     # df = nn.data_adapter(model, captures)
-    df_ecg = nn_ecg.data_adapter(model, captures_mpu)
-    version_ecg = nn_ecg.train_model(model, df_ecg, version_last_mpu)
-    version_ecg.fkOwner = model.id
+    # df_ecg = nn_ecg.data_adapter(model, captures_mpu)
+    # version_ecg = nn_ecg.train_model(model, df_ecg, version_last_mpu)
+    # version_ecg.fkOwner = model.id
 
     df_mpu = nn.data_adapter(model, captures_mpu)
     version_mpu = nn.train_model(model, df_mpu, version_last_mpu)
     version_mpu.fkOwner = model.id
 
     db.add(version_mpu)
-    db.add(version_ecg)
+    # db.add(version_ecg)
 
     db.commit()
     db.refresh(version_mpu)
-    db.refresh(version_ecg)
+    # db.refresh(version_ecg)
 
     history = []
     for capture in captures_mpu:
@@ -104,8 +104,8 @@ def training_task(id_model: int):
     model.fldSStatus = TrainingStatus.training_succeeded
     db.commit()
     db.refresh(model)
-    publish_model_firebase(model, version_mpu.fldSUrl, 'mpu_')
-    publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
+    publish_model_firebase(model, version_mpu.fldSUrl, 'motionia_mpu_')
+    # publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
 
     if user.fldSFcmToken:
         send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName, body='finished training')
