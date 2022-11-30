@@ -12,8 +12,6 @@ if TYPE_CHECKING:
 
 class tbl_ejercicio(Base):
     id = Column(Integer, primary_key=True, index=True)
-    fldDDia = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
-    fldNRepeticiones = Column(Integer)
 
     fkEjercicio = Column(Integer, ForeignKey("tbl_model.id", ondelete="CASCADE", onupdate="CASCADE"))
     ejercicio = relationship("tbl_model")

@@ -11,7 +11,6 @@ from app.schemas.ejercicio import Ejercicio
 class AsignadoBase(BaseModel):
     fkUsuario: Optional[int] = None
     fkSesion: Optional[int] = None
-    fldDTimeAsignacion: Optional[datetime] = None
 
 # Properties to receive via API on creation
 class AsignadoCreate(AsignadoBase):

@@ -13,6 +13,4 @@ if TYPE_CHECKING:
 class tbl_asignado(Base):
     id = Column(Integer, primary_key=True, index=True)
     fkUsuario = Column(Integer)
-    fkAsignador = Column(Integer)
-    fkPlan = Column(Integer)
-    fldDTimeAsignacion = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+    fkSesion = Column(Integer)

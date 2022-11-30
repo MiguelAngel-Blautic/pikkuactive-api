@@ -34,7 +34,6 @@ def create_plan(
         *,
         db: Session = Depends(deps.get_db),
         plan_in: schemas.SesionCreate,
-        user: Optional[int] = None,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -46,16 +45,6 @@ def create_plan(
         plan = crud.sesion.create_with_owner(db=db, obj_in=plan_in)
     else:
         raise HTTPException(status_code=400, detail="Not enough permissions")
-
-    if plan.fldBGenerico is not None:
-        asignar = schemas.AsignadoCreate(fkUsuario=user, fkPlan=plan.id, fldDTimeAsignacion=datetime.today())
-        crud.asignado.create_with_validation(db=db, obj_in=asignar, user=current_user)
-        ejercicios: List[tbl_ejercicio] = crud.ejercicio.get_multi_by_rol(db=db, user=current_user.id, rol=current_user.fkRol,
-                                                                          id=plan_in.fldBGenerico)
-        for ejercicio in ejercicios:
-            umbrales = [Umbral(fldFValor=ejercicio.umbrales[0].fldFValor, fkTipo=1)]
-            add = EjercicioCreate(fkEjercicio=ejercicio.fkEjercicio, umbrales=umbrales, fldNRepeticiones=ejercicio.fldNRepeticiones)
-            crud.ejercicio.create_with_owner(db=db, db_obj=plan, obj_in=add)
     return plan
 
 

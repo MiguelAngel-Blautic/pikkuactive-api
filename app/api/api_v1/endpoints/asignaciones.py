@@ -11,8 +11,10 @@ from app.api.api_v1.endpoints.umbral import read_umbral
 from app.models import tbl_sesion, tbl_user
 from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales, tbl_historico_valores
 from app.api.api_v1.endpoints.sesion import read_plan, check_permission
+from app.schemas import AsignadoCreate
 
 router = APIRouter()
+
 
 @router.post("/entrenar", response_model=int)
 def updatete_entrenar(
@@ -98,7 +100,7 @@ def remove_entrenar_user(
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     sql_text = text("""
-        delete from tbl_entrena where fkProfesional = """+str(profesional)+""" and fkUsuario = """+str(usuario))
+        delete from tbl_entrena where fkProfesional = """ + str(profesional) + """ and fkUsuario = """ + str(usuario))
     db.execute(sql_text)
     if db.commit():
         return 1
@@ -139,3 +141,21 @@ def asignar(
         raise HTTPException(status_code=400, detail="Not involved")
     asignacion = crud.asignado.remove(db=db, id=id)
     return asignacion
+
+
+@router.post("/plan_users", response_model=schemas.Sesion)
+def asignar_users(
+        *,
+        db: Session = Depends(deps.get_db),
+        ids: List[int],
+        sesionId: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    sesion = read_plan(db=db, id=sesionId, current_user=current_user)  # Check model exists
+    if not sesion:
+        raise HTTPException(status_code=404, detail="Sesion not found")
+    for id in ids:
+        asignado = AsignadoCreate(fkUsuario=id, fkSesion=sesionId)
+        crud.asignado.create(db=db, obj_in=asignado)
+    sesion = read_plan(db=db, id=sesionId, current_user=current_user)  # Check model exists
+    return sesion

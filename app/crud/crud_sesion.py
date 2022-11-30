@@ -31,18 +31,13 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100
     ) -> List[Sesion]:
         global planes
-        resultado = []
         if rol == 1:
             return []
-        if rol == 2:
-            planes = db.query(self.model).filter(tbl_sesion.fkCreador == user).filter(tbl_sesion.fldBGenerico == None).offset(skip).limit(limit).all()
-        if rol == 3:
-            planes = db.query(tbl_sesion).outerjoin(tbl_entrena, tbl_sesion.fkCreador == tbl_entrena.fkUsuario). \
-                filter(or_(tbl_entrena.fkProfesional == user, tbl_sesion.fkCreador == user)). \
-                offset(skip).limit(limit).all()
+        if rol == 2 or rol == 3:
+            planes = db.query(self.model).filter(tbl_sesion.fkCreador == user).offset(skip).limit(limit).all()
         if rol == 4:
             planes = db.query(self.model).offset(skip).limit(limit).all()
-        return resultado
+        return planes
 
 
 

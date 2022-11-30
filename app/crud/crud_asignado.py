@@ -17,7 +17,7 @@ class CRUDAsignado(CRUDBase[tbl_asignado, AsignadoCreate, AsignadoUpdate]):
         return (
             db.query(self.model)
                 .filter(tbl_asignado.fkUsuario == user)
-                .filter(tbl_asignado.fkPlan == plan)
+                .filter(tbl_asignado.fkSesion == plan)
                 .count()
         )
 
@@ -25,7 +25,7 @@ class CRUDAsignado(CRUDBase[tbl_asignado, AsignadoCreate, AsignadoUpdate]):
             self, db: Session, *, obj_in: AsignadoCreate, user: tbl_user,
     ) -> tbl_asignado:
         obj_in_data = obj_in.dict()
-        asignacion = tbl_asignado(**obj_in_data, fkAsignador=user.id)
+        asignacion = tbl_asignado(**obj_in_data, fkUsuario=user.id)
         db.add(asignacion)
         db.commit()
         db.refresh(asignacion)
