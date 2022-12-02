@@ -4,6 +4,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 
 # Shared properties
+from app.schemas.user import User
 from app.schemas.ejercicio import Ejercicio, EjercicioResumen
 
 
@@ -36,3 +37,7 @@ class SesionInDBBase(SesionBase):
 # Properties to return to client
 class Sesion(SesionInDBBase):
     pass
+
+
+class SesionExtended(SesionInDBBase):
+    usuarios: List[User]

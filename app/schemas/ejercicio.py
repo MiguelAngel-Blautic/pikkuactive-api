@@ -11,16 +11,12 @@ from app.schemas.umbral import Umbral, UmbralCreate
 class EjercicioBase(BaseModel):
     fkEjercicio: Optional[int] = None
     ejercicio: Optional[Model] = None
-    fldNRepeticiones: Optional[int] = None
-    fldDDia: Optional[datetime] = None
 
 
 # Properties to receive via API on creation
 class EjercicioCreate(EjercicioBase):
     fkEjercicio: int
     umbrales: List[UmbralCreate]
-    fldNRepeticiones: int
-    fldDDia: Optional[datetime] = None
 
 
 class EjercicioResumen(EjercicioBase):
@@ -34,14 +30,14 @@ class EjercicioResumen(EjercicioBase):
 
 # Properties to receive via API on update
 class EjercicioUpdate(EjercicioBase):
-    fkPlan: Optional[int] = None
+    fkSesion: Optional[int] = None
     pass
 
 
 class EjercicioInDBBase(EjercicioBase):
     id: Optional[int] = None
     umbrales: Optional[List[Umbral]] = None
-    fkPlan: Optional[int] = None
+    fkSesion: Optional[int] = None
 
     class Config:
         orm_mode = True

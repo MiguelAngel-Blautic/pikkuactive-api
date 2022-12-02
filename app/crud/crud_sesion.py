@@ -12,6 +12,7 @@ from app.models.tbl_entrena import tbl_entrena
 from app.models.tbl_model import tbl_model, TrainingStatus
 from app.models.tbl_sesion import tbl_sesion
 from app.schemas import SesionCreate, SesionUpdate, EjercicioCreate, EjercicioResumen, Sesion
+from app.schemas.sesion import SesionExtended
 
 
 class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
@@ -29,7 +30,7 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
 
     def get_multi_by_rol(
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100
-    ) -> List[Sesion]:
+    ) -> List[SesionExtended]:
         global planes
         if rol == 1:
             return []
@@ -37,6 +38,9 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
             planes = db.query(self.model).filter(tbl_sesion.fkCreador == user).offset(skip).limit(limit).all()
         if rol == 4:
             planes = db.query(self.model).offset(skip).limit(limit).all()
+        for plan in planes:
+            SesionExtended()
+
         return planes
 
 

@@ -26,7 +26,7 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
         umbrales_in_ej = obj_in_data.pop('umbrales', None)
         obj_in_data.pop('ejercicio', None)
 
-        ejercicio1 = tbl_ejercicio(**obj_in_data, fkPlan=db_obj.id, plan=db_obj)
+        ejercicio1 = tbl_ejercicio(**obj_in_data, fkSesion=db_obj.id, sesion=db_obj)
         db.add(ejercicio1)
         db.commit()
         db.refresh(ejercicio1)

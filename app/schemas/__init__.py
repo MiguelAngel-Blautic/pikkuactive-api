@@ -1,6 +1,6 @@
 from .model import Model, ModelCreate, ModelInDB, ModelUpdate
 from .msg import Msg
-from .sesion import Sesion, SesionCreate, SesionUpdate
+from .sesion import Sesion, SesionCreate, SesionUpdate, SesionExtended
 from .token import Token, TokenPayload
 from .user import User, UserCreate, UserInDB, UserUpdate
 from .movement import Movement, MovementCreate, MovementInDB, MovementUpdate
