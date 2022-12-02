@@ -30,7 +30,7 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
 
     def get_multi_by_rol(
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100
-    ) -> List[SesionExtended]:
+    ) -> List[Sesion]:
         global planes
         if rol == 1:
             return []

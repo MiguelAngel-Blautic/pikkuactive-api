@@ -14,7 +14,7 @@ from app.schemas import SesionCreate, EjercicioCreate, Umbral, EjercicioResumen
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.SesionExtended])
+@router.get("/", response_model=List[schemas.Sesion])
 def read_sesiones(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
