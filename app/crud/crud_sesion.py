@@ -38,8 +38,6 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
             planes = db.query(self.model).filter(tbl_sesion.fkCreador == user).offset(skip).limit(limit).all()
         if rol == 4:
             planes = db.query(self.model).offset(skip).limit(limit).all()
-        for plan in planes:
-            SesionExtended()
 
         return planes
 
