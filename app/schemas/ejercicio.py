@@ -15,7 +15,7 @@ class EjercicioBase(BaseModel):
 
 # Properties to receive via API on creation
 class EjercicioCreate(EjercicioBase):
-    fkEjercicio: int
+    fkEjercicio: Optional[int] = None
     umbrales: List[UmbralCreate]
 
 
