@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
-
 
 
 class ResultadoBase(BaseModel):
@@ -10,6 +9,8 @@ class ResultadoBase(BaseModel):
     fldDTimeFecha: Optional[datetime] = None
     fldNIntento: Optional[int] = None
     fldFUmbral: Optional[float] = None
+    fkUser: Optional[int] = None
+
 
 # Properties to receive via API on creation
 class ResultadoCreate(ResultadoBase):
@@ -17,6 +18,7 @@ class ResultadoCreate(ResultadoBase):
     fldDTimeFecha: Optional[datetime] = None
     fldNIntento: int
     fldFUmbral: float
+
 
 # Properties to receive via API on update
 class ResultadoUpdate(ResultadoBase):
@@ -33,3 +35,25 @@ class ResultadoInDBBase(ResultadoBase):
 # Properties to return to client
 class Resultado(ResultadoInDBBase):
     pass
+
+
+class ResultadoEjercicio(BaseModel):
+    id: int
+    nombre: str
+    resultados: List[Resultado]
+
+
+class ResultadoTUmbral(BaseModel):
+    id: int
+    ejercicios: List[ResultadoEjercicio]
+
+
+class ResultadoUsuario(BaseModel):
+    id: int
+    nombre: str
+    tumbrales: List[ResultadoTUmbral]
+
+
+class ResultadosSesion(BaseModel):
+    id: int
+    usuarios: List[ResultadoUsuario]
