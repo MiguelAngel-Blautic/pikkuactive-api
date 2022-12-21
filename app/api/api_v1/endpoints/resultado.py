@@ -116,6 +116,7 @@ def read_resultado(
     texto = texto + "hv.fldDTimeFecha between '" + str(inicio) + "' and '" + str(
         fin) + "' order by s.id, u.id, um.fkTipo, m.id, e.id, u.fldSFullName, hv.fldFValor, hv.fldDTimeFecha, " \
                "hv.fldFUmbral, m.fldSName, hv.fldNIntento "
+    print(texto)
     sql_text = text(texto)
     res = db.execute(sql_text)
     first = True
@@ -132,7 +133,6 @@ def read_resultado(
     if res.rowcount > 0:
         for row in res:
             if first:
-                print("Primero")
                 sesionId = row[0]
                 usuarioId = row[1]
                 usuarioN = row[5]
@@ -151,7 +151,6 @@ def read_resultado(
                 resultadoL = []
                 first = False
             if row[0] != sesionId:
-                print("Nueva sesion")
                 ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
                 tumbralL.append(ResultadoTUmbral(id=tumbralId, ejercicios=ejercicioL))
                 usuarioL.append(ResultadoUsuario(id=usuarioId, nombre=usuarioN, tumbrales=tumbralL))
@@ -173,7 +172,6 @@ def read_resultado(
                 ejercicioL = []
                 resultadoL = []
             if row[1] != usuarioId:
-                print("    Nuevo usuario")
                 ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
                 tumbralL.append(ResultadoTUmbral(id=tumbralId, ejercicios=ejercicioL))
                 usuarioL.append(ResultadoUsuario(id=usuarioId, nombre=usuarioN, tumbrales=tumbralL))
@@ -192,7 +190,6 @@ def read_resultado(
                 ejercicioL = []
                 resultadoL = []
             if row[2] != tumbralId:
-                print("        Nuevo umbral")
                 ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
                 tumbralL.append(ResultadoTUmbral(id=tumbralId, ejercicios=ejercicioL))
                 tumbralId = row[2]
@@ -207,7 +204,6 @@ def read_resultado(
                 ejercicioL = []
                 resultadoL = []
             if row[3] != ejercicioId:
-                print("            Nuevo ejercicio")
                 ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
                 if row[9]:
                     ejercicioN = row[9]
@@ -218,7 +214,7 @@ def read_resultado(
                 else:
                     ejercicioId = row[4]
                 resultadoL = []
-            valor = Resultado(id=row[4], ldFValor=row[6], fldDTimeFecha=row[7], fldNIntento=row[10], fldFUmbral=row[8], fkUser=row[1])
+            valor = Resultado(id=row[4], fldFValor=row[6], fldDTimeFecha=row[7], fldNIntento=row[10], fldFUmbral=row[8], fkUser=row[1])
             resultadoL.append(valor)
         ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
         tumbralL.append(ResultadoTUmbral(id=tumbralId, ejercicios=ejercicioL))
