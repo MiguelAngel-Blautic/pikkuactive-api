@@ -43,5 +43,6 @@ class tbl_historico_valores(Base):
     fldNIntento = Column(Integer)
     fldDTimeFecha = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
     fldFUmbral = Column(Float)
+    fkUser = Column(Integer)
     fkUmbral = Column(Integer, ForeignKey("tbl_umbrales.id", ondelete="CASCADE", onupdate="CASCADE"))
     umbral = relationship("tbl_umbrales")

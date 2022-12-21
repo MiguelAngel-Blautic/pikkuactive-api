@@ -103,7 +103,7 @@ def read_resultado(
     Get model by ID.
     """
     resultado = []
-    texto = "select hv.id, hv.fldNIntento, hv.fldFValor, hv.fldDTimeFecha, hv.fldFUmbral, um.id, um.fkTipo, m.id, m.fldSName, u.id, u.fldSFullName, s.id " \
+    texto = "select s.id, u.id, um.fkTipo, m.id, e.id, u.fldSFullName, hv.fldFValor, hv.fldDTimeFecha, hv.fldFUmbral, m.fldSName, hv.fldNIntento " \
             "from tbl_historico_valores hv left join tbl_umbrales um on (um.id = hv.fkUmbral) left join tbl_ejercicio e on (e.id = um.fkEjercicio) " \
             "left join tbl_model m on (m.id = e.fkEjercicio) left join tbl_sesion s on (s.id = e.fkSesion) left join tbl_user u on " \
             "(u.id = hv.fkUser) where "
@@ -114,48 +114,111 @@ def read_resultado(
     if tumbral > 0:
         texto = texto + "um.fkTipo = " + str(tumbral) + " and "
     texto = texto + "hv.fldDTimeFecha between '" + str(inicio) + "' and '" + str(
-        fin) + "' order by s.id, u.id, um.fkTipo, m.id, u.fldSFullName, hv.fldFValor, hv.fldDTimeFecha, " \
+        fin) + "' order by s.id, u.id, um.fkTipo, m.id, e.id, u.fldSFullName, hv.fldFValor, hv.fldDTimeFecha, " \
                "hv.fldFUmbral, m.fldSName, hv.fldNIntento "
     sql_text = text(texto)
     res = db.execute(sql_text)
+    first = True
+    sesionId = 0
+    usuarioId = 0
+    usuarioN = 0
+    usuarioL = []
+    tumbralId = 0
+    tumbralL = []
+    ejercicioId = 0
+    ejercicioN = 0
+    ejercicioL = []
+    resultadoL = []
     if res.rowcount > 0:
-        sesionId = res[0][0]
-        sesionL = []
-        usuarioId = res[0][1]
-        usuarioN = res[0][4]
-        usuarioL = []
-        tumbralId = res[0][2]
-        tumbralL = []
-        ejercicioId = res[0][3]
-        ejercicioN = res[0][8]
-        ejercicioL = []
-        resultadoL = []
         for row in res:
-            valor = Resultado(id=row[0], ldFValor=row[5], fldDTimeFecha=row[6], fldNIntento=row[9], fldFUmbral=row[7], fkUser=row[1])
+            if first:
+                print("Primero")
+                sesionId = row[0]
+                usuarioId = row[1]
+                usuarioN = row[5]
+                usuarioL = []
+                tumbralId = row[2]
+                tumbralL = []
+                if row[9]:
+                    ejercicioN = row[9]
+                else:
+                    ejercicioN = "Generico"
+                if row[3]:
+                    ejercicioId = row[3]
+                else:
+                    ejercicioId = row[4]
+                ejercicioL = []
+                resultadoL = []
+                first = False
             if row[0] != sesionId:
+                print("Nueva sesion")
+                ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
+                tumbralL.append(ResultadoTUmbral(id=tumbralId, ejercicios=ejercicioL))
+                usuarioL.append(ResultadoUsuario(id=usuarioId, nombre=usuarioN, tumbrales=tumbralL))
                 resultado.append(ResultadosSesion(id=sesionId, usuarios=usuarioL))
                 sesionId = row[0]
-                usuarioN = row[4]
+                usuarioN = row[5]
+                usuarioL = []
                 usuarioId = row[1]
                 tumbralId = row[2]
-                ejercicioN = row[8]
-                ejercicioId = row[3]
+                tumbralL = []
+                if row[9]:
+                    ejercicioN = row[9]
+                else:
+                    ejercicioN = "Generico"
+                if row[3]:
+                    ejercicioId = row[3]
+                else:
+                    ejercicioId = row[4]
+                ejercicioL = []
+                resultadoL = []
             if row[1] != usuarioId:
+                print("    Nuevo usuario")
+                ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
+                tumbralL.append(ResultadoTUmbral(id=tumbralId, ejercicios=ejercicioL))
                 usuarioL.append(ResultadoUsuario(id=usuarioId, nombre=usuarioN, tumbrales=tumbralL))
-                usuarioN = row[4]
+                usuarioN = row[5]
                 usuarioId = row[1]
                 tumbralId = row[2]
-                ejercicioN = row[8]
-                ejercicioId = row[3]
+                tumbralL = []
+                if row[9]:
+                    ejercicioN = row[9]
+                else:
+                    ejercicioN = "Generico"
+                if row[3]:
+                    ejercicioId = row[3]
+                else:
+                    ejercicioId = row[4]
+                ejercicioL = []
+                resultadoL = []
             if row[2] != tumbralId:
+                print("        Nuevo umbral")
+                ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
                 tumbralL.append(ResultadoTUmbral(id=tumbralId, ejercicios=ejercicioL))
                 tumbralId = row[2]
-                ejercicioN = row[8]
-                ejercicioId = row[3]
+                if row[9]:
+                    ejercicioN = row[9]
+                else:
+                    ejercicioN = "Generico"
+                if row[3]:
+                    ejercicioId = row[3]
+                else:
+                    ejercicioId = row[4]
+                ejercicioL = []
+                resultadoL = []
             if row[3] != ejercicioId:
+                print("            Nuevo ejercicio")
                 ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
-                ejercicioN = row[8]
-                ejercicioId = row[3]
+                if row[9]:
+                    ejercicioN = row[9]
+                else:
+                    ejercicioN = "Generico"
+                if row[3]:
+                    ejercicioId = row[3]
+                else:
+                    ejercicioId = row[4]
+                resultadoL = []
+            valor = Resultado(id=row[4], ldFValor=row[6], fldDTimeFecha=row[7], fldNIntento=row[10], fldFUmbral=row[8], fkUser=row[1])
             resultadoL.append(valor)
         ejercicioL.append(ResultadoEjercicio(id=ejercicioId, nombre=ejercicioN, resultados=resultadoL))
         tumbralL.append(ResultadoTUmbral(id=tumbralId, ejercicios=ejercicioL))
