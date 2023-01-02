@@ -6,7 +6,10 @@ from app.db.base_class import Base
 class tbl_ecg(Base):
     fldNSample = Column(Integer, nullable=False, primary_key=True)
     fldNTime = Column(Integer, nullable=False)
-    fldFData = Column(Float, nullable=False)
+    fldFData0 = Column(Float, nullable=False)
+    fldFData1 = Column(Float, nullable=False)
+    fldFData2 = Column(Float, nullable=False)
+    fldFData3 = Column(Float, nullable=False)
     fldSType = Column(String, nullable=True)
 
     fkDevice = Column(ForeignKey('tbl_device.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True, primary_key=True)

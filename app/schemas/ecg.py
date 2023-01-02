@@ -7,14 +7,20 @@ from pydantic import BaseModel
 class EcgBase(BaseModel):
     fldNSample: int
     fldNTime: int
-    fldFData: float
+    fldFData0: float
+    fldFData1: float
+    fldFData2: float
+    fldFData3: float
     fldSType: Optional[str] = None
 
 
 class EcgCreate(EcgBase):
     fldNSample: int
     fldNTime: int
-    fldFData: float
+    fldFData0: float
+    fldFData1: float
+    fldFData2: float
+    fldFData3: float
     fldSType: Optional[str] = None
     fkDevice: int
 

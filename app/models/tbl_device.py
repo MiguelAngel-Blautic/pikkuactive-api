@@ -15,6 +15,7 @@ class tbl_device(Base):
     fldNNumberDevice = Column(Integer, nullable=False)
     fkPosition = Column(Integer, ForeignKey('tbl_position.id'))
     position = relationship("tbl_position")
+    fldNSensores = Column(Integer, nullable=False)
 
     fkOwner = Column(Integer, ForeignKey("tbl_model.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_model", back_populates="devices")

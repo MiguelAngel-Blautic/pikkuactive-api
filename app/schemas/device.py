@@ -7,6 +7,7 @@ from app.schemas.position import Position
 # Shared properties
 class DeviceBase(BaseModel):
     fldNNumberDevice: Optional[int] = None
+    fldNSensores: int
 
 
 # Properties to receive on item creation
