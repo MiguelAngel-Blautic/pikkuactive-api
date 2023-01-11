@@ -39,11 +39,12 @@ def create_model(model,output_size=2):
 
 
 def train_model(model, df, version_last):
-    url = ''
-    if version_last is None or version_last.url is None or not os.path.exists(version_last.url):
-        url = create_model(model, len(model.movements))
-    else:
-        url = version_last.url
+    #url = ''
+    url = create_model(model, len(model.movements))
+    #if version_last is None or version_last.url is None or not os.path.exists(version_last.url):
+    #    url = create_model(model, len(model.movements))
+    #else:
+    #    url = version_last.url
 
     num_epoch = 500
     tf_model = tf.keras.models.load_model(url)
