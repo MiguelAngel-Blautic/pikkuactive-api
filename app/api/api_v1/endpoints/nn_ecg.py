@@ -116,6 +116,7 @@ def data_adapter(model, captures):
     for d in model.devices:
         columns += d.fldNSensores
     columns_list = generate_columns_index(samples * columns)
+    print(samples, " - ", columns, " - ", columns_list)
 
     df = pd.DataFrame(columns=columns_list)
     print(df)
