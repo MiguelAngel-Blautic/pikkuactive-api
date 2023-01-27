@@ -29,6 +29,20 @@ def read_sesiones(
     return plan
 
 
+@router.get("/profesional-user/" , response_model=List[schemas.Sesion])
+def read_sesiones_prof(
+        db: Session = Depends(deps.get_db),
+        profesional: int = 0,
+        user: int = 0,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Leer sesiones de un profesional para un usuario
+    """
+    plan: List[tbl_sesion] = crud.sesion.get_multi_by_usr(db, prof=profesional, user=user)
+    return plan
+
+
 @router.post("/", response_model=schemas.Sesion)
 def create_plan(
         *,

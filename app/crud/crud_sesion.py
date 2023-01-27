@@ -43,7 +43,7 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
     def get_multi_by_rol(
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100
     ) -> List[Sesion]:
-        global planes
+        planes = []
         if rol == 1:
             planes = []
             asignados = db.query(tbl_asignado).filter(tbl_asignado.fkUsuario == user).offset(skip).limit(limit).all()
@@ -55,6 +55,17 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
             planes = db.query(self.model).offset(skip).limit(limit).all()
 
         return planes
+
+    def get_multi_by_usr(
+            self, db: Session, *, prof: int, user: int
+    ) -> List[Sesion]:
+        res = []
+        planes = db.query(self.model).filter(tbl_sesion.fkCreador == prof).all()
+        for plan in planes:
+            cant = db.query(tbl_asignado).filter(tbl_asignado.fkSesion == plan.id).filter(tbl_asignado.fkUsuario == user).all()
+            if len(cant) > 0:
+                res.append(plan)
+        return res
 
 
 
