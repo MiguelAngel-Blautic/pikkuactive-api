@@ -11,7 +11,7 @@ from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales
 from app.models.tbl_entrena import tbl_entrena
 from app.models.tbl_model import tbl_model, TrainingStatus
 from app.models.tbl_sesion import tbl_sesion
-from app.schemas import SesionCreate, SesionUpdate, EjercicioCreate, EjercicioResumen, Sesion
+from app.schemas import SesionCreate, SesionUpdate, EjercicioCreate, EjercicioResumen, Sesion, User
 from app.schemas.sesion import SesionExtended
 
 
@@ -27,6 +27,18 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
         db.commit()
         db.refresh(db_obj)
         return db_obj
+
+    def getCompleta(
+            self, db: Session, *, id: int,
+    ) -> List[Sesion]:
+        plan = sesion.get(db=db, id=id)
+        res = []
+        lista = db.query(tbl_asignado).filter(tbl_asignado.fkSesion == plan.id).all()
+        for asign in lista:
+            usr = db.query(tbl_user).filter(tbl_user.id == asign.fkUsuario).first()
+            res.append(User(id=usr.id, fldSEmail=usr.fldSEmail, fldBActive=usr.fldBActive, fldSDireccion=usr.fldSDireccion, fldSTelefono=usr.fldSTelefono, fldSImagen=usr.fldSImagen, fkRol=usr.fkRol, fldSFullName=usr.fldSFullName))
+        plan.usuarios = res
+        return plan
 
     def get_multi_by_rol(
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100

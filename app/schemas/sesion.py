@@ -36,6 +36,7 @@ class SesionInDBBase(SesionBase):
 
 # Properties to return to client
 class Sesion(SesionInDBBase):
+    usuarios: List[User] = []
     pass
 
 
