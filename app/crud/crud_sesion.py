@@ -33,7 +33,10 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
     ) -> List[Sesion]:
         global planes
         if rol == 1:
-            return []
+            planes = []
+            asignados = db.query(tbl_asignado).filter(tbl_asignado.fkUsuario == user).offset(skip).limit(limit).all()
+            for asignacion in asignados:
+                planes.append(sesion.get(db=db, id=asignacion.fkSesion))
         if rol == 2 or rol == 3:
             planes = db.query(self.model).filter(tbl_sesion.fkCreador == user).offset(skip).limit(limit).all()
         if rol == 4:
