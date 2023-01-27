@@ -83,7 +83,7 @@ def read_plan(
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     if not check_permission(db=db, user=current_user.id, plan=plan, rol=current_user.fkRol):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
+        #raise HTTPException(status_code=400, detail="Not enough permissions")
     return plan
 
 
