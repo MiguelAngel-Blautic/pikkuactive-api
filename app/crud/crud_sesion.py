@@ -42,7 +42,6 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
         if rol == 4:
             planes = db.query(self.model).offset(skip).limit(limit).all()
 
-        print(planes)
         return planes
 
 
