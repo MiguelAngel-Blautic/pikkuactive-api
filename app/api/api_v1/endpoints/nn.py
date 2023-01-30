@@ -5,8 +5,7 @@ import pandas as pd
 import numpy as np
 import uuid
 
-from keras.optimizer_v2.adam import Adam
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Flatten, Dense
 from tensorflow.keras.layers import Conv2D, MaxPool2D
