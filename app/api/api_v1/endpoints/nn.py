@@ -4,6 +4,8 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 import uuid
+
+from keras.optimizer_v2.adam import Adam
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Flatten, Dense
@@ -15,6 +17,7 @@ from app.models import tbl_version
 # CONFIG
 DATA_FREQ = 20
 SENS_NUMBER = 6
+LEARNING_RATE = 0.0045
 
 
 def create_model(model,output_size=2):
@@ -49,8 +52,12 @@ def train_model(model, df, version_last):
     tf_model = tf.keras.models.load_model(url)
 
     X_reshaped_train, X_reshaped_test, y_train, y_test = split_normalize_data(model, df)
-
-    tf_model.compile(optimizer=SGD(learning_rate=0.0045), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    optimizador = SGD(learning_rate=LEARNING_RATE)
+    if type(optimizador) == Adam:
+        opt = "ADAM"
+    else:
+        opt = "SGD"
+    tf_model.compile(optimizer=optimizador, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     history = tf_model.fit(X_reshaped_train, y_train, batch_size=32, shuffle=True, epochs=num_epoch,
                            validation_data=(X_reshaped_test, y_test), verbose=1)
     tf_model.save(url)
@@ -59,8 +66,8 @@ def train_model(model, df, version_last):
                           fldFAccuracy=float(evaluation[1]),
                           fldNEpoch=num_epoch,
                           fldFLoss=float(evaluation[0]),
-                          fldSOptimizer='SGD',
-                          fldFLearningRate=0.0045)
+                          fldSOptimizer=opt,
+                          fldFLearningRate=LEARNING_RATE)
 
     return version
 

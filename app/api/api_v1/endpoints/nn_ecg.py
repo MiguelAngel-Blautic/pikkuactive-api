@@ -30,6 +30,7 @@ from tensorflow.keras.optimizers import Adadelta
 # CONFIG
 DATA_FREQ = 20
 SENS_NUMBER = 1
+LEARNING_RATE = 0.0035
 
 def create_model(model, output_size=2):
     n_devices = len(model.devices)
@@ -64,8 +65,12 @@ def train_model(model, df, version_last, max_value=1):
     num_epoch = 500
     tf_model = tf.keras.models.load_model(url)
     X_train_Emg, X_test_Emg, y_train, y_test = split_normalize_data(model, df, max_value)
-
-    tf_model.compile(optimizer=Adam(learning_rate=0.0035), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    optimizador = Adam(learning_rate=LEARNING_RATE)
+    if type(optimizador) == Adam:
+        opt = "ADAM"
+    else:
+        opt = "SGD"
+    tf_model.compile(optimizer=optimizador, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
     tf_model.fit(X_train_Emg, y_train, batch_size=32, shuffle=True, epochs=num_epoch,
                  validation_data=(X_test_Emg, y_test), verbose=1)
@@ -76,8 +81,8 @@ def train_model(model, df, version_last, max_value=1):
                           fldFAccuracy=float(evaluation[1]),
                           fldNEpoch=num_epoch,
                           fldFLoss=float(evaluation[0]),
-                          fldSOptimizer='SGD',
-                          fldFLearningRate=0.0045)
+                          fldSOptimizer=opt,
+                          fldFLearningRate=LEARNING_RATE)
 
     return version
 
@@ -127,7 +132,7 @@ def data_adapter(model, captures):
         only_data = []
         my_range = len(capture.ecg)*columns
 
-        if my_range == samples * columns:
+        if my_range == samples * columns * len(model.devices):
             for i_data in range(0, len(capture.ecg), len(model.devices)):
                 data_x = []
                 for i in range(len(model.devices)):
