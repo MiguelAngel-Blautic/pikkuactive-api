@@ -1,7 +1,7 @@
 from typing import Optional, List
 
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, date
 
 # Shared properties
 from app.schemas.history import History
@@ -32,7 +32,7 @@ class Grafica4Aux(BaseModel):
 
 
 class Grafica4(BaseModel):
-    fecha: datetime
+    fecha: date
     ejercicios: List[Grafica4Aux]
 
 

@@ -127,16 +127,17 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
 
         # Grafica 4: Cantidad de repeticiones por ejercicio y dia en los ultimos 30 dias
         sql_text = text("""
-            Select distinct hv.fldDTimeFecha
+            Select distinct CONVERT(hv.fldDTimeFecha, DATE)
             from tbl_historico_valores hv 
                 left join tbl_umbrales u on (hv.fkUmbral = u.id)
                 left join tbl_ejercicio e on (e.id = u.fkEjercicio)
                 left join tbl_model m on (m.id = e.fkEjercicio)
                 left join tbl_planes s on (s.id = e.fkPlan)
                 join tbl_asignado a on (a.fkPlan = s.id)
-            where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha < '"""+str(fecha30dias)+"""'
+            where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha > '"""+str(fecha30dias)+"""'
                 and u.fldFValor <= hv.fldFvalor 
             """)
+        print(sql_text)
         res = db.execute(sql_text)
         for row in res:
             g4aux = []
@@ -148,7 +149,7 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
                     left join tbl_model m on (m.id = e.fkEjercicio)
                     left join tbl_planes s on (s.id = e.fkPlan)
                     join tbl_asignado a on (a.fkPlan = s.id)
-                where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha = '"""+str(row[0])+"""'
+                where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and CONVERT(hv.fldDTimeFecha, DATE) = '"""+str(row[0])+"""'
                     and u.fldFValor <= hv.fldFvalor 
                 group by m.id, m.fldSName
                 """)

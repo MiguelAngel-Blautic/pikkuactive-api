@@ -3,7 +3,7 @@ from typing import List, Type
 
 import DateTime.DateTime
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import or_, not_
+from sqlalchemy import or_, not_, text
 from sqlalchemy.orm import Session
 
 from app import crud
@@ -18,6 +18,36 @@ from app.schemas import PlanCreate, PlanUpdate, EjercicioCreate, EjercicioUpdate
 
 
 class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
+
+    def check_dia_libre(
+            self, db: Session, *, plan: tbl_planes, dia: datetime,
+    ) -> bool:
+        res = True
+        sql_text1 = text("""
+            Select fkPlan as id, min(fldDDia) as mini, max(fldDDia) as maxi
+            FROM tbl_ejercicio
+            WHERE fkPlan = """+str(plan.id)+"""
+            GROUP BY fkPlan;
+        """)
+        res1 = db.execute(sql_text1)
+        min = dia
+        max = dia
+        for row1 in res1:
+            if row1[1] < min:
+                min = row1[1]
+            if row1[2] > max:
+                max = row1[2]
+        sql_text1 = text("""
+            Select distinct fkPlan
+            FROM tbl_ejercicio
+            WHERE fldDDia between '"""+str(min)+"""' and '"""+str(max)+"""';
+        """)
+        res1 = db.execute(sql_text1)
+        for row1 in res1:
+            if row1[0] != plan.id:
+                res = False
+        return res
+
 
     def create_with_owner(
             self, db: Session, *, db_obj: tbl_planes, obj_in: EjercicioCreate,
