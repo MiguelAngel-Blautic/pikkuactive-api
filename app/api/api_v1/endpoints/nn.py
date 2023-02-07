@@ -28,12 +28,14 @@ def create_model(model,output_size=2):
     cnn.add(MaxPool2D(pool_size=(2, 2)))
     cnn.add(Flatten())
     cnn.add(Dense(60, activation='tanh'))
-    cnn.add(Dense(output_size, activation='softmax'))
+    # cnn.add(Dense(output_size, activation='softmax'))
+    cnn.add(Dense(output_size, activation='sigmoid'))
 
     # Generate name
     model_uuid = 'static/mpu_' + str(uuid.uuid1()) + '.h5'
-    cnn.compile(optimizer=SGD(learning_rate=0.0045), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    cnn.compile(optimizer=SGD(learning_rate=0.0045), loss='binary_crossentropy', metrics=['accuracy'])
 
+    # cnn.compile(optimizer=SGD(learning_rate=0.0045), loss='categorical_crossentropy', metrics=['accuracy'])
     cnn.save(model_uuid)
     return model_uuid
 
@@ -49,6 +51,7 @@ def train_model(model, df, version_last):
     tf_model = tf.keras.models.load_model(url)
 
     X_reshaped_train, X_reshaped_test, y_train, y_test = split_normalize_data(model, df)
+    print('Shape', y_train.shape)
 
     tf_model.compile(optimizer=SGD(learning_rate=0.0045), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     history = tf_model.fit(X_reshaped_train, y_train, batch_size=32, shuffle=True, epochs=num_epoch,
