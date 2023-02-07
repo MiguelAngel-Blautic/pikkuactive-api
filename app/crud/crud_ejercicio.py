@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import List, Type
 
 import DateTime.DateTime
@@ -48,6 +48,19 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
                 res = False
         return res
 
+    def getUltimoDia(
+            self, db: Session, *, user: int
+    ) -> datetime:
+        sql_text1 = text("""
+            Select max(e.fldDDia)
+            FROM tbl_ejercicio e left join tbl_planes p on (e.fkPlan = p.id) left join tbl_asignado a on (p.id = a.fkPlan)
+            WHERE a.fkUsuario = """ + str(user) + """;
+        """)
+        res1 = db.execute(sql_text1)
+        res = datetime.now()
+        for row1 in res1:
+            res = row1[0] + timedelta(days=1)
+        return res
 
     def create_with_owner(
             self, db: Session, *, db_obj: tbl_planes, obj_in: EjercicioCreate,

@@ -150,10 +150,13 @@ def create_plan(
         crud.asignado.create_with_validation(db=db, obj_in=asignar, user=current_user)
         ejercicios: List[tbl_ejercicio] = crud.ejercicio.get_multi_by_rol(db=db, user=current_user.id, rol=current_user.fkRol,
                                                                           id=plan_in.fldBGenerico)
+        dia = crud.ejercicio.getUltimoDia(db=db, user=user)
         for ejercicio in ejercicios:
             umbrales = [Umbral(fldFValor=ejercicio.umbrales[0].fldFValor, fkTipo=1)]
             add = EjercicioCreate(fkEjercicio=ejercicio.fkEjercicio, umbrales=umbrales, fldNRepeticiones=ejercicio.fldNRepeticiones)
+            addFecha = EjercicioCreate(fkEjercicio=ejercicio.fkEjercicio, umbrales=umbrales, fldNRepeticiones=ejercicio.fldNRepeticiones, fldDDia=dia)
             crud.ejercicio.create_with_owner(db=db, db_obj=plan, obj_in=add)
+            crud.ejercicio.create_with_owner(db=db, db_obj=plan, obj_in=addFecha)
     return plan
 
 
