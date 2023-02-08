@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import List
 
 from fastapi.encoders import jsonable_encoder
@@ -39,7 +39,7 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
         g4 = []
         g5 = []
 
-        hoy = datetime.utcnow()
+        hoy = date.today()
         fecha7dias = hoy - timedelta(days=7)
         fecha30dias = hoy - timedelta(days=30)
 
@@ -52,7 +52,7 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
                 left join tbl_model m on (m.id = e.fkEjercicio)
                 left join tbl_planes s on (s.id = e.fkPlan)
                 join tbl_asignado a on (a.fkPlan = s.id)
-            where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha < '"""+str(fecha7dias)+"""'
+            where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha > '"""+str(fecha7dias)+"""'
                 and u.fldFValor <= hv.fldFvalor 
             group by m.id, m.fldSName
             """)
@@ -68,20 +68,20 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
                 left join tbl_ejercicio e on (e.id = u.fkEjercicio)
                 left join tbl_planes s on (s.id = e.fkPlan)
                 join tbl_asignado a on (a.fkPlan = s.id)
-            where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha < '"""+str(fecha7dias)+"""'
+            where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha > '"""+str(fecha7dias)+"""'
             """)
         res = db.execute(sql_text)
         for row in res:
             g2.total = row[0]
         sql_text = text("""
-                    select count(*) 
-                    from tbl_historico_valores hv 
-                        left join tbl_umbrales u on (u.id = hv.fkUmbral)
-                        left join tbl_ejercicio e on (e.id = u.fkEjercicio)
-                        left join tbl_planes s on (s.id = e.fkPlan)
-                        join tbl_asignado a on (a.fkPlan = s.id)
-                    where a.fkUsuario = """ + str(user) + """ and s.fkCreador = """ + str(profesional) + """ and
-                     hv.fldDTimeFecha < '""" + str(fecha7dias) + """' and u.fldFValor <= hv.fldFvalor 
+            select count(*) 
+            from tbl_historico_valores hv 
+                left join tbl_umbrales u on (u.id = hv.fkUmbral)
+                left join tbl_ejercicio e on (e.id = u.fkEjercicio)
+                left join tbl_planes s on (s.id = e.fkPlan)
+                join tbl_asignado a on (a.fkPlan = s.id)
+            where a.fkUsuario = """ + str(user) + """ and s.fkCreador = """ + str(profesional) + """ and
+             hv.fldDTimeFecha > '""" + str(fecha7dias) + """' and hv.fldFvalor >= u.fldFValor
                     """)
         res = db.execute(sql_text)
         for row in res:
@@ -104,77 +104,72 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
         plan = 0
         for row in res:
             plan = row[0]
-
         if plan != 0:
             sql_text = text("""
-                select p.id, p.fldSNombre,
-                    (select count(*)
-                    from tbl_historico_valores hv
-                        left join tbl_umbrales u on (hv.fkUmbral = u.id)
-                        left join tbl_ejercicio e on (e.id = u.fkEjercicio)
-                    where e.fkPlan = p.id),
-                    (select count(*)
-                    from tbl_historico_valores hv
-                        left join tbl_umbrales u on (hv.fkUmbral = u.id)
-                        left join tbl_ejercicio e on (e.id = u.fkEjercicio)
-                    where u.fldFValor <= hv.fldFvalor and e.fkPlan = p.id)
-                from tbl_planes p
-                where p.id = """+str(plan)+"""
+                select distinct tm.id, tm.fldSName, 
+                    (select count(*) from tbl_historico_valores thv left join tbl_umbrales tu on (tu.id = thv.fkUmbral) left join tbl_ejercicio te on (te.id = tu.fkEjercicio) where te.fkEjercicio  = tm.id), 
+                    (select count(*) from tbl_historico_valores thv left join tbl_umbrales tu on (tu.id = thv.fkUmbral) left join tbl_ejercicio te on (te.id = tu.fkEjercicio) where te.fkEjercicio  = tm.id and thv.fldFvalor >= tu.fldFValor)
+                from tbl_ejercicio e left join tbl_model tm on (tm.id = e.fkEjercicio) left join tbl_planes tp on (e.fkPlan = tp.id)
+                where tp.id = """+str(plan)+"""
                 """)
             res = db.execute(sql_text)
             for row in res:
                 g3.append(Grafica3(id_ejercicio=row[0], nombre_ejercicio=row[1], intentos=row[2], correctos=row[3]))
 
         # Grafica 4: Cantidad de repeticiones por ejercicio y dia en los ultimos 30 dias
-        sql_text = text("""
-            Select distinct CONVERT(hv.fldDTimeFecha, DATE)
-            from tbl_historico_valores hv 
-                left join tbl_umbrales u on (hv.fkUmbral = u.id)
-                left join tbl_ejercicio e on (e.id = u.fkEjercicio)
-                left join tbl_model m on (m.id = e.fkEjercicio)
-                left join tbl_planes s on (s.id = e.fkPlan)
-                join tbl_asignado a on (a.fkPlan = s.id)
-            where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha > '"""+str(fecha30dias)+"""'
-                and u.fldFValor <= hv.fldFvalor 
-            """)
-        print(sql_text)
-        res = db.execute(sql_text)
-        for row in res:
-            g4aux = []
-            sql_text1 = text("""
-                Select m.id, m.fldSName, count(*)
+        # 7/2/23 -> Luis quiere que le pase todos los dias un array de ejercicios con el mismo tamaño y siempre igual ordenado
+        if(plan != 0):
+            sql_text = text("""
+                Select distinct CONVERT(hv.fldDTimeFecha, DATE)
                 from tbl_historico_valores hv 
                     left join tbl_umbrales u on (hv.fkUmbral = u.id)
                     left join tbl_ejercicio e on (e.id = u.fkEjercicio)
                     left join tbl_model m on (m.id = e.fkEjercicio)
                     left join tbl_planes s on (s.id = e.fkPlan)
                     join tbl_asignado a on (a.fkPlan = s.id)
-                where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and CONVERT(hv.fldDTimeFecha, DATE) = '"""+str(row[0])+"""'
+                where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha > '"""+str(fecha30dias)+"""'
                     and u.fldFValor <= hv.fldFvalor 
-                group by m.id, m.fldSName
                 """)
-            res1 = db.execute(sql_text1)
-            for row1 in res1:
-                g4aux.append(Grafica4Aux(id_ejercicio=row1[0], nombre_ejercicio=row1[1], repeticiones=row1[2]))
-            g4.append(Grafica4(fecha=row[0], ejercicios=g4aux))
+            res = db.execute(sql_text)
+            for row in res:
+                g4aux = []
+                sql_text1 = text("""
+                    select distinct m.id, m.fldSName, 
+                        (select count(*) 
+                        from tbl_historico_valores thv 
+                            left join tbl_umbrales tu on (thv.fkUmbral = tu.id)
+                            left join tbl_ejercicio te on (tu.fkEjercicio = te.id)
+                            where te.fkEjercicio = m.id and thv.fldFvalor >= tu.fldFValor and CONVERT(thv.fldDTimeFecha, DATE) = '"""+str(row[0])+"""'
+                        )
+                    from tbl_ejercicio te left join tbl_model m on (te.fkEjercicio = m.id)
+                    where te.fkPlan = """+str(plan)+""";
+                """)
+                res1 = db.execute(sql_text1)
+                for row1 in res1:
+                    g4aux.append(Grafica4Aux(id_ejercicio=row1[0], nombre_ejercicio=row1[1], repeticiones=row1[2]))
+                g4.append(Grafica4(fecha=row[0], ejercicios=g4aux))
 
         # Grafica 5: Objetivos y cantidad de repeticiones por planes
         sql_text = text("""
             Select p.id, p.fldSNombre, sum(e.fldNRepeticiones), 
-                (select count(*) 
-                from tbl_historico_valores hv 
-                    left join tbl_umbrales u on (u.id = hv.fkUmbral) 
-                where u.fkEjercicio = e.id and u.fldFValor <= hv.fldFvalor and hv.fldDTimeFecha < '"""+str(fecha30dias)+"""')
+                sum((select count(*)
+                from tbl_historico_valores thv 
+                left join tbl_umbrales tu on (tu.id = thv.fkUmbral)
+                where thv.fldFvalor >= tu.fldFValor and tu.fkEjercicio = e.id
+                group by tu.fkEjercicio))
             from tbl_ejercicio e
                 left join tbl_model m on (m.id = e.fkEjercicio)
                 left join tbl_planes p on (p.id = e.fkPlan)
                 join tbl_asignado a on (a.fkPlan = p.id)
             where a.fkUsuario = """+str(user)+""" and p.fkCreador = """+str(profesional)+""" and e.fldDDia > '"""+str(fecha30dias)+"""'
-            group by p.id, p.fldSNombre;
+            group by p.id, p.fldSNombre
             """)
         res = db.execute(sql_text)
         for row in res:
-            g5.append(Grafica5(id_plan=row[0], nombre_plan=row[1], objetivo=row[2], repeticiones=row[3]))
+            rep = 0
+            if row[3] is not None:
+                rep = row[3]
+            g5.append(Grafica5(id_plan=row[0], nombre_plan=row[1], objetivo=row[2], repeticiones=rep))
 
         # Entrega de resultados
         result = Grafica(grafica1=g1, grafica2=g2, grafica3=g3, grafica4=g4, grafica5=g5)
