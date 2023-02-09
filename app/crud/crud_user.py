@@ -127,7 +127,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             obj.progreso = 0
             if (repT*rep) != 0:
                 obj.progreso = (repT/rep)*100
-                obj.adherencia = (repH/rep)*100
+                obj.adherencia = (repH/repT)*100
 
             aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == obj.id).filter(tbl_entrena.fkProfesional == id).first()
             if aux:
