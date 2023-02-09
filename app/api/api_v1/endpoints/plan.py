@@ -224,6 +224,27 @@ def addDia(
     return
 
 
+@router.post("/deleteDia", response_model=schemas.Plan)
+def deleteDia(
+        *,
+        db: Session = Depends(deps.get_db),
+        planId: int,
+        dia: str,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    dia += " 00:00:00"
+    diaDT = datetime.strptime(dia, "%d/%m/%y %H:%M:%S")
+    plan = crud.plan.get(db=db, id=planId)
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    if not check_permission(db=db, user=current_user.id, plan=plan, rol=current_user.fkRol):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    for ejercicio in plan.ejercicios:
+        if ejercicio.fldDDia == diaDT:
+            crud.ejercicio.remove(db=db, id=ejercicio.id)
+    return crud.plan.get(db=db, id=planId)
+
+
 @router.delete("/{id}", response_model=schemas.Plan)
 def delete_plan(
         *,
