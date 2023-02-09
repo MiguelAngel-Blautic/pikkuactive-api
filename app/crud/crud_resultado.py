@@ -42,8 +42,24 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
         hoy = date.today()
         fecha7dias = hoy - timedelta(days=7)
         fecha30dias = hoy - timedelta(days=30)
+        sql_text = text("""
+            select distinct aux.id
+            from (select p.id as id, max(e.fldDDia) as fin, min(e.fldDDia) as inicio
+                from tbl_ejercicio e
+                    left join tbl_planes p on (e.fkPlan = p.id)
+                    left join tbl_asignado a on (a.fkPlan = p.id)
+                where a.fkUsuario = """+str(user)+""" and p.fkCreador = """+str(profesional)+""" and e.fldDDia is not null
+                group by p.id
+            
+                ) as aux
+            where '"""+str(hoy)+"""' between aux.inicio and aux.fin
+            """)
+        res = db.execute(sql_text)
+        plan = 0
+        for row in res:
+            plan = row[0]
 
-        # Grafica 1: Cantidad de repeticiones correctas por ejercicio en los ultimos 7 dias
+        # Grafica 1: Cantidad de repeticiones correctas por ejercicio en el plan actual
         sql_text = text("""
             Select m.id, m.fldSName, count(*)
             from tbl_historico_valores hv 
@@ -52,7 +68,7 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
                 left join tbl_model m on (m.id = e.fkEjercicio)
                 left join tbl_planes s on (s.id = e.fkPlan)
                 join tbl_asignado a on (a.fkPlan = s.id)
-            where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha > '"""+str(fecha7dias)+"""'
+            where a.fkUsuario = """+str(user)+""" and s.id = """+str(plan)+"""
                 and u.fldFValor <= hv.fldFvalor 
             group by m.id, m.fldSName
             """)
@@ -60,7 +76,7 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
         for row in res:
             g1.append(Grafica1(id_ejercicio=row[0], nombre_ejercicio=row[1], repeticiones=row[2]))
 
-        # Grafica 2: Relacion de intentos correctos frente a totales en los ultimos 7 dias
+        # Grafica 2: Relacion de intentos correctos frente a totales en el plan actual
         sql_text = text("""
             select count(*) 
             from tbl_historico_valores hv 
@@ -68,7 +84,7 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
                 left join tbl_ejercicio e on (e.id = u.fkEjercicio)
                 left join tbl_planes s on (s.id = e.fkPlan)
                 join tbl_asignado a on (a.fkPlan = s.id)
-            where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha > '"""+str(fecha7dias)+"""'
+            where a.fkUsuario = """+str(user)+""" and s.id = """+str(plan)+"""
             """)
         res = db.execute(sql_text)
         for row in res:
@@ -88,22 +104,6 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
             g2.total_correcto = row[0]
 
         # Grafica 3: Cantidad de repeticiones correctas por ejercicio en el plan actual
-        sql_text = text("""
-            select distinct aux.id
-            from (select p.id as id, max(e.fldDDia) as fin, min(e.fldDDia) as inicio
-                from tbl_ejercicio e
-                    left join tbl_planes p on (e.fkPlan = p.id)
-                    left join tbl_asignado a on (a.fkPlan = p.id)
-                where a.fkUsuario = """+str(user)+""" and p.fkCreador = """+str(profesional)+""" and e.fldDDia is not null
-                group by p.id
-            
-                ) as aux
-            where '"""+str(hoy)+"""' between aux.inicio and aux.fin
-            """)
-        res = db.execute(sql_text)
-        plan = 0
-        for row in res:
-            plan = row[0]
         if plan != 0:
             sql_text = text("""
                 select distinct tm.id, tm.fldSName, 
