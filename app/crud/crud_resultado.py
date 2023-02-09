@@ -96,9 +96,8 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
                 left join tbl_ejercicio e on (e.id = u.fkEjercicio)
                 left join tbl_planes s on (s.id = e.fkPlan)
                 join tbl_asignado a on (a.fkPlan = s.id)
-            where a.fkUsuario = """ + str(user) + """ and s.fkCreador = """ + str(profesional) + """ and
-             hv.fldDTimeFecha > '""" + str(fecha7dias) + """' and hv.fldFvalor >= u.fldFValor
-                    """)
+            where a.fkUsuario = """ + str(user) + """ and s.id = """ + str(plan) + """ and hv.fldFvalor >= u.fldFValor
+            """)
         res = db.execute(sql_text)
         for row in res:
             g2.total_correcto = row[0]
