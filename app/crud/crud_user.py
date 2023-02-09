@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Any, Dict, Optional, Union, List
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.security import get_password_hash, verify_password
@@ -46,7 +47,6 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         res = []
         if rol == 2:
             aux = db.query(tbl_entrena.fkProfesional).filter(tbl_entrena.fkUsuario == user).first()
-            print(aux)
             if aux:
                 id = aux[0]
                 clientes = db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id). \
@@ -66,15 +66,69 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             obj.fldSImagen = cliente.fldSImagen
             obj.fkRol = cliente.fkRol
             current_time = date.today()
-            ejercicio = db.query(tbl_ejercicio). \
-                join(tbl_asignado, tbl_asignado.fkPlan == tbl_ejercicio.fkPlan).filter(tbl_asignado.fkUsuario == obj.id). \
-                filter(tbl_ejercicio.fldDDia >= current_time).order_by(tbl_ejercicio.fldDDia).first()
-            if ejercicio:
-                obj.progreso = self.get_progreso(db=db, plan=ejercicio.fkPlan)
-                obj.adherencia = self.get_adherencia(db=db, plan=ejercicio.fkPlan)
-            else:
-                obj.progreso = 0
-                obj.adherencia = 0
+            current_timestamp = datetime.now()
+
+            # Calculamos el progreso y la adherencia
+            sql_text = text("""
+                select distinct aux.id
+                from (select p.id as id, max(e.fldDDia) as fin, min(e.fldDDia) as inicio
+                    from tbl_ejercicio e
+                        left join tbl_planes p on (e.fkPlan = p.id)
+                        left join tbl_asignado a on (a.fkPlan = p.id)
+                    where a.fkUsuario = """ + str(cliente.id) + """ and p.fkCreador = """ + str(user) + """ and e.fldDDia is not null
+                    group by p.id
+    
+                    ) as aux
+                where '""" + str(current_time) + """' between aux.inicio and aux.fin
+            """)
+            resSQL = db.execute(sql_text)
+            plan = 0
+            for row in resSQL:
+                plan = row[0]
+
+            sql_text = text("""
+                select sum(fldNRepeticiones)
+                from tbl_ejercicio te 
+                where fldDDia <= '""" + str(current_time) + """'
+                and fkPlan = """ + str(plan) + """ and fldDDia is not null
+            """)
+            resSQL = db.execute(sql_text)
+            repT = 0
+            for row in resSQL:
+                if row[0] is not None:
+                    repT = row[0]
+
+            sql_text = text("""
+                select sum(fldNRepeticiones)
+                from tbl_ejercicio te 
+                where fkPlan = """ + str(plan) + """ and fldDDia is not null
+            """)
+            resSQL = db.execute(sql_text)
+            rep = 0
+            for row in resSQL:
+                if row[0] is not None:
+                    rep = row[0]
+
+            sql_text = text("""
+                select count(*)
+                from tbl_historico_valores thv
+                    left join tbl_umbrales tu on (tu.id = thv.fkUmbral)
+                    left join tbl_ejercicio te on (te.id = tu.fkEjercicio)
+                where thv.fldDTimeFecha <= '""" + str(current_timestamp) + """' and thv.fldFvalor >= tu.fldFValor 
+                    and te.fkPlan = """ + str(plan) + """ and te.fldDDia is not null
+            """)
+            resSQL = db.execute(sql_text)
+            repH = 0
+            for row in resSQL:
+                if row[0] is not None:
+                    repH = row[0]
+
+            obj.adherencia = 0
+            obj.progreso = 0
+            if (repT*rep) != 0:
+                obj.progreso = (repT/rep)*100
+                obj.adherencia = (repH/rep)*100
+
             aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == obj.id).filter(tbl_entrena.fkProfesional == id).first()
             if aux:
                 obj.idRelacion = aux.id
