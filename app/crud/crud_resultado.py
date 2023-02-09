@@ -105,11 +105,16 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
         # Grafica 3: Cantidad de repeticiones correctas por ejercicio en el plan actual
         if plan != 0:
             sql_text = text("""
-                select distinct tm.id, tm.fldSName, 
-                    (select count(*) from tbl_historico_valores thv left join tbl_umbrales tu on (tu.id = thv.fkUmbral) left join tbl_ejercicio te on (te.id = tu.fkEjercicio) where te.fkEjercicio  = tm.id), 
-                    (select count(*) from tbl_historico_valores thv left join tbl_umbrales tu on (tu.id = thv.fkUmbral) left join tbl_ejercicio te on (te.id = tu.fkEjercicio) where te.fkEjercicio  = tm.id and thv.fldFvalor >= tu.fldFValor)
-                from tbl_ejercicio e left join tbl_model tm on (tm.id = e.fkEjercicio) left join tbl_planes tp on (e.fkPlan = tp.id)
-                where tp.id = """+str(plan)+"""
+                select tm.id, tm.fldSName, sum((
+                    select count(*)
+                    from tbl_historico_valores thv left join tbl_umbrales tu on (tu.id = thv.fkUmbral)
+                    where tu.fkEjercicio = te.id)), sum((
+                    select count(*)
+                    from tbl_historico_valores thv left join tbl_umbrales tu on (tu.id = thv.fkUmbral)
+                    where tu.fkEjercicio = te.id and thv.fldFvalor >= tu.fldFValor))
+                from tbl_ejercicio te left join tbl_model tm on (tm.id = te.fkEjercicio)
+                where te.fkPlan = """+str(plan)+"""
+                group by tm.id, tm.fldSName;
                 """)
             res = db.execute(sql_text)
             for row in res:
@@ -119,15 +124,9 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
         # 7/2/23 -> Luis quiere que le pase todos los dias un array de ejercicios con el mismo tamaño y siempre igual ordenado
         if(plan != 0):
             sql_text = text("""
-                Select distinct CONVERT(hv.fldDTimeFecha, DATE)
-                from tbl_historico_valores hv 
-                    left join tbl_umbrales u on (hv.fkUmbral = u.id)
-                    left join tbl_ejercicio e on (e.id = u.fkEjercicio)
-                    left join tbl_model m on (m.id = e.fkEjercicio)
-                    left join tbl_planes s on (s.id = e.fkPlan)
-                    join tbl_asignado a on (a.fkPlan = s.id)
-                where a.fkUsuario = """+str(user)+""" and s.fkCreador = """+str(profesional)+""" and hv.fldDTimeFecha > '"""+str(fecha30dias)+"""'
-                    and u.fldFValor <= hv.fldFvalor 
+                Select distinct CONVERT(e.fldDDia, DATE)
+                from tbl_ejercicio e
+                where e.fkPlan = """+str(plan)+""" and e.fldDDia <= '"""+str(hoy)+"""' and e.fldDDia is not null;
                 """)
             res = db.execute(sql_text)
             for row in res:
