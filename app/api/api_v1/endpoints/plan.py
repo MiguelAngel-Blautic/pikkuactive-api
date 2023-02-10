@@ -151,6 +151,8 @@ def create_plan(
         ejercicios: List[tbl_ejercicio] = crud.ejercicio.get_multi_by_rol(db=db, user=current_user.id, rol=current_user.fkRol,
                                                                           id=plan_in.fldBGenerico)
         dia = crud.ejercicio.getUltimoDia(db=db, user=user)
+        if dia is None:
+            dia = datetime.now()
         for ejercicio in ejercicios:
             umbrales = [Umbral(fldFValor=ejercicio.umbrales[0].fldFValor, fkTipo=1)]
             add = EjercicioCreate(fkEjercicio=ejercicio.fkEjercicio, umbrales=umbrales, fldNRepeticiones=ejercicio.fldNRepeticiones)
