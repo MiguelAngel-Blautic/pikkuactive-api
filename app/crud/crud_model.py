@@ -5,8 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
 from app.models import tbl_device, tbl_movement
-from app.models.tbl_entrena import tbl_entrena
-from app.models.tbl_model import tbl_model, TrainingStatus, tbl_pertenece
+from app.models.tbl_model import tbl_model, TrainingStatus
 from app.schemas.model import ModelCreate, ModelUpdate
 
 
@@ -18,7 +17,7 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
         devices_in_model = obj_in_data.pop('devices', None)
         movements_in_model = obj_in_data.pop('movements', None)
 
-        db_obj = self.model(**obj_in_data, fkOwner=owner_id, fkCreador=owner_id)
+        db_obj = self.model(**obj_in_data, fkOwner=owner_id)
         db_obj.fldSStatus = TrainingStatus.no_training
         db.add(db_obj)
         db.commit()
@@ -29,12 +28,6 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
             db.add(device)
             db.commit()
             db.refresh(device)
-
-        for movement in movements_in_model:
-            movement = tbl_movement(** movement, fkOwner=id_model)
-            db.add(movement)
-            db.commit()
-            db.refresh(movement)
         return db_obj
 
     def get_multi_by_owner(
@@ -53,17 +46,9 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
     ) -> List[tbl_model]:
         return (
             db.query(self.model)
-            .join(tbl_entrena, tbl_model.fkOwner == tbl_entrena.fkProfesional)
-            .filter(tbl_entrena.fkUsuario == owner_id).filter(tbl_entrena.fldBConfirmed == 2)
             .offset(skip)
             .limit(limit)
             .all()
         )
-
-    def pertenece(
-        self, db: Session, *, user: int, model: int,
-    ) -> bool:
-        asignaciones = db.query(tbl_pertenece).filter(tbl_pertenece.fkUsuario == user).filter(tbl_pertenece.fkModel == model).all()
-        return len(asignaciones) > 0
 
 model = CRUDModel(tbl_model)

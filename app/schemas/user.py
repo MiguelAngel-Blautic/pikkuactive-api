@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
@@ -7,7 +8,8 @@ from pydantic import BaseModel, EmailStr
 class UserBase(BaseModel):
     fldSEmail: Optional[EmailStr] = None
     fldBActive: Optional[bool] = True
-    fldSDireccion: Optional[str] = None
+    fldNSexo: Optional[int] = None
+    fldTNacimiento: Optional[datetime] = None
     fldSTelefono: Optional[str] = None
     fldSImagen: Optional[str] = None
     fkRol: Optional[int] = 1

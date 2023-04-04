@@ -14,7 +14,6 @@ class ModelBase(BaseModel):
     fldSName: Optional[str] = None
     fldSDescription: Optional[str] = None
     fldNDuration: Optional[int] = None
-    fldBAutoTraining: bool = False
     fldSImage: Optional[str] = None
     fldSVideo: Optional[str] = None
     fkTipo: Optional[int] = 1
@@ -25,7 +24,6 @@ class ModelCreate(ModelBase):
     fldSName: str
     fldNDuration: int
     devices: List[DeviceCreate]
-    movements: Optional[List[MovementCreate]]
 
 
 # Properties to receive on item update

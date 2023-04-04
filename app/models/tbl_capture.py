@@ -14,6 +14,8 @@ class tbl_capture(Base):
     fldDTimeCreateTime = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
     fkOwner = Column(Integer, ForeignKey("tbl_movement.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_movement")
+    fkGrupoNegativo = Column(Integer, ForeignKey("tbl_grupo_negativo.id", ondelete="CASCADE", onupdate="CASCADE"))
+    grupo = relationship("tbl_grupo_negativo", back_populates="grupo")
 
     mpu = relationship("tbl_mpu", back_populates="owner", cascade="all,delete", order_by="tbl_mpu.fldNSample")
     ecg = relationship("tbl_ecg", back_populates="owner", cascade="all,delete", order_by="tbl_ecg.fldNSample")

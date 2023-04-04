@@ -2,6 +2,7 @@ import json
 from typing import Any, List
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from pydantic.networks import EmailStr
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.api import deps
@@ -20,7 +21,7 @@ import tensorflow as tf
 router = APIRouter()
 serverToken = 'AAAAmpw87-E:APA91bGxqsAff2uwrO0uMaaujmiy7nBNCm82HcTFvM0LwsR_7DL-39mNc1JtVj1yEWbjAxepY-ZgdLWkBLo9IoTcUQpuddDoYQJtthQwNriRbJkNDmbfH_v1-UydDVDRinMAW0-9FKF3'
 firebase_admin.initialize_app(
-    credentials.Certificate('app/motionia-firebase.json'),
+    credentials.Certificate('/app/motionia-firebase.json'),
     options={
         'storageBucket': 'motionia-4f3c9.appspot.com',
     })
@@ -66,7 +67,7 @@ def training_task(id_model: int):
 
 
     version_last_mpu = None
-    captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
+    captures_mpu = db.query(models.tbl_capture).filter(or_(models.tbl_capture.fkOwner.in_(ids_movements)), models.tbl_capture.grupo.isnot(None)).all()
 
     if not captures_mpu or len(captures_mpu) < 2:
         send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName,
@@ -174,15 +175,3 @@ def publish_model_firebase(
             model_format=tflite_format)
         new_model = ml.create_model(model)
         ml.publish_model(new_model.model_id)
-
-
-@router.post("/test-email/", response_model=schemas.Msg, status_code=201)
-def test_email(
-        email_to: EmailStr,
-        current_user: models.tbl_user = Depends(deps.get_current_active_superuser),
-) -> Any:
-    """
-    Test emails.
-    """
-    send_test_email(email_to=email_to)
-    return {"msg": "Test email sent"}

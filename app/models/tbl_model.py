@@ -23,7 +23,6 @@ class tbl_model(Base):
     fldSDescription = Column(String, index=True)
     fldNDuration = Column(Integer, nullable=False)
     fldDTimeCreateTime = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
-    fldBAutoTraining = Column(Boolean())
     fldSImage = Column(String)
     fldSVideo = Column(String)
     fldSStatus = Column(Enum(TrainingStatus))
@@ -31,7 +30,6 @@ class tbl_model(Base):
 
     fkOwner = Column(Integer, ForeignKey("tbl_user.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_user", back_populates="models")
-    fkCreador = Column(Integer)
     fkTipo = Column(Integer, ForeignKey("tbl_tipo_modelo.id", ondelete="CASCADE", onupdate="CASCADE"))
     tipo = relationship("tbl_tipo_modelo")
 
@@ -66,10 +64,3 @@ class tbl_history(Base):
 class tbl_tipo_modelo(Base):
     id = Column(Integer, primary_key=True)
     fkSNombre = Column(Integer)
-
-
-class tbl_pertenece(Base):
-    fkUsuario = Column(Integer, primary_key=True)
-    fkModel = Column(Integer, primary_key=True)
-    fkAsignado = Column(Integer)
-    fldBPermiso = Column(Boolean)
