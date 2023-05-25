@@ -21,9 +21,9 @@ import tensorflow as tf
 router = APIRouter()
 serverToken = 'AAAAmpw87-E:APA91bGxqsAff2uwrO0uMaaujmiy7nBNCm82HcTFvM0LwsR_7DL-39mNc1JtVj1yEWbjAxepY-ZgdLWkBLo9IoTcUQpuddDoYQJtthQwNriRbJkNDmbfH_v1-UydDVDRinMAW0-9FKF3'
 firebase_admin.initialize_app(
-    credentials.Certificate('/app/motionia-firebase.json'),
+    credentials.Certificate('/home/diego/PycharmProjects/pikkuactive-api/app/blautic-mm-firebase.json'),
     options={
-        'storageBucket': 'motionia-4f3c9.appspot.com',
+        'storageBucket': 'blautic-mm.appspot.com',
     })
 
 
@@ -67,7 +67,8 @@ def training_task(id_model: int):
 
 
     version_last_mpu = None
-    captures_mpu = db.query(models.tbl_capture).filter(or_(models.tbl_capture.fkOwner.in_(ids_movements)), models.tbl_capture.grupo.isnot(None)).all()
+    # captures_mpu = db.query(models.tbl_capture).filter(or_(models.tbl_capture.fkOwner.in_(ids_movements)), models.tbl_capture.grupo.isnot(None)).all()
+    captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
 
     if not captures_mpu or len(captures_mpu) < 2:
         send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName,
@@ -105,7 +106,7 @@ def training_task(id_model: int):
     model.fldSStatus = TrainingStatus.training_succeeded
     db.commit()
     db.refresh(model)
-    publish_model_firebase(model, version_mpu.fldSUrl, 'motionia_mpu_')
+    publish_model_firebase(model, version_mpu.fldSUrl, 'mm_mpu_')
     # publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
 
     if user.fldSFcmToken:
