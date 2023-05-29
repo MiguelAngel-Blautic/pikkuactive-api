@@ -48,6 +48,26 @@ def create_model(
     return model
 
 
+@router.delete("/")
+def delete_model(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Delete existing model
+    """
+    model = crud.model.get(db=db, id=id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    db.delete(model)
+    db.commit()
+    return 1
+
+
 @router.get("/{id}", response_model=schemas.Model)
 def read_model(
     *,
