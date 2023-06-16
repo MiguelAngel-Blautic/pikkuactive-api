@@ -105,5 +105,5 @@ def count_captures(
     movements = db.query(tbl_movement).filter(tbl_movement.fkOwner == model.id).all()
     captures1 = db.query(tbl_capture).filter(tbl_capture.fkOwner == movements[0].id).all()
     captures2 = db.query(tbl_capture).filter(tbl_capture.fkOwner == movements[1].id).all()
-    res = MovementCaptures(movement=len(captures1), other=len(captures1))
+    res = MovementCaptures(movement=len(captures1), other=len(captures2))
     return res
