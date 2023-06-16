@@ -10,6 +10,11 @@ class MovementBase(BaseModel):
     fldSDescription: Optional[str] = None
 
 
+class MovementCaptures(BaseModel):
+    movement: int
+    other: int
+
+
 # Properties to receive on movement creation
 class MovementCreate(MovementBase):
     fldSLabel: str
