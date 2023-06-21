@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 # Shared properties
+from app.schemas.cam import CamCreate, Cam
 from app.schemas.mpu import MpuCreate, Mpu
 from app.schemas.ecg import EcgCreate, Ecg
 
@@ -16,6 +17,7 @@ class CaptureBase(BaseModel):
 class CaptureCreate(CaptureBase):
     mpu: List[MpuCreate]
     ecg: List[EcgCreate]
+    cam: List[CamCreate]
 
 
 # Properties to receive on movement update
@@ -30,6 +32,7 @@ class CaptureInDBBase(CaptureBase):
     fldDTimeCreateTime: datetime
     mpu: List[Mpu]
     ecg: List[Ecg]
+    cam: List[Cam]
     max_value: Optional[int]
     class Config:
         orm_mode = True
