@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.api import deps
-from app.api.api_v1.endpoints import nn_ecg, nn
+from app.api.api_v1.endpoints import nn_ecg, nn, nn_cam
 from app.api.api_v1.endpoints.models import read_model
 from app.models import tbl_model
 from app.models.tbl_model import TrainingStatus, tbl_history
@@ -84,29 +84,49 @@ def training_task(id_model: int):
     # df_ecg = nn_ecg.data_adapter(model, captures_mpu)
     # version_ecg = nn_ecg.train_model(model, df_ecg, version_last_mpu)
     # version_ecg.fkOwner = model.id
-
-    df_mpu = nn.data_adapter(model, captures_mpu)
-    version_mpu = nn.train_model(model, df_mpu, version_last_mpu)
-    version_mpu.fkOwner = model.id
-
-    db.add(version_mpu)
     # db.add(version_ecg)
 
-    db.commit()
-    db.refresh(version_mpu)
+    if model.fkTipo == 1:
+        df_mpu = nn.data_adapter(model, captures_mpu)
+        version_mpu = nn.train_model(model, df_mpu, version_last_mpu)
+        version_mpu.fkOwner = model.id
+
+        db.add(version_mpu)
+
+        db.commit()
+        db.refresh(version_mpu)
+    if model.fkTipo == 2:
+        df_cam = nn_cam.data_adapter(model, captures_mpu)
+        version_cam = nn_cam.train_model(model, df_cam, version_last_mpu)
+        version_cam.fkOwner = model.id
+        db.add(version_cam)
+        db.commit()
+        db.refresh(version_cam)
     # db.refresh(version_ecg)
 
     history = []
     for capture in captures_mpu:
-        history.append(tbl_history(fkCapture=capture.id, fkOwner=version_mpu.id))
-    version_mpu.history = history
-    db.commit()
-    db.refresh(version_mpu)
+        if model.fkTipo == 1:
+            history.append(tbl_history(fkCapture=capture.id, fkOwner=version_mpu.id))
+        if model.fkTipo == 2:
+            history.append(tbl_history(fkCapture=capture.id, fkOwner=version_cam.id))
+
+    if model.fkTipo == 1:
+        version_mpu.history = history
+        db.commit()
+        db.refresh(version_mpu)
+    if model.fkTipo == 2:
+        version_cam.history = history
+        db.commit()
+        db.refresh(version_cam)
 
     model.fldSStatus = TrainingStatus.training_succeeded
     db.commit()
     db.refresh(model)
-    publish_model_firebase(model, version_mpu.fldSUrl, 'mm_mpu_')
+    if model.fkTipo == 1:
+        publish_model_firebase(model, version_mpu.fldSUrl, 'mm_mpu_')
+    if model.fkTipo == 2:
+        publish_model_firebase(model, version_cam.fldSUrl, 'mm_cam_')
     # publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
 
     if user.fldSFcmToken:

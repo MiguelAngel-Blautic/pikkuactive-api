@@ -19,4 +19,5 @@ class tbl_capture(Base):
 
     mpu = relationship("tbl_mpu", back_populates="owner", cascade="all,delete", order_by="tbl_mpu.fldNSample")
     ecg = relationship("tbl_ecg", back_populates="owner", cascade="all,delete", order_by="tbl_ecg.fldNSample")
+    cam = relationship("tbl_puntos", back_populates="owner", cascade="all,delete", order_by="tbl_puntos.fkPosicion, tbl_puntos.fldNSample")
 

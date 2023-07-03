@@ -61,7 +61,7 @@ class CRUDCapture(CRUDBase[tbl_capture, CaptureCreate, CaptureUpdate]):
                 raise HTTPException(status_code=404, detail="device position {} not found".format(n_device))
 
             cam.pop('fkDevice', None)
-            cam = tbl_puntos(**cam, fkOwner=id_capture, fkDevice=device.id)
+            cam = tbl_puntos(**cam, fkOwner=id_capture, fkDevice=device.id, device =device)
             cam_list.append(cam)
         db.add_all(mpu_list)
         db.add_all(ecg_list)
