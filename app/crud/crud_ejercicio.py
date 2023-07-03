@@ -59,7 +59,8 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
         res1 = db.execute(sql_text1)
         res = datetime.now()
         for row1 in res1:
-            res = row1[0] + timedelta(days=1)
+            if row1[0]:
+                res = row1[0] + timedelta(days=1)
         return res
 
     def create_with_owner(
