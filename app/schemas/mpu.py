@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 from datetime import datetime
@@ -26,6 +26,26 @@ class MpuCreate(MpuBase):
     fldFGyrX: float
     fldFGyrY: float
     fldFGyrZ: float
+
+
+class MpuListItem(BaseModel):
+    fldFAccX: float
+    fldFAccY: float
+    fldFAccZ: float
+    fldFGyrX: float
+    fldFGyrY: float
+    fldFGyrZ: float
+
+
+class MpuEstadisticas(BaseModel):
+    media: float
+    std: float
+    min: float
+    max: float
+
+
+class MpuList(BaseModel):
+    mpu: List[MpuListItem] = []
 
 
 # Properties to receive on movement update

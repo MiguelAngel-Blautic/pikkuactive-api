@@ -57,7 +57,7 @@ Markdown==3.3.4
 MarkupSafe==2.0.1
 more-itertools==8.8.0
 msgpack==1.0.2
-numpy==1.19.5
+numpy~=1.23.4
 oauthlib==3.1.1
 opt-einsum==3.3.0
 packaging==21.0
@@ -88,7 +88,7 @@ rsa==4.7.2
 six==1.15.0
 SQLAlchemy==1.4.22
 tenacity==6.3.1
-tensorflow~=2.6.3
+tensorflow~=2.4.0
 termcolor==1.1.0
 tornado==6.1
 typing-extensions==3.7.4.3
@@ -101,10 +101,14 @@ wcwidth==0.2.5
 websockets==8.1
 Werkzeug==2.0.1
 wrapt==1.12.1
-starlette~=0.14.2
+starlette~=0.16.0
 pandas~=1.4.1
 sklearn~=0.0
 mysql~=0.0.3
 mysql-connector-python~=8.0.30
-scikit-learn~=1.0.2
+scikit-learn~=1.1.1
 mariadb~=1.0.8
+fastdtw~=0.3.4
+scipy~=1.8.0
+DateTime~=5.1
+PyMySQL~=1.0.2

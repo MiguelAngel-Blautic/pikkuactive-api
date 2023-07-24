@@ -33,5 +33,5 @@ if __name__ == "__main__":
         port=8082,
         log_level="debug",
         reload=True,
-        workers=1
+        workers=5
     )

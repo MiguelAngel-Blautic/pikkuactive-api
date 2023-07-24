@@ -6,10 +6,13 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.api import deps
-from app.api.api_v1.endpoints import nn_ecg, nn, nn_cam
+from app.api.api_v1.endpoints import nn_ecg, nn, nn_cam, nn2
 from app.api.api_v1.endpoints.models import read_model
+from app.api.api_v1.endpoints.nn2 import joinMOV, modelo
 from app.models import tbl_model
 from app.models.tbl_model import TrainingStatus, tbl_history
+from app.schemas import mpu
+from app.schemas.mpu import MpuList
 from app.utils import send_test_email
 import requests
 from app.db.session import SessionLocal
@@ -44,6 +47,32 @@ def training_model(
         raise HTTPException(status_code=404, detail="Training task already exists")
     background_tasks.add_task(training_task, id_model)
     return {"msg": "ok"}
+
+
+@router.post("/analize/")
+def analize(*, mpus: MpuList) -> Any:
+    #print(mpus)
+    #print("\n")
+    res = str(nn2.analize(mpus))
+    print(res)
+    return res
+
+
+@router.post("/entrena/")
+def entrena(id_model: int) -> Any:
+    db: Session = SessionLocal()
+    model = db.query(models.tbl_model).filter(models.tbl_model.id == id_model).first()
+    user = db.query(models.tbl_user).filter(models.tbl_user.id == model.fkOwner).first()
+    movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all()
+    ids_movements = [mov.id for mov in movements]
+    # captures_mpu = db.query(models.tbl_capture).filter(or_(models.tbl_capture.fkOwner.in_(ids_movements)), models.tbl_capture.grupo.isnot(None)).all()
+    captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
+    if not captures_mpu or len(captures_mpu) < 2:
+        send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName,
+                          body='There is not pending captures')
+        return False
+    df_mpu, accX, accY, accZ, gyrX, gyrY, gyrZ = nn2.data_adapter(model, captures_mpu)
+    print(modelo(df_mpu, model.fldSName, accX, accY, accZ, gyrX, gyrY, gyrZ))
 
 
 def training_task(id_model: int):
