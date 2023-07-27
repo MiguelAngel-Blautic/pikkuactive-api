@@ -1,6 +1,7 @@
 import os
 import pickle
 import sys
+from datetime import datetime
 from typing import List, Any
 
 import fastdtw as fastdtw
@@ -113,6 +114,7 @@ def normalizar(df, min, max):
 
 def analize(mpus):
     # Leer archivos m
+    start = datetime.now()
     objects = []
     with open('m_ac1.model', 'rb') as model:
         objects.append(pickle.load(model))
@@ -132,7 +134,11 @@ def analize(mpus):
     m_g1 = objects[3].model
     m_g2 = objects[4].model
     m_g3 = objects[5].model
+    fin = datetime.now()
+    print("LECTURA: "+str(fin-start))
+
     # Datos
+    start = datetime.now()
     datos = []
     for mpu1 in mpus.mpu:
         #datos.append(mpu1.fldFAccX)
@@ -148,14 +154,20 @@ def analize(mpus):
         datos.append(((((mpu1.fldFGyrY*1000) - objects[4].datos.media) / objects[4].datos.std) - objects[4].datos.min) / (objects[4].datos.max - objects[4].datos.min))
         datos.append(((((mpu1.fldFGyrZ*1000) - objects[5].datos.media) / objects[5].datos.std) - objects[5].datos.min) / (objects[5].datos.max - objects[5].datos.min))
     mov = pd.DataFrame(datos).T
+    fin = datetime.now()
+    print("Datos: "+str(fin-start))
 
+    start = datetime.now()
     label_new5, proba_new5 = m_ac1.predict(np.array(mov.iloc[:, ::6]))
     label_new6, proba_new6 = m_ac2.predict(np.array(mov.iloc[:, 1::6]))
     label_new7, proba_new7 = m_ac3.predict(np.array(mov.iloc[:, 2::6]))
     label_new8, proba_new8 = m_g1.predict(np.array(mov.iloc[:, 3::6]))
     label_new9, proba_new9 = m_g2.predict(np.array(mov.iloc[:, 4::6]))
     label_new10, proba_new10 = m_g3.predict(np.array(mov.iloc[:, 5::6]))
+    fin = datetime.now()
+    print("Inferencia: "+str(fin-start))
 
+    start = datetime.now()
     list_count = []
     count = 0
     sensores_nombre = ["AccX", "AccY", "AccZ", "GyrX", "GyrY", "GyrZ"]
@@ -169,16 +181,21 @@ def analize(mpus):
                 count += prob
             list_count.append((sensores_nombre[j-5], label[i], prob[i]))
     count = (count/6)*100
-    #df_val = pd.DataFrame(list_count, columns=['Sensor', 'Label', 'Prob'])
+    fin = datetime.now()
+    print("Respuesta: "+str(fin-start))
+    df_val = pd.DataFrame(list_count, columns=['Sensor', 'Label', 'Prob'])
 
-    #informes = []
-    #for i in range(0, 6):
-    #    t = generate_Single(objects[i], mov, i)
-    #    informes.append(t)
-    #result = pd.concat(informes)
-    #result = result.sort_values(by='Value')[::-1]
-    #result = result.reset_index()
-    #result = result.drop("index", axis=1)
+    informes = []
+    start = datetime.now()
+    for i in range(0, 6):
+        t = generate_Single(objects[i], mov, i)
+        informes.append(t)
+    result = pd.concat(informes)
+    result = result.sort_values(by='Value')[::-1]
+    result = result.reset_index()
+    result = result.drop("index", axis=1)
+    fin = datetime.now()
+    print("Analisis: "+str(fin-start))
 
     #print(df_val.to_string()+"\n\n"+result.to_string()+"\n\nCorrect in "+str(count[0])+"%")
     return count[0]
