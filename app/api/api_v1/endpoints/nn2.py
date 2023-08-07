@@ -159,17 +159,17 @@ def analize(mpus):
 
     start = datetime.now()
     label_new5 = m_ac1.predict(np.array(mov.iloc[:, ::6]))
-    proba_new5 = m_ac1.predict(np.array(mov.iloc[:, ::6]))
+    proba_new5 = m_ac1.predict_proba(np.array(mov.iloc[:, ::6]))
     label_new6 = m_ac2.predict(np.array(mov.iloc[:, 1::6]))
-    proba_new6 = m_ac2.predict(np.array(mov.iloc[:, 1::6]))
+    proba_new6 = m_ac2.predict_proba(np.array(mov.iloc[:, 1::6]))
     label_new7 = m_ac3.predict(np.array(mov.iloc[:, 2::6]))
-    proba_new7 = m_ac3.predict(np.array(mov.iloc[:, 2::6]))
+    proba_new7 = m_ac3.predict_proba(np.array(mov.iloc[:, 2::6]))
     label_new8 = m_g1.predict(np.array(mov.iloc[:, 3::6]))
-    proba_new8 = m_g1.predict(np.array(mov.iloc[:, 3::6]))
+    proba_new8 = m_g1.predict_proba(np.array(mov.iloc[:, 3::6]))
     label_new9 = m_g2.predict(np.array(mov.iloc[:, 4::6]))
-    proba_new9 = m_g2.predict(np.array(mov.iloc[:, 4::6]))
+    proba_new9 = m_g2.predict_proba(np.array(mov.iloc[:, 4::6]))
     label_new10 = m_g3.predict(np.array(mov.iloc[:, 5::6]))
-    proba_new10 = m_g3.predict(np.array(mov.iloc[:, 5::6]))
+    proba_new10 = m_g3.predict_proba(np.array(mov.iloc[:, 5::6]))
     fin = datetime.now()
     print("Inferencia: "+str(fin-start))
 
@@ -182,10 +182,10 @@ def analize(mpus):
             label = eval('label_new' + str(j))
             prob = eval('proba_new' + str(j))
             if label == "other" or label == "Other":
-                count += (1 - prob)
+                count += (1 - prob[0][0])
             else:
-                count += prob
-            list_count.append((sensores_nombre[j-5], label[i], prob[i]))
+                count += prob[0][0]
+            list_count.append((sensores_nombre[j-5], label[i], prob[0][0]))
     count = (count/6)*100
     fin = datetime.now()
     print("Respuesta: "+str(fin-start))
@@ -204,7 +204,7 @@ def analize(mpus):
     print("Analisis: "+str(fin-start))
 
     #print(df_val.to_string()+"\n\n"+result.to_string()+"\n\nCorrect in "+str(count[0])+"%")
-    return count[0]
+    return count
 
 
 def completarModelo(mov_target, pclass, df_mov, index):
