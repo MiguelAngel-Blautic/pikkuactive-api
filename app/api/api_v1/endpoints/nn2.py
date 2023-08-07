@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 from typing import List, Any
 
-import fastdtw as fastdtw
+from fastdtw import fastdtw
 import tensorflow as tf
 import pandas as pd
 import numpy as np
@@ -595,54 +595,60 @@ def modelo(df, labelCorrect, accX, accY, accZ, gyrX, gyrY, gyrZ):
     Xg3 = mov[mov.columns[5::6]]
     x_train_g3, x_test_g3, y_train_g3, y_test_g3 = train_test_split(Xg3, Y, test_size=0.20, random_state=42, stratify=Y)
 
-    m_ac1 = KnnDtw(n_neighbors=4)  # ,max_warping_window=10)
+    m_ac1 = knndtw(n_neighbors=4)  # ,max_warping_window=10)
     m_ac1.fit(np.array(x_train_ac1).astype(np.float), np.array(y_train_ac1))
-    label_ac1, proba_ac1 = m_ac1.predict(np.array(x_test_ac1).astype(np.float))
+    label_ac1 = m_ac1.predict(np.array(x_test_ac1).astype(np.float))
+    proba_ac1 = m_ac1.predict_proba(np.array(x_test_ac1).astype(np.float))
     # print(classification_report(label_ac1, x_test_ac1, target_names=labels))
     sref, sref_upper, sref_lower = completarModelo('label', labelCorrect, df, 0)
     modeloKnn = ModeloKNN(model=m_ac1, sref=sref, sref_upper=sref_upper, sref_lower=sref_lower, datos=accX)
     with open('m_ac1.model', 'wb') as model:
         pickle.dump(modeloKnn, model)
 
-    m_ac2 = KnnDtw(n_neighbors=4)  # ,max_warping_window=10)
+    m_ac2 = knndtw(n_neighbors=4)  # ,max_warping_window=10)
     m_ac2.fit(np.array(x_train_ac2).astype(np.float), np.array(y_train_ac2))
-    label_ac2, proba_ac2 = m_ac2.predict(np.array(x_test_ac2).astype(np.float))
+    label_ac2 = m_ac2.predict(np.array(x_test_ac2).astype(np.float))
+    proba_ac2 = m_ac2.predict_proba(np.array(x_test_ac2).astype(np.float))
     # print(classification_report(label_ac2, x_test_ac2, target_names=labels))
     sref, sref_upper, sref_lower = completarModelo('label', labelCorrect, df, 1)
     modeloKnn = ModeloKNN(model=m_ac2, sref=sref, sref_upper=sref_upper, sref_lower=sref_lower, datos=accY)
     with open('m_ac2.model', 'wb') as model:
         pickle.dump(modeloKnn, model)
 
-    m_ac3 = KnnDtw(n_neighbors=4)  # ,max_warping_window=10)
+    m_ac3 = knndtw(n_neighbors=4)  # ,max_warping_window=10)
     m_ac3.fit(np.array(x_train_ac3).astype(np.float), np.array(y_train_ac3))
-    label_ac3, proba_ac3 = m_ac3.predict(np.array(x_test_ac3).astype(np.float))
+    label_ac3 = m_ac3.predict(np.array(x_test_ac3).astype(np.float))
+    prova_ac3 = m_ac3.predict_proba(np.array(x_test_ac3).astype(np.float))
     # print(classification_report(label_ac3, x_test_ac3, target_names=labels))
     sref, sref_upper, sref_lower = completarModelo('label', labelCorrect, df, 2)
     modeloKnn = ModeloKNN(model=m_ac3, sref=sref, sref_upper=sref_upper, sref_lower=sref_lower, datos=accZ)
     with open('m_ac3.model', 'wb') as model:
         pickle.dump(modeloKnn, model)
 
-    m_g1 = KnnDtw(n_neighbors=4)  # ,max_warping_window=10)
+    m_g1 = knndtw(n_neighbors=4)  # ,max_warping_window=10)
     m_g1.fit(np.array(x_train_g1).astype(np.float), np.array(y_train_g1))
-    label_g1, proba_g1 = m_g1.predict(np.array(x_test_g1).astype(np.float))
+    label_g1 = m_g1.predict(np.array(x_test_g1).astype(np.float))
+    prova_g1 = m_g1.predict_proba(np.array(x_test_g1).astype(np.float))
     # print(classification_report(label_g1, x_test_g1, target_names=labels))
     sref, sref_upper, sref_lower = completarModelo('label', labelCorrect, df, 3)
     modeloKnn = ModeloKNN(model=m_g1, sref=sref, sref_upper=sref_upper, sref_lower=sref_lower, datos=gyrX)
     with open('m_g1.model', 'wb') as model:
         pickle.dump(modeloKnn, model)
 
-    m_g2 = KnnDtw(n_neighbors=4)  # ,max_warping_window=10)
+    m_g2 = knndtw(n_neighbors=4)  # ,max_warping_window=10)
     m_g2.fit(np.array(x_train_g2).astype(np.float), np.array(y_train_g2))
-    label_g2, proba_g2 = m_g2.predict(np.array(x_test_g2).astype(np.float))
+    label_g2 = m_g2.predict(np.array(x_test_g2).astype(np.float))
+    proba_g2 = m_g2.predict_proba(np.array(x_test_g2).astype(np.float))
     # print(classification_report(label_g2, x_test_g2, target_names=labels))
     sref, sref_upper, sref_lower = completarModelo('label', labelCorrect, df, 4)
     modeloKnn = ModeloKNN(model=m_g2, sref=sref, sref_upper=sref_upper, sref_lower=sref_lower, datos=gyrY)
     with open('m_g2.model', 'wb') as model:
         pickle.dump(modeloKnn, model)
 
-    m_g3 = KnnDtw(n_neighbors=4)#,max_warping_window=10)
+    m_g3 = knndtw(n_neighbors=4)#,max_warping_window=10)
     m_g3.fit(np.array(x_train_g3).astype(np.float), np.array(y_train_g3))
-    label_g3, proba_g3 = m_g3.predict(np.array(x_test_g3).astype(np.float))
+    label_g3 = m_g3.predict(np.array(x_test_g3).astype(np.float))
+    proba_g3 = m_g3.predict_proba(np.array(x_test_g3).astype(np.float))
     # print(classification_report(label_g3, x_test_g3, target_names=labels))
     sref, sref_upper, sref_lower = completarModelo('label', labelCorrect, df, 5)
     modeloKnn = ModeloKNN(model=m_g3, sref=sref, sref_upper=sref_upper, sref_lower=sref_lower, datos=gyrZ)
@@ -651,13 +657,19 @@ def modelo(df, labelCorrect, accX, accY, accZ, gyrX, gyrY, gyrZ):
 
 
     def inferencia(mov):
-        label_new5, proba_new5 = m_ac1.predict(np.array(mov[mov.columns[::6]]))
-        label_new6, proba_new6 = m_ac2.predict(np.array(mov[mov.columns[1::6]]))
-        label_new7, proba_new7 = m_ac3.predict(np.array(mov[mov.columns[2::6]]))
+        label_new5 = m_ac1.predict(np.array(mov[mov.columns[::6]]))
+        proba_new5 = m_ac1.predict_proba(np.array(mov[mov.columns[::6]]))
+        label_new6 = m_ac2.predict(np.array(mov[mov.columns[1::6]]))
+        proba_new6 = m_ac2.predict_proba(np.array(mov[mov.columns[1::6]]))
+        label_new7 = m_ac3.predict(np.array(mov[mov.columns[2::6]]))
+        proba_new7 = m_ac3.predict_proba(np.array(mov[mov.columns[2::6]]))
 
-        label_new8, proba_new8 = m_g1.predict(np.array(mov[mov.columns[3::6]]))
-        label_new9, proba_new9 = m_g2.predict(np.array(mov[mov.columns[4::6]]))
-        label_new10, proba_new10 = m_g3.predict(np.array(mov[mov.columns[5::6]]))
+        label_new8 = m_g1.predict(np.array(mov[mov.columns[3::6]]))
+        proba_new8 = m_g1.predict_proba(np.array(mov[mov.columns[3::6]]))
+        label_new9 = m_g2.predict(np.array(mov[mov.columns[4::6]]))
+        proba_new9 = m_g2.predict_proba(np.array(mov[mov.columns[4::6]]))
+        label_new10 = m_g3.predict(np.array(mov[mov.columns[5::6]]))
+        proba_new10 = m_g3.predict_proba(np.array(mov[mov.columns[5::6]]))
 
 
 def estadisticas(lista):
