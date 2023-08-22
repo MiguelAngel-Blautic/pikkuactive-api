@@ -43,6 +43,12 @@ class Capture(CaptureInDBBase):
     pass
 
 
+class CaptureResumen(BaseModel):
+    nombre: str
+    correcto: int
+    fecha: datetime
+    id: int
+
 # Properties properties stored in DB
 class CaptureInDB(CaptureInDBBase):
     pass

@@ -1,12 +1,14 @@
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
 from app.models import tbl_model, tbl_capture, tbl_movement
 from app.schemas import MovementCreate
+from app.schemas.capture import CaptureResumen
 from app.schemas.movement import MovementCaptures
 
 router = APIRouter()
@@ -106,4 +108,31 @@ def count_captures(
     captures1 = db.query(tbl_capture).filter(tbl_capture.fkOwner == movements[0].id).all()
     captures2 = db.query(tbl_capture).filter(tbl_capture.fkOwner == movements[1].id).all()
     res = MovementCaptures(movement=len(captures1), other=len(captures2))
+    return res
+
+
+@router.get("/captures_resumen/{id}")
+def resumen_captures(
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Devuelve una lista resumen de capturas
+    """
+    model = crud.model.get(db=db, id=id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (
+    crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    movements = db.query(tbl_movement).filter(tbl_movement.fkOwner == model.id).all()
+    captures = db.query(tbl_capture).filter(or_(tbl_capture.fkOwner == movements[0].id, tbl_capture.fkOwner == movements[1].id)).all()
+    res = []
+    for capture in captures:
+        if capture.fkOwner == movements[0].id:
+            res.append(CaptureResumen(nombre=movements[0].fldSLabel, correcto=1, fecha=capture.fldDTimeCreateTime, id=capture.id))
+        else:
+            res.append(CaptureResumen(nombre=movements[1].fldSLabel, correcto=0, fecha=capture.fldDTimeCreateTime, id=capture.id))
     return res
