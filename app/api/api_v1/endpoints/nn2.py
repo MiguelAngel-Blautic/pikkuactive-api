@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import uuid
 
+from joblib import parallel_backend
 from matplotlib import pyplot as plt
 from numpy import median, std, mean
 from scipy.spatial.distance import euclidean, squareform
@@ -38,7 +39,8 @@ class knndtw(object):
     def __init__(self, n_neighbors=5, n_weights='uniform'):
         self.n_neighbors = n_neighbors
         self.n_weights = n_weights
-        self.knn = KNeighborsClassifier(self.n_neighbors, metric=self.dtw, weights=self.n_weights, n_jobs=-1)
+        with parallel_backend("multiprocessing", n_jobs=-1):
+            self.knn = KNeighborsClassifier(self.n_neighbors, metric=self.dtw, weights=self.n_weights, n_jobs=-1)
 
     def fit(self, X, y):
         self.X = X

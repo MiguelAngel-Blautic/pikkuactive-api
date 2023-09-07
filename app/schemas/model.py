@@ -14,6 +14,9 @@ class ModelBase(BaseModel):
     fldSName: Optional[str] = None
     fldSDescription: Optional[str] = None
     fldNDuration: Optional[int] = None
+    fldBPublico: Optional[int] = 0
+    fkCategoria: Optional[int] = None
+    fldFPrecio: Optional[float] = 0
     fldSImage: Optional[str] = None
     fldSVideo: Optional[str] = None
     fkTipo: Optional[int] = 1

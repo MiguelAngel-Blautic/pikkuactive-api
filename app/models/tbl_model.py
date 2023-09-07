@@ -1,7 +1,8 @@
 import enum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, ForeignKey, Integer, String, text, Boolean, TIMESTAMP, Float, Enum
+from MySQLdb import DATETIME
+from sqlalchemy import Column, ForeignKey, Integer, String, text, Boolean, TIMESTAMP, Float, Enum, BIGINT
 from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
@@ -17,6 +18,12 @@ class TrainingStatus(enum.Enum):
     training_failed = 3
 
 
+class tbl_categorias(Base):
+    id = Column(BIGINT, primary_key=True, index=True)
+    fldSNombre = Column(String)
+    models = relationship("tbl_model", back_populates="categoria" )
+
+
 class tbl_model(Base):
     id = Column(Integer, primary_key=True, index=True)
     fldSName = Column(String, index=True)
@@ -27,6 +34,10 @@ class tbl_model(Base):
     fldSVideo = Column(String)
     fldSStatus = Column(Enum(TrainingStatus))
     fldNProgress = Column(Integer)
+    fldBPublico = Column(Integer)
+    fkCategoria = Column(Integer, ForeignKey("tbl_categorias.id", ondelete="SET_NULL", onupdate="SET_NULL"))
+    categoria = relationship("tbl_categorias", back_populates="models")
+    fldFPrecio = Column(Float)
 
     fkOwner = Column(Integer, ForeignKey("tbl_user.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_user", back_populates="models")
@@ -36,6 +47,12 @@ class tbl_model(Base):
     movements = relationship("tbl_movement", back_populates="owner", cascade="all,delete", single_parent=True)
     devices = relationship("tbl_device", back_populates="owner", cascade="all,delete", single_parent=True)
     versions = relationship("tbl_version", back_populates="owner", cascade="all,delete", single_parent=True, order_by="tbl_version.fldDTimeCreateTime")
+
+
+class tbl_compra_modelo(Base):
+    fkModelo = Column(Integer, ForeignKey("tbl_model.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
+    fkUsuario = Column(Integer, ForeignKey("tbl_user.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
+    fldDFecha = Column(TIMESTAMP)
 
 
 class tbl_version(Base):
