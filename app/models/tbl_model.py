@@ -1,7 +1,6 @@
 import enum
 from typing import TYPE_CHECKING
 
-from MySQLdb import DATETIME
 from sqlalchemy import Column, ForeignKey, Integer, String, text, Boolean, TIMESTAMP, Float, Enum, BIGINT
 from sqlalchemy.orm import relationship
 
