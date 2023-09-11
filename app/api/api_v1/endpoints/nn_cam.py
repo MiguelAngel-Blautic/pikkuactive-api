@@ -17,7 +17,7 @@ DATA_FREQ = 10
 SENS_NUMBER = 34  # 17 puntos por 2 coordenadas
 
 
-def create_model(model,output_size=2):
+def create_model(model, output_size=2):
     columns = SENS_NUMBER
     rows = model.fldNDuration * DATA_FREQ
     input_shape = (rows, columns, 1)
@@ -119,29 +119,35 @@ def data_adapter(model, captures):
     labels = []
     for capture in captures:
         only_data = []
-        my_range = int(len(capture.cam)/17)
-        for i_data in range(0, my_range):
-            data_x = []
-            for i in range(0, 17):
-                data_x.append(capture.cam[(i_data*17) + i])
+        # my_range = int(len(capture.cam)/17)
+        # for i_data in range(0, my_range):
+        #     data_x = []
+        #     for i in range(0, 17):
+        #         data_x.append(capture.cam[(i_data*17) + i])
 
-            data_x.sort(key=lambda x: (x.fldNSample, x.fkPosicion))
+        #     data_x.sort(key=lambda x: (x.fldNSample, x.fkPosicion))
 
-            list_sorted = []
-            for data in data_x:
-                list_sorted.append(data.fldFX)
-                list_sorted.append(data.fldFY)
+        #     list_sorted = []
+        #     for data in data_x:
+        #         list_sorted.append(data.fldFX)
+        #         list_sorted.append(data.fldFY)
 
-            only_data.append(list_sorted)
+        #     only_data.append(list_sorted)
 
             # print(i_data)
+        datos = capture.cam
+        if len(datos) > 1:
+            datos.sort(key=lambda x: (x.fldNSample, x.fkPosicion))
+            for data in datos:
+                only_data.append(data.fldFX)
+                only_data.append(data.fldFY)
 
-        labels.append(capture.owner.fldSLabel)
-        np_data = np.resize(only_data, (1, len(only_data) * len(only_data[0])))
-        df_length = len(df)
-        # df.append(pd.DataFrame(np_data[0], columns=list(df)), ignore_index=True)
-        # df.append(np_data[0].tolist())
-        df.loc[df_length] = np_data[0].tolist()
+            labels.append(capture.owner.fldSLabel)
+            np_data = np.resize(only_data, (1, len(only_data)))
+            df_length = len(df)
+            # df.append(pd.DataFrame(np_data[0], columns=list(df)), ignore_index=True)
+            # df.append(np_data[0].tolist())
+            df.loc[df_length] = np_data[0].tolist()
     pd.set_option('display.max_columns', columns * rows)
     df['label'] = labels
     # print(df.shape)
