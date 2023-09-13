@@ -27,6 +27,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from app.models import tbl_version
 
 # CONFIG
+from app.models.tbl_mensajesInferencia import tbl_mensajesInferencia
 from app.schemas import mpu
 from app.schemas.mpu import MpuEstadisticas
 
@@ -114,7 +115,7 @@ def normalizar(df, min, max):
         data = (data - min)/(max - min)
 
 
-def analize(mpus):
+def analize(mpus, db):
     # Leer archivos m
     start = datetime.now()
     objects = []
@@ -242,7 +243,98 @@ def analize(mpus):
     # print("Analisis: "+str(fin-start))
 
     #print(df_val.to_string()+"\n\n"+result.to_string()+"\n\nCorrect in "+str(count[0])+"%")
-    return count
+    res = resultados(result, db)
+    return res
+
+
+def resultados(result, db):
+    dic = {}
+    for n in result.sensor.unique():
+        dic[n] = [0, 0, [0, 0, 0, 0], [0, 0, 0, 0]]
+    for index, row in result.iterrows():
+        dic[row.sensor][0] += row.Value
+        dic[row.sensor][1] += row.P_N
+        dic[row.sensor][2][int(row.Instant_time / (40 / 4))] += row.Value
+        dic[row.sensor][3][int(row.Instant_time / (40 / 4))] += row.P_N
+    max(dic, key=dic.get)
+    max_sensors = [[0, 0, 0, ""], [0, 0, 0, ""], [0, 0, 0, ""]]
+    for k in dic.keys():
+        max_v = max(dic[k][2])
+        indx = dic[k][2].index(max_v)
+        max_p = dic[k][3][indx]
+        sensor_n = k
+        for i in range(3):
+            if (max_sensors[i][0] < max_v):
+                max_sensors.insert(i, [max_v, max_p, indx, sensor_n])
+                max_sensors = max_sensors[:-1]
+                break
+    print(max_sensors)
+    # PARTE 2
+    tabla_sensores = []
+    for k in dic.keys():
+        counter = 0
+        for e in dic[k][2]:
+            if e > 0.5:
+                counter += 1
+        if counter > 2:
+            sensor = []
+            # El sensor
+            sensor.append(k)  # dispositivo
+            sensor.append(k)  # magnitud
+            sensor.append(k)  # eje
+            sensor.append('tt')
+            for er in dic[k][2]:
+                if er > 1:
+                    sensor.append('++')
+                    tabla_sensores.append(sensor)
+                    break
+        else:
+            for er, i in zip(dic[k][2], range(4)):
+                sensor = []
+                if er > 0.1:
+                    sensor.append(k)  # dispositivo
+                    sensor.append(k)  # magnitud
+                    sensor.append(k)  # eje
+                    sensor.append('t' + str(i))
+                    if er > 1 and dic[k][3][i] > 0:
+                        sensor.append('++')
+                    elif er > 1 and dic[k][3][i] < 0:
+                        sensor.append('--')
+                    elif er > 0 and dic[k][3][i] < 0:
+                        sensor.append('-')
+                    else:
+                        sensor.append('+')
+                    tabla_sensores.append(sensor)
+        print(tabla_sensores)
+        # Escribir mensajes
+    res = tabla_sensores[:3]
+    respuesta = ""
+    for re in res:
+        sensor = int(re[0] / 4) + 1
+        eje = int((re[0]-1) % 3) + 1
+        msj = db.query(tbl_mensajesInferencia).filter(tbl_mensajesInferencia.fldNSensor == sensor).filter(tbl_mensajesInferencia.fldNEje == eje).first()
+        if re[3] == 't0':
+            tiempo = "al principio del movimeinto"
+        elif re[3] == 't1':
+            tiempo = "antes de la mitad del movimiento"
+        elif re[3] == 't2':
+            tiempo = "despues de la mitad del movimiento"
+        elif re[3] == 't3':
+            tiempo = "al final del movimiento"
+        else:
+            tiempo = "en todo el movimiento"
+        if re[4] == '++':
+            intensidad = "Reducir mucho"
+        elif re[4] == '+':
+            intensidad = "Reducir un poco"
+        elif re[4] == '-':
+            intensidad = "Aumentar un poco"
+        elif re[4] == '--':
+            intensidad = "Aumentar mucho"
+        else:
+            intensidad = ''
+        respuesta = respuesta + intensidad + ' ' + msj.fldSMensaje + ' ' + tiempo + ".\n"
+    return respuesta
 
 
 def completarModelo(mov_target, pclass, df_mov, index):

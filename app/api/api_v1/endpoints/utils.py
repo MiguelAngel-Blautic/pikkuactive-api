@@ -53,7 +53,8 @@ def training_model(
 def analize(*, mpus: MpuList) -> Any:
     #print(mpus)
     #print("\n")
-    res = str(nn2.analize(mpus))
+    db: Session = SessionLocal()
+    res = str(nn2.analize(mpus, db))
     # print(res)
     return res
 
