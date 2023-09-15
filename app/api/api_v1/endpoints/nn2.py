@@ -4,6 +4,7 @@ import sys
 from datetime import datetime
 from typing import List, Any
 
+from fastapi.encoders import jsonable_encoder
 from fastdtw import fastdtw
 import tensorflow as tf
 import pandas as pd
@@ -51,8 +52,8 @@ class knndtw(object):
     def dtw(self, t1, t2):
         return fastdtw(t1, t2)[0]
 
-    def predict(self, X, i):
-        return self.knn.predict(X, i)
+    def predict(self, X):
+        return self.knn.predict(X)
 
     def predict_proba(self, X):
         return self.knn.predict_proba(X)
@@ -63,11 +64,12 @@ def scale_data(data, target):
 
     # Normalization
     df_pre = data
-    scaler = StandardScaler()
+    # scaler = StandardScaler()
     # X = df_pre.drop(target,axis=1)
     X = df_pre.drop('label', axis=1)
-    x_norm = scaler.fit_transform(X.values)
-    df_norm = pd.DataFrame(data=x_norm, columns=X.columns)
+    # x_norm = scaler.fit_transform(X.values)
+    # df_norm = pd.DataFrame(data=x_norm, columns=X.columns)
+    df_norm = pd.DataFrame(data=data, columns=X.columns)
     df_norm[target] = df_pre[target]
     df_pre = df_norm.copy()
 
@@ -116,6 +118,7 @@ def normalizar(df, min, max):
 
 
 def analize(mpus, db):
+    print(mpus)
     # Leer archivos m
     start = datetime.now()
     objects = []
@@ -144,33 +147,33 @@ def analize(mpus, db):
     start = datetime.now()
     datos = []
     for mpu1 in mpus.mpu:
-        #datos.append(mpu1.fldFAccX)
-        #datos.append(mpu1.fldFAccY)
-        #datos.append(mpu1.fldFAccZ)
-        datos.append(((((mpu1.fldFAccX*4) - objects[0].datos.media) / objects[0].datos.std) - objects[0].datos.min) / (objects[0].datos.max - objects[0].datos.min))
-        datos.append(((((mpu1.fldFAccY*4) - objects[1].datos.media) / objects[1].datos.std) - objects[1].datos.min) / (objects[1].datos.max - objects[1].datos.min))
-        datos.append(((((mpu1.fldFAccZ*4) - objects[2].datos.media) / objects[2].datos.std) - objects[2].datos.min) / (objects[2].datos.max - objects[2].datos.min))
-        #datos.append(mpu1.fldFGyrX)
-        #datos.append(mpu1.fldFGyrY)
-        #datos.append(mpu1.fldFGyrZ)
-        datos.append(((((mpu1.fldFGyrX*1000) - objects[3].datos.media) / objects[3].datos.std) - objects[3].datos.min) / (objects[3].datos.max - objects[3].datos.min))
-        datos.append(((((mpu1.fldFGyrY*1000) - objects[4].datos.media) / objects[4].datos.std) - objects[4].datos.min) / (objects[4].datos.max - objects[4].datos.min))
-        datos.append(((((mpu1.fldFGyrZ*1000) - objects[5].datos.media) / objects[5].datos.std) - objects[5].datos.min) / (objects[5].datos.max - objects[5].datos.min))
+        # datos.append(mpu1.fldFAccX*4)
+        # datos.append(mpu1.fldFAccY*4)
+        # datos.append(mpu1.fldFAccZ*4)
+        datos.append(((((mpu1.fldFAccX) - objects[0].datos.media) / objects[0].datos.std) - objects[0].datos.min) / (objects[0].datos.max - objects[0].datos.min))
+        datos.append(((((mpu1.fldFAccY) - objects[1].datos.media) / objects[1].datos.std) - objects[1].datos.min) / (objects[1].datos.max - objects[1].datos.min))
+        datos.append(((((mpu1.fldFAccZ) - objects[2].datos.media) / objects[2].datos.std) - objects[2].datos.min) / (objects[2].datos.max - objects[2].datos.min))
+        # datos.append(mpu1.fldFGyrX*1000)
+        # datos.append(mpu1.fldFGyrY*1000)
+        # datos.append(mpu1.fldFGyrZ*1000)
+        datos.append(((((mpu1.fldFGyrX) - objects[3].datos.media) / objects[3].datos.std) - objects[3].datos.min) / (objects[3].datos.max - objects[3].datos.min))
+        datos.append(((((mpu1.fldFGyrY) - objects[4].datos.media) / objects[4].datos.std) - objects[4].datos.min) / (objects[4].datos.max - objects[4].datos.min))
+        datos.append(((((mpu1.fldFGyrZ) - objects[5].datos.media) / objects[5].datos.std) - objects[5].datos.min) / (objects[5].datos.max - objects[5].datos.min))
     mov = pd.DataFrame(datos).T
     fin = datetime.now()
     # print("Datos: "+str(fin-start))
 
     start = datetime.now()
     start1 = datetime.now()
-    label_new5 = m_ac1.predict(np.array(mov.iloc[:, ::6]), 1)
+    label_new5 = m_ac1.predict(np.array(mov.iloc[:, ::6]))
     fin1 = datetime.now()
-    # print("Predict proba 1: "+str(fin1-start1))
+    print("Predict proba 1: "+str(fin1-start1))
     start1 = datetime.now()
     proba_new5 = m_ac1.predict_proba(np.array(mov.iloc[:, ::6]))
     fin1 = datetime.now()
     # print("Predict 1: "+str(fin1-start1))
     start1 = datetime.now()
-    label_new6 = m_ac2.predict(np.array(mov.iloc[:, 1::6]), 0)
+    label_new6 = m_ac2.predict(np.array(mov.iloc[:, 1::6]))
     fin1 = datetime.now()
     # print("Predict proba 2: "+str(fin1-start1))
     start1 = datetime.now()
@@ -178,7 +181,7 @@ def analize(mpus, db):
     fin1 = datetime.now()
     # print("Predict 2: "+str(fin1-start1))
     start1 = datetime.now()
-    label_new7 = m_ac3.predict(np.array(mov.iloc[:, 2::6]), 0)
+    label_new7 = m_ac3.predict(np.array(mov.iloc[:, 2::6]))
     fin1 = datetime.now()
     # print("Predict proba 3: "+str(fin1-start1))
     start1 = datetime.now()
@@ -186,7 +189,7 @@ def analize(mpus, db):
     fin1 = datetime.now()
     # print("Predict 3: "+str(fin1-start1))
     start1 = datetime.now()
-    label_new8 = m_g1.predict(np.array(mov.iloc[:, 3::6]), 0)
+    label_new8 = m_g1.predict(np.array(mov.iloc[:, 3::6]))
     fin1 = datetime.now()
     # print("Predict proba 4: "+str(fin1-start1))
     start1 = datetime.now()
@@ -194,7 +197,7 @@ def analize(mpus, db):
     fin1 = datetime.now()
     # print("Predict 4: "+str(fin1-start1))
     start1 = datetime.now()
-    label_new9 = m_g2.predict(np.array(mov.iloc[:, 4::6]), 0)
+    label_new9 = m_g2.predict(np.array(mov.iloc[:, 4::6]))
     fin1 = datetime.now()
     # print("Predict proba 5: "+str(fin1-start1))
     start1 = datetime.now()
@@ -202,7 +205,7 @@ def analize(mpus, db):
     fin1 = datetime.now()
     # print("Predict 5: "+str(fin1-start1))
     start1 = datetime.now()
-    label_new10 = m_g3.predict(np.array(mov.iloc[:, 5::6]), 0)
+    label_new10 = m_g3.predict(np.array(mov.iloc[:, 5::6]))
     fin1 = datetime.now()
     # print("Predict proba 6: "+str(fin1-start1))
     start1 = datetime.now()
@@ -210,7 +213,7 @@ def analize(mpus, db):
     fin1 = datetime.now()
     # print("Predict 6: "+str(fin1-start1))
     fin = datetime.now()
-    # print("Inferencia: "+str(fin-start))
+    print("Inferencia: "+str(fin-start))
 
     start = datetime.now()
     list_count = []
@@ -288,6 +291,7 @@ def resultados(result, db):
                     sensor.append('++')
                     tabla_sensores.append(sensor)
                     break
+            sensor.append(dic[k][0])
         else:
             for er, i in zip(dic[k][2], range(4)):
                 sensor = []
@@ -304,11 +308,13 @@ def resultados(result, db):
                         sensor.append('-')
                     else:
                         sensor.append('+')
+                    sensor.append(dic[k][2][i])
                     tabla_sensores.append(sensor)
         print(tabla_sensores)
+        sorted_list = sorted(tabla_sensores, key=lambda x: (x[5]))[::-1]
         # Escribir mensajes
-    res = tabla_sensores[:3]
-    respuesta = ""
+    res = sorted_list[:3]
+    respuesta = []
     for re in res:
         sensor = int(re[0] / 4) + 1
         eje = int((re[0]-1) % 3) + 1
@@ -333,16 +339,21 @@ def resultados(result, db):
             intensidad = "Aumentar mucho"
         else:
             intensidad = ''
-        respuesta = respuesta + intensidad + ' ' + msj.fldSMensaje + ' ' + tiempo + ".\n"
-    return respuesta
+        respuesta.append(intensidad + ' ' + msj.fldSMensaje + ' ' + tiempo + ".")
+    return jsonable_encoder(respuesta)
 
 
 def completarModelo(mov_target, pclass, df_mov, index):
-    df_mov_pre = scale_data(df_mov, mov_target)
+    # df_mov_pre = scale_data(df_mov, mov_target)
+    df_mov_pre = df_mov
+    for col in df_mov_pre.columns[:-1]:
+        df_mov_pre[col] = df_mov_pre[col].astype(float)
     df_mov_sensor = df_mov_pre[df_mov_pre.columns[index::6]]
     df_mov_sensor[mov_target] = df_mov_pre[mov_target]
     df_mov_sensor_correct, df_mov_sensor1_incorrect = correct_incorrect(df_mov_sensor, mov_target, pclass)
-    df_mov_sensor_clean = remove_outliers(df_mov_sensor_correct, 0.90)
+    # df_mov_sensor_clean = remove_outliers(df_mov_sensor_correct, 0.90)
+    df_mov_sensor_clean = df_mov_sensor_correct
+    des = df_mov_sensor_clean.describe()
     sref, sref_upper, sref_lower = get_normal_repetition(df_mov_sensor_clean)
     return sref, sref_upper, sref_lower
 
@@ -488,7 +499,7 @@ def generate_Single(modelo, datos, index):
     rep = rep.reset_index(drop=True)
     error, b = get_error(sref, sref_upper, sref_lower, rep.T)
     t = show_error(error, b, index+1)
-    #plot_data(sref, sref_upper, sref_lower, error, rep.T)
+    plot_data(sref, sref_upper, sref_lower, error, rep.T)
     return t
 
 
@@ -846,6 +857,12 @@ def data_adapter(model, captures):
             captureLin.append((((mpu.fldFGyrX - gyrX.media)/gyrX.std)-gyrX.min)/(gyrX.max - gyrX.min))
             captureLin.append((((mpu.fldFGyrY - gyrY.media)/gyrY.std)-gyrY.min)/(gyrY.max - gyrY.min))
             captureLin.append((((mpu.fldFGyrZ - gyrZ.media)/gyrZ.std)-gyrZ.min)/(gyrZ.max - gyrZ.min))
+            # captureLin.append(mpu.fldFAccX)
+            # captureLin.append(mpu.fldFAccY)
+            # captureLin.append(mpu.fldFAccZ)
+            # captureLin.append(mpu.fldFGyrX)
+            # captureLin.append(mpu.fldFGyrY)
+            # captureLin.append(mpu.fldFGyrZ)
         captureLin.append(capture.owner.fldSLabel)
         lines.append(captureLin)
     df = pd.DataFrame(np.array(lines), columns=columns)
