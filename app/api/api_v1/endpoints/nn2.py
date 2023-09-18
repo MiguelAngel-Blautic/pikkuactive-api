@@ -499,7 +499,7 @@ def generate_Single(modelo, datos, index):
     rep = rep.reset_index(drop=True)
     error, b = get_error(sref, sref_upper, sref_lower, rep.T)
     t = show_error(error, b, index+1)
-    plot_data(sref, sref_upper, sref_lower, error, rep.T)
+    # plot_data(sref, sref_upper, sref_lower, error, rep.T)
     return t
 
 
