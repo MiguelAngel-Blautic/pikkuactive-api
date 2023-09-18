@@ -153,6 +153,8 @@ def create_plan(
         dia = crud.ejercicio.getUltimoDia(db=db, user=user)
         if dia is None:
             dia = datetime.now()
+        if not dia >= datetime.now():
+            dia = datetime.now()
         for ejercicio in ejercicios:
             umbrales = [Umbral(fldFValor=ejercicio.umbrales[0].fldFValor, fkTipo=1)]
             add = EjercicioCreate(fkEjercicio=ejercicio.fkEjercicio, umbrales=umbrales, fldNRepeticiones=ejercicio.fldNRepeticiones)
