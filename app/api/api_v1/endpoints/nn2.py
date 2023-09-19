@@ -320,23 +320,23 @@ def resultados(result, db):
         eje = int((re[0]-1) % 3) + 1
         msj = db.query(tbl_mensajesInferencia).filter(tbl_mensajesInferencia.fldNSensor == sensor).filter(tbl_mensajesInferencia.fldNEje == eje).first()
         if re[3] == 't0':
-            tiempo = "al principio del movimeinto"
+            tiempo = "at the beginning of the movement"
         elif re[3] == 't1':
-            tiempo = "antes de la mitad del movimiento"
+            tiempo = "before the middle of the movement"
         elif re[3] == 't2':
-            tiempo = "despues de la mitad del movimiento"
+            tiempo = "after the middle of the movement"
         elif re[3] == 't3':
-            tiempo = "al final del movimiento"
+            tiempo = "at the end of the movement"
         else:
-            tiempo = "en todo el movimiento"
+            tiempo = "throughout the entire movement"
         if re[4] == '++':
-            intensidad = "Reducir mucho"
+            intensidad = "Greatly reducing"
         elif re[4] == '+':
-            intensidad = "Reducir un poco"
+            intensidad = "Slightly reducing"
         elif re[4] == '-':
-            intensidad = "Aumentar un poco"
+            intensidad = "Slightly increase"
         elif re[4] == '--':
-            intensidad = "Aumentar mucho"
+            intensidad = "Greatly increase"
         else:
             intensidad = ''
         respuesta.append(intensidad + ' ' + msj.fldSMensaje + ' ' + tiempo + ".")
