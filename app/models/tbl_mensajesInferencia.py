@@ -8,6 +8,6 @@ class tbl_mensajesInferencia(Base):
     fldNDevice = Column(Integer, nullable=False, primary_key=True)
     fldNSensor = Column(Integer, nullable=False, primary_key=True)
     fldNEje = Column(Integer, nullable=False, primary_key=True)
-    fldNEje = Column(Integer, nullable=False, primary_key=True)
+    fldNIntensidad = Column(Integer, nullable=False, primary_key=True)
     fldSMensaje = Column(String)
 

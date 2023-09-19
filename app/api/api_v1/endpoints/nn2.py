@@ -329,7 +329,7 @@ def resultados(result, db):
             intensidad = 2
         msj = db.query(tbl_mensajesInferencia).filter(tbl_mensajesInferencia.fldNSensor == sensor).\
             filter(tbl_mensajesInferencia.fldNEje == eje).\
-            filter(tbl_mensajesInferencia.fldNEje == intensidad).first()
+            filter(tbl_mensajesInferencia.fldNIntensidad == intensidad).first()
         if re[3] == 't0':
             tiempo = "at the beginning"
         elif re[3] == 't1':
