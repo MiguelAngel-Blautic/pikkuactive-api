@@ -318,28 +318,29 @@ def resultados(result, db):
     for re in res:
         sensor = int(re[0] / 4) + 1
         eje = int((re[0]-1) % 3) + 1
-        msj = db.query(tbl_mensajesInferencia).filter(tbl_mensajesInferencia.fldNSensor == sensor).filter(tbl_mensajesInferencia.fldNEje == eje).first()
+        intensidad = 0
+        if re[4] == '++':
+            intensidad = -2
+        if re[4] == '+':
+            intensidad = -1
+        if re[4] == '-':
+            intensidad = 1
+        if re[4] == '--':
+            intensidad = 2
+        msj = db.query(tbl_mensajesInferencia).filter(tbl_mensajesInferencia.fldNSensor == sensor).\
+            filter(tbl_mensajesInferencia.fldNEje == eje).\
+            filter(tbl_mensajesInferencia.fldNEje == intensidad).first()
         if re[3] == 't0':
-            tiempo = "at the beginning of the movement"
+            tiempo = "at the beginning"
         elif re[3] == 't1':
-            tiempo = "before the middle of the movement"
+            tiempo = "before the middle"
         elif re[3] == 't2':
-            tiempo = "after the middle of the movement"
+            tiempo = "after the middle"
         elif re[3] == 't3':
-            tiempo = "at the end of the movement"
+            tiempo = "at the end"
         else:
             tiempo = "throughout the entire movement"
-        if re[4] == '++':
-            intensidad = "Greatly reducing"
-        elif re[4] == '+':
-            intensidad = "Slightly reducing"
-        elif re[4] == '-':
-            intensidad = "Slightly increase"
-        elif re[4] == '--':
-            intensidad = "Greatly increase"
-        else:
-            intensidad = ''
-        respuesta.append(intensidad + ' ' + msj.fldSMensaje + ' ' + tiempo + ".")
+        respuesta.append(msj.fldSMensaje + ' ' + tiempo + ".")
     return jsonable_encoder(respuesta)
 
 
