@@ -13,8 +13,7 @@ if TYPE_CHECKING:
 class tbl_ejercicio(Base):
     id = Column(Integer, primary_key=True, index=True)
 
-    fkEjercicio = Column(Integer, ForeignKey("tbl_model.id", ondelete="CASCADE", onupdate="CASCADE"))
-    ejercicio = relationship("tbl_model")
+    fkEjercicio = Column(Integer)
     fkSesion = Column(Integer, ForeignKey("tbl_sesion.id", ondelete="CASCADE", onupdate="CASCADE"))
     sesion = relationship("tbl_sesion")
 
