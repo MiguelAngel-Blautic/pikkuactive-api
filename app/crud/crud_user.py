@@ -13,8 +13,6 @@ from app.schemas.user import UserCreate, UserUpdate, User
 
 
 class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
-    def get_by_email(self, db: Session, *, email: str) -> Optional[tbl_user]:
-        return db.query(tbl_user).filter(tbl_user.fldSEmail == email).first()
 
     def get_centros(self, db: Session, *, user: int, skip: int = 0, limit: int = 100) -> Optional[List[User]]:
         centros = db.query(tbl_user).filter(tbl_user.fkRol == 3).offset(skip).limit(limit).all()
@@ -22,8 +20,6 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         for centro in centros:
             obj = User()
             obj.id = centro.id
-            obj.fldSFullName = centro.fldSFullName
-            obj.fldSEmail = centro.fldSEmail
             obj.fldBActive = centro.fldBActive
             obj.fldSDireccion = centro.fldSDireccion
             obj.fldSTelefono = centro.fldSTelefono
@@ -54,8 +50,6 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         for cliente in clientes:
             obj = User()
             obj.id = cliente.id
-            obj.fldSFullName = cliente.fldSFullName
-            obj.fldSEmail = cliente.fldSEmail
             obj.fldBActive = cliente.fldBActive
             obj.fldSDireccion = cliente.fldSDireccion
             obj.fldSTelefono = cliente.fldSTelefono
@@ -91,18 +85,16 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
 
     def create(self, db: Session, *, obj_in: UserCreate) -> tbl_user:
         db_obj = tbl_user(
-            fldSFullName=obj_in.fldSFullName,
-            fldSEmail=obj_in.fldSEmail,
-            fldSHashedPassword=get_password_hash(obj_in.fldSHashedPassword),
             fldBActive=obj_in.fldBActive,
             fldSDireccion=obj_in.fldSDireccion,
             fldSTelefono=obj_in.fldSTelefono,
             fldSImagen=obj_in.fldSImagen,
             fkRol=obj_in.fkRol,
+            idPlataforma=obj_in.idPlataforma
         )
         db.add(db_obj)
         db.commit()
-        db_obj = self.get_by_email(db=db, email=obj_in.fldSEmail)
+        db_obj = self.get_remoto(db=db, id=obj_in.idPlataforma)
         return db_obj
 
     def update(
@@ -112,21 +104,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             update_data = obj_in
         else:
             update_data = obj_in.dict(exclude_unset=True)
-
-        if update_data["password"]:
-            hashed_password = get_password_hash(update_data["password"])
-            del update_data["password"]
-            update_data["fldSHashedPassword"] = hashed_password
-            print(update_data["fldSHashedPassword"])
         return super().update(db, db_obj=db_obj, obj_in=update_data)
-
-    def authenticate(self, db: Session, *, email: str, password: str) -> Optional[tbl_user]:
-        user = self.get_by_email(db, email=email)
-        if not user:
-            return None
-        if not verify_password(password, user.fldSHashedPassword):
-            return None
-        return user
 
     def fldBActive(self, user: tbl_user) -> bool:
         return user.fldBActive

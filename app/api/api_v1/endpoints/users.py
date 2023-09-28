@@ -45,7 +45,7 @@ def create_user(
     """
     Create new user.
     """
-    user = crud.user.get_by_email(db, email=user_in.fldSEmail)
+    user = crud.user.get_remoto(db, email=user_in.idPlataforma)
     if user:
         raise HTTPException(
             status_code=400,
@@ -120,7 +120,7 @@ def create_user_open(
     """
     Create new user.
     """
-    user = crud.user.get_by_email(db, email=user_in.fldSEmail)
+    user = crud.user.get_remoto(db, email=user_in.idPlataforma)
     if user:
         raise HTTPException(
             status_code=400,
