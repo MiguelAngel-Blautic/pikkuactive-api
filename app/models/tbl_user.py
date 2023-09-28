@@ -18,6 +18,7 @@ class tbl_user(Base):
     fldSDireccion = Column(String)
     fldSTelefono = Column(String)
     fldSImagen = Column(String)
+    idPlataforma = Column(Integer)
     fkRol = Column(ForeignKey('tbl_rol.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True, primary_key=True)
     rol = relationship("tbl_rol")
     fldSFcmToken = Column(String, nullable=True)
