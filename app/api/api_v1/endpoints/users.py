@@ -58,3 +58,22 @@ def create_user_open(
             email_to=user_in.fldSEmail, username=user_in.fldSEmail, password=user_in.fldSHashedPassword
         )
     return user
+
+
+@router.post("/complete/", response_model=schemas.User)
+def complete_user(
+    *,
+    db: Session = Depends(deps.get_db),
+    user_in: schemas.UserComplete,
+) -> Any:
+    """
+    Complete new user.
+    """
+    user = crud.user.get_remote(db, id=user_in.idPlataforma)
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this username already exists in the system.",
+        )
+    user = crud.user.complete(db, obj_in=user_in)
+    return user

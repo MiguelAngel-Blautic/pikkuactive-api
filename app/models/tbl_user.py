@@ -22,5 +22,6 @@ class tbl_user(Base):
     fldTNacimiento = Column(TIMESTAMP)
     fldNSexo = Column(Integer)
     fkRol = Column(Integer)
+    idPlataforma = Column(Integer)
     fldSFcmToken = Column(String, nullable=True)
     models = relationship("tbl_model", back_populates="owner", cascade="all,delete", )

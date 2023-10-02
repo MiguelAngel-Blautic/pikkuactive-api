@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
 from app.models.tbl_user import tbl_user
-from app.schemas.user import UserCreate, UserUpdate, User
+from app.schemas.user import UserCreate, UserUpdate, User, UserComplete
 
 
 class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
@@ -48,6 +48,25 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         db.commit()
         db_obj = self.get_by_email(db=db, email=obj_in.fldSEmail)
         return db_obj
+
+    def complete(self, db: Session, *, obj_in: UserComplete) -> tbl_user:
+        db_obj = tbl_user(
+            fldSFullName=obj_in.fldSFullName,
+            fldBActive=obj_in.fldBActive,
+            fldNSexo=obj_in.fldNSexo,
+            fldTNacimiento=obj_in.fldTNacimiento,
+            fldSTelefono=obj_in.fldSTelefono,
+            fldSImagen=obj_in.fldSImagen,
+            fkRol=obj_in.fkRol,
+            idPlataforma=obj_in.idPlataforma,
+        )
+        db.add(db_obj)
+        db.commit()
+        db_obj = self.get_remote(db=db, id=obj_in.idPlataforma)
+        return db_obj
+
+    def get_remote(self, db: Session, id: int) -> tbl_user:
+        return db.query(self.model).filter(self.model.idPlataforma == id).first()
 
     def update(
             self, db: Session, *, db_obj: tbl_user, obj_in: Union[UserUpdate, Dict[str, Any]]

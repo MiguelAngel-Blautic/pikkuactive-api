@@ -16,6 +16,17 @@ class UserBase(BaseModel):
     fldSFullName: Optional[str] = None
 
 
+class UserComplete(BaseModel):
+    fldBActive: Optional[bool] = True
+    fldNSexo: Optional[int] = None
+    fldTNacimiento: Optional[datetime] = None
+    fldSTelefono: Optional[str] = None
+    fldSImagen: Optional[str] = None
+    fkRol: Optional[int] = 1
+    fldSFullName: Optional[str] = None
+    idPlataforma: Optional[int] = None
+
+
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     fldSEmail: EmailStr
