@@ -20,7 +20,7 @@ import tensorflow as tf
 router = APIRouter()
 serverToken = 'AAAAmpw87-E:APA91bGxqsAff2uwrO0uMaaujmiy7nBNCm82HcTFvM0LwsR_7DL-39mNc1JtVj1yEWbjAxepY-ZgdLWkBLo9IoTcUQpuddDoYQJtthQwNriRbJkNDmbfH_v1-UydDVDRinMAW0-9FKF3'
 firebase_admin.initialize_app(
-    credentials.Certificate('app/motionia-firebase.json'),
+    credentials.Certificate('/home/diego/PycharmProjects/pikkuactive-api/app/blautic-ai-firebase.json'),
     options={
         'storageBucket': 'motionia-4f3c9.appspot.com',
     })
