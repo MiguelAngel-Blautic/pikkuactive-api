@@ -36,7 +36,7 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
         lista = db.query(tbl_asignado).filter(tbl_asignado.fkSesion == plan.id).all()
         for asign in lista:
             usr = db.query(tbl_user).filter(tbl_user.id == asign.fkUsuario).first()
-            res.append(User(id=usr.id, fldSEmail=usr.fldSEmail, fldBActive=usr.fldBActive, fldSDireccion=usr.fldSDireccion, fldSTelefono=usr.fldSTelefono, fldSImagen=usr.fldSImagen, fkRol=usr.fkRol, fldSFullName=usr.fldSFullName))
+            res.append(User(id=usr.id, fldBActive=usr.fldBActive, fldSDireccion=usr.fldSDireccion, fldSTelefono=usr.fldSTelefono, fldSImagen=usr.fldSImagen, fkRol=usr.fkRol))
         plan.usuarios = res
         return plan
 
