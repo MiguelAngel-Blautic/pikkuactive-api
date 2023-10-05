@@ -43,21 +43,16 @@ class CRUDEjercicio(CRUDBase[tbl_ejercicio, EjercicioCreate, EjercicioUpdate]):
     def get_multi_by_rol(
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100, id: int,
     ) -> List[tbl_ejercicio]:
-        if rol == 1:
+        if rol == 0:
             return db.query(self.model).outerjoin(tbl_sesion, tbl_sesion.id == tbl_ejercicio.fkPlan). \
                 filter(tbl_ejercicio.fkPlan == id).outerjoin(tbl_asignado, tbl_sesion.id == tbl_asignado.fkPlan). \
                 filter(tbl_asignado.fkUsuario == user).offset(skip).limit(limit).all()
-        if rol == 2:
-            return db.query(tbl_ejercicio).outerjoin(tbl_sesion, tbl_sesion.id == tbl_ejercicio.fkPlan).filter(tbl_sesion.fkCreador == user). \
-                filter(tbl_ejercicio.fkPlan == id).offset(skip).limit(limit).all()
-        if rol == 3:
+        if rol == 1:
             res = db.query(tbl_ejercicio).outerjoin(tbl_sesion, tbl_sesion.id == tbl_ejercicio.fkPlan).outerjoin(tbl_entrena,
                                                                                                                  tbl_sesion.fkCreador == tbl_entrena.fkUsuario). \
                 filter(or_(tbl_entrena.fkProfesional == user, tbl_sesion.fkCreador == user)). \
                 filter(tbl_ejercicio.fkPlan == id).offset(skip).limit(limit).all()
             return res
-        if rol == 4:
-            return db.query(self.model).filter(tbl_ejercicio.fkPlan == id).offset(skip).limit(limit).all()
 
     def asigned(
             self, *, db: Session, user: int, model: int,

@@ -42,7 +42,7 @@ def create_ejercicio(
     plan = read_plan(db=db, id=id, current_user=current_user)  # Check model exists
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
-    if check_permission(db=db, user=current_user.id, plan=plan, rol=current_user.fkRol) and current_user.fkRol > 1:
+    if check_permission(db=db, user=current_user.id, plan=plan, rol=current_user.fkRol) and current_user.fkRol >= 1:
         ejercicio = crud.ejercicio.create_with_owner(db=db, db_obj=plan, obj_in=ejercicio_in)
     else:
         raise HTTPException(status_code=400, detail="Not enough permissions")

@@ -49,7 +49,7 @@ def add_entrenar(
     entrena_in = schemas.EntrenaCreate(fkProfesional=profesional, fkUsuario=usuario)
     resultado = crud.entrena.create_with_owner(db=db, obj_in=entrena_in, user=current_user)
     if resultado:
-        if current_user.fkRol > 1:
+        if current_user.fkRol >= 1:
             return 2
         else:
             return 1
@@ -115,7 +115,7 @@ def create_asignar(
         entrena_in: schemas.AsignadoCreate,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
-    if not current_user.fkRol > 1:
+    if not current_user.fkRol >= 1:
         raise HTTPException(status_code=400, detail="Not enough permissions")
     plan = read_plan(db=db, id=entrena_in.fkSesion, current_user=current_user)  # Check model exists
     if not plan:
@@ -135,7 +135,7 @@ def asignar(
     asignacion = crud.asignado.get(db=db, id=id)
     if not asignacion:
         raise HTTPException(status_code=404, detail="Relation not found")
-    if current_user.fkRol < 2:
+    if current_user.fkRol < 1:
         raise HTTPException(status_code=400, detail="Not enough permissions")
     if not (asignacion.fkUsuario == current_user.id or asignacion.fkAsignador == current_user.id):
         raise HTTPException(status_code=400, detail="Not involved")

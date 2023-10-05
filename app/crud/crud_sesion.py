@@ -44,15 +44,13 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
             self, db: Session, *, user: int, rol: int, skip: int = 0, limit: int = 100
     ) -> List[Sesion]:
         planes = []
-        if rol == 1:
+        if rol == 0:
             planes = []
             asignados = db.query(tbl_asignado).filter(tbl_asignado.fkUsuario == user).offset(skip).limit(limit).all()
             for asignacion in asignados:
                 planes.append(sesion.get(db=db, id=asignacion.fkSesion))
-        if rol == 2 or rol == 3:
+        if rol == 1:
             planes = db.query(self.model).filter(tbl_sesion.fkCreador == user).offset(skip).limit(limit).all()
-        if rol == 4:
-            planes = db.query(self.model).offset(skip).limit(limit).all()
 
         return planes
 

@@ -29,7 +29,7 @@ def read_sesiones(
     return plan
 
 
-@router.get("/profesional-user/" , response_model=List[schemas.Sesion])
+@router.get("/profesional-user/", response_model=List[schemas.Sesion])
 def read_sesiones_prof(
         db: Session = Depends(deps.get_db),
         profesional: int = 0,
@@ -130,16 +130,12 @@ def check_permission(
         plan: tbl_sesion,
         rol: int,
 ) -> Any:
-    if rol == 1:
+    if rol == 0:
         res = crud.asignado.count(db=db, user=user, plan=plan.id) > 1
+    elif rol == 1:
+        res = crud.asignado.count(db=db, user=user, plan=plan.id) > 1
+        res = res or (user == plan.fkCreador)
     else:
-        if rol == 2:
-            res = (user == plan.fkCreador)
-        else:
-            if rol == 3:
-                res = crud.asignado.count(db=db, user=user, plan=plan.id) > 1
-                res = res or (user == plan.fkCreador)
-            else:
-                res = True
+        res = True
 
     return res

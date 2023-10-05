@@ -37,7 +37,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
     def get_clientes(self, db: Session, *, user: int, rol: int) -> Optional[List[User]]:
         global clientes
         res = []
-        if rol == 2:
+        if rol == 1:
             aux = db.query(tbl_entrena.fkProfesional).filter(tbl_entrena.fkUsuario == user).first()
             if aux:
                 id = aux[0]
@@ -65,23 +65,14 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         return res
 
     def get_profesionales(self, db: Session, *, skip: int = 0, limit: int = 100, user: tbl_user) -> Optional[List[tbl_user]]:
-        if user.fkRol == 3:
+        if user.fkRol == 1:
             return db.query(tbl_user).outerjoin(tbl_entrena, tbl_entrena.fkUsuario == tbl_user.id).filter(tbl_user.fkRol == 2). \
                 filter(tbl_entrena.fkProfesional == user.id).offset(skip).limit(limit).all()
-        if user.fkRol == 4:
-            return db.query(tbl_user).filter(tbl_user.fkRol == 2).offset(skip).limit(limit).all()
 
     def get_pacientes(self, db: Session, *, skip: int = 0, limit: int = 100, user: tbl_user) -> Optional[List[tbl_user]]:
-        if user.fkRol == 2:
-            centro = db.query(tbl_user).outerjoin(tbl_entrena, tbl_entrena.fkProfesional == tbl_user.id). \
-                filter(tbl_entrena.fkUsuario == user.id).offset(skip).limit(limit).first()
-            return db.query(tbl_user).outerjoin(tbl_entrena, tbl_entrena.fkUsuario == tbl_user.id).filter(tbl_user.fkRol == 1). \
-                filter(tbl_entrena.fkProfesional == centro.id).offset(skip).limit(limit).all()
-        if user.fkRol == 3:
+        if user.fkRol == 1:
             return db.query(tbl_user).outerjoin(tbl_entrena, tbl_entrena.fkUsuario == tbl_user.id).filter(tbl_user.fkRol == 1). \
                 filter(tbl_entrena.fkProfesional == user.id).offset(skip).limit(limit).all()
-        if user.fkRol == 4:
-            return db.query(tbl_user).filter(tbl_user.fkRol == 1).offset(skip).limit(limit).all()
 
     def create(self, db: Session, *, obj_in: UserCreate) -> tbl_user:
         db_obj = tbl_user(
