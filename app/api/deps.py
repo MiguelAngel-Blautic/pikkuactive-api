@@ -40,7 +40,10 @@ def get_current_user(
         )
     user = crud.user.get_remoto(db, id=token_data.sub)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        user = crud.user.get(db=db, id=token_data.sub)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
     return user
 
 

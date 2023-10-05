@@ -23,14 +23,12 @@ def read_users(
     """
     Retrieve users.
     """
-    if current_user.fkRol == 1:
+    if current_user.fkRol == 0:
         users = crud.user.get_centros(db, user=current_user.id, skip=skip, limit=limit)
-    if current_user.fkRol == 2:
+    elif current_user.fkRol == 1:
         users = crud.user.get_clientes(db, user=current_user.id, rol=current_user.fkRol)
-    if current_user.fkRol == 3:
-        users = crud.user.get_clientes(db, user=current_user.id, rol=current_user.fkRol)
-    if current_user.fkRol == 4:
-        users = crud.user.get_multi(db, skip=skip, limit=limit)
+    else:
+        users = []
 
     return users
 
@@ -105,6 +103,18 @@ def read_user_me(
     Get current user.
     """
     return current_user
+
+
+@router.get("/comprobar/")
+def read_user_me(
+        id: str,
+        db: Session = Depends(deps.get_db),
+) -> Any:
+    user = crud.user.get_remoto(db, id=id)
+    if user:
+        return user.id
+    else:
+        return 0
 
 
 @router.post("/open", response_model=schemas.User)
