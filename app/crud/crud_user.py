@@ -35,17 +35,12 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         return res
 
     def get_clientes(self, db: Session, *, user: int, rol: int) -> Optional[List[User]]:
-        global clientes
+        clientes = []
         res = []
         if rol == 1:
-            aux = db.query(tbl_entrena.fkProfesional).filter(tbl_entrena.fkUsuario == user).first()
-            if aux:
-                id = aux[0]
-                clientes = db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id). \
-                    filter(tbl_user.fkRol == 1).filter(tbl_entrena.fldBConfirmed).all()
+            clientes = db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == user).filter(tbl_entrena.fldBConfirmed).all()
         else:
-            id = user
-            clientes = db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkUsuario).filter(tbl_entrena.fkProfesional == id).all()
+            clientes = db.query(tbl_user).outerjoin(tbl_entrena, tbl_user.id == tbl_entrena.fkProfesional).filter(tbl_entrena.fkUsuario == user).all()
 
         for cliente in clientes:
             obj = User()
@@ -55,7 +50,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             obj.fldSTelefono = cliente.fldSTelefono
             obj.fldSImagen = cliente.fldSImagen
             obj.fkRol = cliente.fkRol
-            aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == obj.id).filter(tbl_entrena.fkProfesional == id).first()
+            aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == obj.id).filter(tbl_entrena.fkProfesional == user).first()
             if aux:
                 obj.idRelacion = aux.id
                 obj.estado = aux.fldBConfirmed
