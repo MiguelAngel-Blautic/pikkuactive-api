@@ -1,6 +1,10 @@
 import json
+from statistics import mean
 from typing import Any, List
+
+import pandas as pd
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from numpy import std
 from pydantic.networks import EmailStr
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -9,7 +13,7 @@ from app.api import deps
 from app.api.api_v1.endpoints import nn_ecg, nn, nn_cam, nn2
 from app.api.api_v1.endpoints.models import read_model
 from app.api.api_v1.endpoints.nn2 import joinMOV, modelo
-from app.models import tbl_model
+from app.models import tbl_model, tbl_version_estadistica, sensores_estadistica, tbl_movement, tbl_capture, datos_estadistica
 from app.models.tbl_model import TrainingStatus, tbl_history
 from app.schemas import mpu
 from app.schemas.mpu import MpuList
@@ -58,6 +62,82 @@ def analize(*, mpus: MpuList) -> Any:
     res = str(nn2.analize(mpus, db))
     print(res)
     return res
+
+
+def completar_entrenamiento(db, df, columns, orden, nombre, model, version):
+    max = df.max().max()
+    min = df.min().min()
+    df = (df - min) / (max - min)
+    sensor = sensores_estadistica(fkModelo=model.id, fldNOrden=orden, fldSNombre=nombre, fldFMax=max, fldFMin=min)
+    db.add(sensor)
+    db.commit()
+    db.refresh(sensor)
+    sample = 1
+    for column in columns:
+        media = mean(df[column])
+        desviacion = std(df[column])
+        dato = datos_estadistica(fkSensor=sensor.id, fkVersion=version.id, fldNSample=sample, fldFStd=desviacion, fldFMedia=media)
+        db.add(dato)
+        db.commit()
+        db.refresh(dato)
+        sample = sample + 1
+    pass
+
+
+@router.get("/entrena_stadistic/")
+def entrena_estadistica(id_model: int, db: Session = Depends(deps.get_db)) -> Any:
+    model = db.query(models.tbl_model).filter(models.tbl_model.id == id_model).first()
+    if not model:
+        raise HTTPException(status_code=404, detail="Unknow ID")
+    movements = db.query(tbl_movement).filter(tbl_movement.fkOwner == model.id).all()
+    for movement in movements:
+        if movement.fldSLabel == 'Other' or movement.fldSLabel == 'other':
+            continue
+        version = tbl_version_estadistica(fkOwner=model.id, fldSLabel=movement.fldSLabel, accuracy=0)
+        db.add(version)
+        db.commit()
+        db.refresh(version)
+        captures = db.query(tbl_capture).filter(tbl_capture.fkOwner == movement.id).all()
+        for device in model.devices:
+            if device.fldNSensores == 1:  # MPU
+                columns = []
+                FREQ = 20
+                for i in range(model.fldNDuration * FREQ):
+                    columns.append("Sample-" + str(i + 1))
+                loc = 0
+                dfAccX = pd.DataFrame(columns=columns)
+                dfAccY = pd.DataFrame(columns=columns)
+                dfAccZ = pd.DataFrame(columns=columns)
+                dfGyrX = pd.DataFrame(columns=columns)
+                dfGyrY = pd.DataFrame(columns=columns)
+                dfGyrZ = pd.DataFrame(columns=columns)
+                for capture in captures:
+                    accX = [mpu.fldFAccX for mpu in capture.mpu]
+                    accY = [mpu.fldFAccY for mpu in capture.mpu]
+                    accZ = [mpu.fldFAccZ for mpu in capture.mpu]
+                    gyrX = [mpu.fldFGyrX for mpu in capture.mpu]
+                    gyrY = [mpu.fldFGyrY for mpu in capture.mpu]
+                    gyrZ = [mpu.fldFGyrZ for mpu in capture.mpu]
+                    dfAccX.loc[loc] = accX
+                    dfAccY.loc[loc] = accY
+                    dfAccZ.loc[loc] = accZ
+                    dfGyrX.loc[loc] = gyrX
+                    dfGyrY.loc[loc] = gyrY
+                    dfGyrZ.loc[loc] = gyrZ
+                    loc = loc + 1
+                completar_entrenamiento(db, dfAccX, columns, 1, 'AccX', model, version)
+                completar_entrenamiento(db, dfAccY, columns, 2, 'AccY', model, version)
+                completar_entrenamiento(db, dfAccZ, columns, 3, 'AccZ', model, version)
+                completar_entrenamiento(db, dfGyrX, columns, 4, 'GyrX', model, version)
+                completar_entrenamiento(db, dfGyrY, columns, 5, 'GyrY', model, version)
+                completar_entrenamiento(db, dfGyrZ, columns, 6, 'GyrZ', model, version)
+    return 1
+
+
+@router.post("/analize_stadistic/")
+def analize(mpus: MpuList, db: Session = Depends(deps.get_db)) -> Any:
+
+    return 1
 
 
 @router.post("/entrena/")

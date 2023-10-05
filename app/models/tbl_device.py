@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 class tbl_device(Base):
     id = Column(Integer, primary_key=True, index=True)
     fldNNumberDevice = Column(Integer, nullable=False)
+    fldNSensores = Column(Integer)
     fkPosition = Column(Integer, ForeignKey("tbl_position.id", ondelete="CASCADE", onupdate="CASCADE"))
     position = relationship("tbl_position", back_populates="positions")
 
