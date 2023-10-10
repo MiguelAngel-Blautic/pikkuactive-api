@@ -1,4 +1,4 @@
-from .model import Model, ModelCreate, ModelInDB, ModelUpdate
+from .model import Model, ModelCreate, ModelInDB, ModelUpdate, ModelStadisticsSensor
 from .msg import Msg
 from .token import Token, TokenPayload
 from .user import User, UserCreate, UserInDB, UserUpdate, UserComplete

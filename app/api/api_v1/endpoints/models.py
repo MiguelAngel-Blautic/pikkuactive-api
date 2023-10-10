@@ -2,15 +2,16 @@ from datetime import datetime
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import or_
+from sqlalchemy import or_, desc
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
-from app.models import tbl_model, tbl_capture, tbl_movement
+from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, datos_estadistica
 from app.models.tbl_model import tbl_categorias, tbl_compra_modelo
 from app.schemas import MovementCreate
 from app.schemas.capture import CaptureResumen
+from app.schemas.model import ModelStadistics, ModelStadisticsSensor
 from app.schemas.movement import MovementCaptures
 
 router = APIRouter()
@@ -155,6 +156,33 @@ def read_model(
     if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (model.fldBPublico == 1)):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     return model
+
+
+@router.get("/stadistics/{id}", response_model=List[schemas.ModelStadisticsSensor])
+def read_model_stadistics(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get model by ID.
+    """
+    model = crud.model.get(db=db, id=id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (model.fldBPublico == 1)):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    sensores = db.query(sensores_estadistica).filter(sensores_estadistica.fkModelo == model.id).all()
+    version = db.query(tbl_version_estadistica).filter(tbl_version_estadistica.fkOwner == model.id).order_by(desc(tbl_version_estadistica.fecha)).first()
+    res = []
+    for sensor in sensores:
+        datos = db.query(datos_estadistica).filter(datos_estadistica.fkVersion == version.id).filter(datos_estadistica.fkSensor == sensor.id).order_by(datos_estadistica.fldNSample).all()
+        datalist = []
+        for dato in datos:
+            datalist.append(ModelStadistics(sample=dato.fldNSample, media=dato.fldFMedia, std=dato.fldFStd))
+        res.append(ModelStadisticsSensor(id=sensor.id, nombre=sensor.fldSNombre, datos=datalist))
+    return res
 
 
 @router.get("/capturas/{id}", response_model=schemas.MovementCaptures)

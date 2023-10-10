@@ -13,7 +13,7 @@ from app.api import deps
 from app.api.api_v1.endpoints import nn_ecg, nn, nn_cam, nn2
 from app.api.api_v1.endpoints.models import read_model
 from app.api.api_v1.endpoints.nn2 import joinMOV, modelo
-from app.models import tbl_model, tbl_version_estadistica, sensores_estadistica, tbl_movement, tbl_capture, datos_estadistica
+from app.models import tbl_model, tbl_version_estadistica, sensores_estadistica, tbl_movement, tbl_capture, datos_estadistica, tbl_mpu
 from app.models.tbl_model import TrainingStatus, tbl_history
 from app.schemas import mpu
 from app.schemas.mpu import MpuList
@@ -112,6 +112,7 @@ def entrena_estadistica(id_model: int, db: Session = Depends(deps.get_db)) -> An
                 dfGyrY = pd.DataFrame(columns=columns)
                 dfGyrZ = pd.DataFrame(columns=columns)
                 for capture in captures:
+                    # mpus = db.query(tbl_mpu).filter(tbl_mpu.fkOwner == capture.id).all()
                     accX = [mpu.fldFAccX for mpu in capture.mpu]
                     accY = [mpu.fldFAccY for mpu in capture.mpu]
                     accZ = [mpu.fldFAccZ for mpu in capture.mpu]
@@ -135,7 +136,10 @@ def entrena_estadistica(id_model: int, db: Session = Depends(deps.get_db)) -> An
 
 
 @router.post("/analize_stadistic/")
-def analize(mpus: MpuList, db: Session = Depends(deps.get_db)) -> Any:
+def analize_estadistica(mpus: MpuList, model: int, db: Session = Depends(deps.get_db)) -> Any:
+    model = db.query(tbl_model).get(model)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
 
     return 1
 

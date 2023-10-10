@@ -10,6 +10,18 @@ from app.schemas.movement import Movement, MovementCreate
 from app.schemas.version import Version
 
 
+class ModelStadistics(BaseModel):
+    sample: int
+    media: float
+    std: float
+
+
+class ModelStadisticsSensor(BaseModel):
+    id: int
+    nombre: str
+    datos: List[ModelStadistics]
+
+
 class ModelBase(BaseModel):
     fldSName: Optional[str] = None
     fldSDescription: Optional[str] = None
