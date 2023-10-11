@@ -55,7 +55,7 @@ def create_plan(
     """
     if not plan_in.fkCreador:
         plan_in.fkCreador = current_user.id
-    if current_user.fkRol > 1:
+    if current_user.fkRol >= 1:
         plan = crud.sesion.create_with_owner(db=db, obj_in=plan_in)
     else:
         raise HTTPException(status_code=400, detail="Not enough permissions")
