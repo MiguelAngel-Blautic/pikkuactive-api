@@ -25,6 +25,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             obj.fldSTelefono = centro.fldSTelefono
             obj.fldSImagen = centro.fldSImagen
             obj.fkRol = centro.fkRol
+            obj.idPlataforma = centro.idPlataforma
             aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == user).filter(tbl_entrena.fkProfesional == centro.id).first()
             if aux:
                 obj.idRelacion = aux.id
@@ -50,6 +51,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             obj.fldSTelefono = cliente.fldSTelefono
             obj.fldSImagen = cliente.fldSImagen
             obj.fkRol = cliente.fkRol
+            obj.idPlataforma = cliente.idPlataforma
             aux = db.query(tbl_entrena).filter(tbl_entrena.fkUsuario == obj.id).filter(tbl_entrena.fkProfesional == user).first()
             if aux:
                 obj.idRelacion = aux.id
