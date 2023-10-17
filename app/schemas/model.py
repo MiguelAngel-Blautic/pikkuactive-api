@@ -31,7 +31,6 @@ class ModelBase(BaseModel):
     fldFPrecio: Optional[float] = 0
     fldSImage: Optional[str] = None
     fldSVideo: Optional[str] = None
-    fldNSensores: Optional[int] = 0
     fkTipo: Optional[int] = 1
 
 
