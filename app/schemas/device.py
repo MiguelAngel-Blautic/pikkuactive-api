@@ -12,6 +12,7 @@ class DeviceBase(BaseModel):
 # Properties to receive on item creation
 class DeviceCreate(DeviceBase):
     fldNNumberDevice: int
+    fldNSensores: Optional[int] = 1
     fkPosition: int
 
 
