@@ -37,6 +37,7 @@ class tbl_model(Base):
     fkCategoria = Column(Integer, ForeignKey("tbl_categorias.id", ondelete="SET_NULL", onupdate="SET_NULL"))
     categoria = relationship("tbl_categorias", back_populates="models")
     fldFPrecio = Column(Float)
+    fldNSensores = Column(Integer)
 
     fkOwner = Column(Integer, ForeignKey("tbl_user.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_user", back_populates="models")
