@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
-from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, datos_estadistica
+from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, datos_estadistica, tbl_user
 from app.models.tbl_model import tbl_categorias, tbl_compra_modelo
 from app.schemas import MovementCreate
 from app.schemas.capture import CaptureResumen
@@ -33,6 +33,26 @@ def read_models(
         model = crud.model.get_multi_by_owner(
             db=db, owner_id=current_user.id, skip=skip, limit=limit
         )
+    return model
+
+
+@router.get("/user/{id}", response_model=List[schemas.Model])
+def read_models(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Retrieve models.
+    """
+    user = db.query(tbl_user).filter(tbl_user.idPlataforma == id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    model = crud.model.get_multi_by_owner_public(
+        db=db, owner_id=user.id, skip=skip, limit=limit
+    )
     return model
 
 

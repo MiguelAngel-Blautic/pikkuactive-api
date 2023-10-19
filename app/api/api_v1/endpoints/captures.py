@@ -91,3 +91,22 @@ def change_capture(
     db.refresh(capture)
     return capture
 
+
+@router.post("/label/", response_model=schemas.Capture)
+def change_label(
+        *,
+        captura: int,
+        movimiento: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    capture = crud.capture.get(db=db, id=captura)
+    if not capture:
+        raise HTTPException(status_code=404, detail="Capture not found")
+    movement = crud.movement.get(db=db, id=movimiento)
+    if not movement:
+        raise HTTPException(status_code=404, detail="Movement not found")
+    capture.fkOwner = movement.id
+    db.commit()
+    db.refresh(capture)
+    return capture

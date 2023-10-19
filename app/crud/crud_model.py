@@ -51,6 +51,17 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
             .all()
         )
 
+    def get_multi_by_owner_public(
+        self, db: Session, *, owner_id: int, skip: int = 0, limit: int = 100
+    ) -> List[tbl_model]:
+        return (
+            db.query(self.model)
+            .filter(tbl_model.fkOwner == owner_id).filter(tbl_model.fldBPublico == 1)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+
     def get_multi_market(
         self, db: Session, *, owner_id: int, skip: int = 0, limit: int = 100
     ) -> List[tbl_model]:
