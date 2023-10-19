@@ -15,7 +15,7 @@ from app.schemas.user import UserCreate, UserUpdate, User
 class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
 
     def get_centros(self, db: Session, *, user: int, skip: int = 0, limit: int = 100) -> Optional[List[User]]:
-        centros = db.query(tbl_user).filter(tbl_user.fkRol == 3).offset(skip).limit(limit).all()
+        centros = db.query(tbl_user).filter(tbl_user.fkRol == 1).offset(skip).limit(limit).all()
         res = []
         for centro in centros:
             obj = User()
