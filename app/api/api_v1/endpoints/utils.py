@@ -65,9 +65,9 @@ def analize(*, mpus: MpuList) -> Any:
 
 
 def completar_entrenamiento(db, df, columns, orden, nombre, model, version):
-    max = df.max().max()
-    min = df.min().min()
-    df = (df - min) / (max - min)
+    # max = df.max().max()
+    # min = df.min().min()
+    # df = (df - min) / (max - min)
     sensor = db.query(sensores_estadistica).filter(sensores_estadistica.fkModelo == model.id).filter(sensores_estadistica.fldNOrden == orden).first()
     if not sensor:
         sensor = sensores_estadistica(fkModelo=model.id, fldNOrden=orden, fldSNombre=nombre, fldFMax=max, fldFMin=min)
