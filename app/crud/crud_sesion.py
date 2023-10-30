@@ -51,7 +51,13 @@ class CRUDSesion(CRUDBase[tbl_sesion, SesionCreate, SesionUpdate]):
                 planes.append(sesion.get(db=db, id=asignacion.fkSesion))
         if rol == 1:
             planes = db.query(self.model).filter(tbl_sesion.fkCreador == user).offset(skip).limit(limit).all()
-
+            for plan in planes:
+                plan = Sesion(fldSNombre=plan.fldSNombre, fkCreador=plan.fkCreador, fldBGenerico=plan.fldBGenerico, id=plan.id, ejercicios=plan.ejercicios)
+                asignados = db.query(tbl_asignado).filter(tbl_asignado.fkSesion == plan.id).offset(skip).limit(limit).all()
+                for asignado in asignados:
+                    usuario = db.query(tbl_user).get(asignado.fkUsuario)
+                    if usuario:
+                        plan.usuarios.append(usuario)
         return planes
 
     def get_multi_by_usr(

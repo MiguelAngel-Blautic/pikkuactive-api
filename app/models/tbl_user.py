@@ -16,7 +16,7 @@ class tbl_user(Base):
     fldSTelefono = Column(String)
     fldSImagen = Column(String)
     idPlataforma = Column(Integer)
-    fkRol = Column(ForeignKey('tbl_rol.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True, primary_key=True)
+    fkRol = Column(ForeignKey('tbl_rol.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
     rol = relationship("tbl_rol")
     models = relationship("tbl_model", back_populates="owner", cascade="all,delete", )
 
