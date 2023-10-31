@@ -112,4 +112,8 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             return None
         return user
 
+
+    def get_by_email(self, db: Session, *, email: str) -> Optional[tbl_user]:
+        return db.query(tbl_user).filter(tbl_user.fldSEmail == email).first()
+
 user = CRUDUser(tbl_user)

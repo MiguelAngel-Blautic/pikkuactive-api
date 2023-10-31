@@ -14,6 +14,8 @@ class tbl_user(Base):
     fldBActive = Column(Boolean(), default=True)
     fldSDireccion = Column(String)
     fldSTelefono = Column(String)
+    fldSEmail = Column(String)
+    fldSHashedPassword = Column(String)
     fldSImagen = Column(String)
     idPlataforma = Column(Integer)
     fkRol = Column(ForeignKey('tbl_rol.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
