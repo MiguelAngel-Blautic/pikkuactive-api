@@ -104,4 +104,12 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
         return user.fkRol
 
 
+    def authenticate(self, db: Session, *, email: str, password: str) -> Optional[tbl_user]:
+        user = self.get_by_email(db, email=email)
+        if not user:
+            return None
+        if not verify_password(password, user.fldSHashedPassword):
+            return None
+        return user
+
 user = CRUDUser(tbl_user)
