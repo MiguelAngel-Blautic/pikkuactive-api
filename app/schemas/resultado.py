@@ -38,7 +38,7 @@ class Resultado(ResultadoInDBBase):
 
 
 class ResultadoEjercicio(BaseModel):
-    id: int
+    id: Optional[int] = None
     nombre: str
     resultados: List[Resultado]
 
