@@ -105,8 +105,7 @@ def read_resultado(
             "join tbl_ejercicio e on (um.fkEjercicio = e.id) " \
             "join tbl_sesion s on (e.fkSesion = s.id) " \
             "join tbl_user u on (u.id = hv.fkUser) " \
-            "where e.fkEjercicio is not NULL " \
-            "and s.fkCreador = "+str(current_user.id)
+            "where s.fkCreador = "+str(current_user.id)
     if sesion > 0:
         texto = texto + " and s.id = "+str(sesion)
     if user > 0:
@@ -133,39 +132,39 @@ def read_resultado(
                 idEjercicio = row[4]
                 first = False
             if idSesion != row[0]:
-                ejercicios.append(ResultadoEjercicio(id=row[4], nombre="", resultados=resultados))
+                ejercicios.append(ResultadoEjercicio(id=idEjercicio, nombre="", resultados=resultados))
                 resultados = []
                 idEjercicio = row[4]
-                umbrales.append(ResultadoTUmbral(id=row[3], ejercicios=ejercicios))
+                umbrales.append(ResultadoTUmbral(id=idUmbral, ejercicios=ejercicios))
                 ejercicios = []
                 idUmbral = row[3]
-                usuarios.append(ResultadoUsuario(id=row[1], nombre=row[2], tumbrales=umbrales))
+                usuarios.append(ResultadoUsuario(id=idUsuario, nombre=nombreUsuario, tumbrales=umbrales))
                 umbrales = []
                 idUsuario = row[1]
                 nombreUsuario = row[2]
-                sesiones.append(ResultadosSesion(id=row[0], usuarios=usuarios))
+                sesiones.append(ResultadosSesion(id=idSesion, usuarios=usuarios))
                 usuarios = []
                 idSesion = row[0]
             if idUsuario != row[1]:
-                ejercicios.append(ResultadoEjercicio(id=row[4], nombre="", resultados=resultados))
+                ejercicios.append(ResultadoEjercicio(id=idEjercicio, nombre="", resultados=resultados))
                 resultados = []
                 idEjercicio = row[4]
-                umbrales.append(ResultadoTUmbral(id=row[3], ejercicios=ejercicios))
+                umbrales.append(ResultadoTUmbral(id=idUmbral, ejercicios=ejercicios))
                 ejercicios = []
                 idUmbral = row[3]
-                usuarios.append(ResultadoUsuario(id=row[1], nombre=row[2], tumbrales=umbrales))
+                usuarios.append(ResultadoUsuario(id=idUsuario, nombre=nombreUsuario, tumbrales=umbrales))
                 umbrales = []
                 idUsuario = row[1]
                 nombreUsuario = row[2]
             if idUmbral != row[3]:
-                ejercicios.append(ResultadoEjercicio(id=row[4], nombre="", resultados=resultados))
+                ejercicios.append(ResultadoEjercicio(id=idEjercicio, nombre="", resultados=resultados))
                 resultados = []
                 idEjercicio = row[4]
-                umbrales.append(ResultadoTUmbral(id=row[3], ejercicios=ejercicios))
+                umbrales.append(ResultadoTUmbral(id=idUmbral, ejercicios=ejercicios))
                 ejercicios = []
                 idUmbral = row[3]
             if idEjercicio != row[4]:
-                ejercicios.append(ResultadoEjercicio(id=row[4], nombre="", resultados=resultados))
+                ejercicios.append(ResultadoEjercicio(id=idEjercicio, nombre="", resultados=resultados))
                 resultados = []
                 idEjercicio = row[4]
             resultados.append(Resultado(id=row[6], fldFValor=row[7], fldDTimeFecha=row[8], fldNIntento=row[10], fldFUmbral=row[9], fkUser=row[1]))
