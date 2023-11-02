@@ -105,7 +105,8 @@ def read_resultado(
             "join tbl_ejercicio e on (um.fkEjercicio = e.id) " \
             "join tbl_sesion s on (e.fkSesion = s.id) " \
             "join tbl_user u on (u.id = hv.fkUser) " \
-            "where s.fkCreador = "+str(current_user.id)
+            "where e.fkEjercicio is not NULL " \
+            "and s.fkCreador = "+str(current_user.id)
     if sesion > 0:
         texto = texto + " and s.id = "+str(sesion)
     if user > 0:
