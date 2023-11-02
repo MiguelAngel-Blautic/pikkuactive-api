@@ -100,8 +100,12 @@ def read_resultado(
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     texto = "select s.id, u.id, u.fldSFullName, um.fkTipo, e.fkEjercicio, e.id, hv.id, hv.fldFValor, hv.fldDTimeFecha, hv.fldFUmbral, hv.fldNIntento " \
-            "from tbl_sesion s join tbl_asignado a on (a.fkSesion = s.id) join tbl_user u on (u.id = a.fkUsuario) join tbl_ejercicio e on (e.fkSesion = s.id) " \
-            "join tbl_umbrales um on (um.fkEjercicio = e.id) join tbl_historico_valores hv on (hv.fkUmbral = um.id and hv.fkUser = u.id) where s.fkCreador = "+str(current_user.id)
+            "from tbl_historico_valores hv " \
+            "join tbl_umbrales um on (hv.fkUmbral = um.id) " \
+            "join tbl_ejercicio e on (um.fkEjercicio = e.id) " \
+            "join tbl_sesion s on (e.fkSesion = s.id) " \
+            "join tbl_user u on (u.id = hv.fkUser) " \
+            "where s.fkCreador = "+str(current_user.id)
     if sesion > 0:
         texto = texto + " and s.id = "+str(sesion)
     if user > 0:
