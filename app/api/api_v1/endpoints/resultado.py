@@ -104,8 +104,11 @@ def read_resultado(
             "join tbl_umbrales um on (hv.fkUmbral = um.id) " \
             "join tbl_ejercicio e on (um.fkEjercicio = e.id) " \
             "join tbl_sesion s on (e.fkSesion = s.id) " \
-            "join tbl_user u on (u.id = hv.fkUser) " \
-            "where s.fkCreador = "+str(current_user.id)
+            "join tbl_user u on (u.id = hv.fkUser) "
+    if current_user.fkRol == 1:
+       texto = texto + "where s.fkCreador = "+str(current_user.id)
+    else:
+        texto = texto + "where hv.fkUser = "+str(current_user.id)
     if sesion > 0:
         texto = texto + " and s.id = "+str(sesion)
     if user > 0:
