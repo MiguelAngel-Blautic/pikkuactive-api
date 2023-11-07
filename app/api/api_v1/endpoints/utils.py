@@ -56,8 +56,8 @@ def training_model(
 
 @router.post("/analize/")
 def analize(*, mpus: MpuList) -> Any:
-    #print(mpus)
-    #print("\n")
+    # print(mpus)
+    # print("\n")
     db: Session = SessionLocal()
     res = str(nn2.analize(mpus, db))
     print(res)
@@ -181,8 +181,6 @@ def training_task(id_model: int):
     #     captures_mpu = db.query(models.Capture).filter(and_(models.Capture.owner_id.in_(ids_movements),
     #                                                         models.Capture.create_time > version_last_mpu.create_time)).all()
 
-
-
     version_last_mpu = None
     # captures_mpu = db.query(models.tbl_capture).filter(or_(models.tbl_capture.fkOwner.in_(ids_movements)), models.tbl_capture.grupo.isnot(None)).all()
     captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
@@ -195,57 +193,60 @@ def training_task(id_model: int):
     model.fldSStatus = TrainingStatus.training_started
     db.commit()
     db.refresh(model)
+    try:
+        # Aqui agregar el la funcion de entrenamiento devolver el link donde se ha guarado el modelo
+        # df = nn.data_adapter(model, captures)
+        # df_ecg = nn_ecg.data_adapter(model, captures_mpu)
+        # version_ecg = nn_ecg.train_model(model, df_ecg, version_last_mpu)
+        # version_ecg.fkOwner = model.id
+        # db.add(version_ecg)
 
-    # Aqui agregar el la funcion de entrenamiento devolver el link donde se ha guarado el modelo
-    # df = nn.data_adapter(model, captures)
-    # df_ecg = nn_ecg.data_adapter(model, captures_mpu)
-    # version_ecg = nn_ecg.train_model(model, df_ecg, version_last_mpu)
-    # version_ecg.fkOwner = model.id
-    # db.add(version_ecg)
-
-    if model.fkTipo == 1:
-        df_mpu = nn.data_adapter(model, captures_mpu)
-        version_mpu = nn.train_model(model, df_mpu, version_last_mpu)
-        version_mpu.fkOwner = model.id
-
-        db.add(version_mpu)
-
-        db.commit()
-        db.refresh(version_mpu)
-    if model.fkTipo == 2:
-        df_cam = nn_cam.data_adapter(model, captures_mpu)
-        version_cam = nn_cam.train_model(model, df_cam, version_last_mpu)
-        version_cam.fkOwner = model.id
-        db.add(version_cam)
-        db.commit()
-        db.refresh(version_cam)
-    # db.refresh(version_ecg)
-
-    history = []
-    for capture in captures_mpu:
         if model.fkTipo == 1:
-            history.append(tbl_history(fkCapture=capture.id, fkOwner=version_mpu.id))
+            df_mpu = nn.data_adapter(model, captures_mpu)
+            version_mpu = nn.train_model(model, df_mpu, version_last_mpu)
+            version_mpu.fkOwner = model.id
+
+            db.add(version_mpu)
+
+            db.commit()
+            db.refresh(version_mpu)
         if model.fkTipo == 2:
-            history.append(tbl_history(fkCapture=capture.id, fkOwner=version_cam.id))
+            df_cam = nn_cam.data_adapter(model, captures_mpu)
+            version_cam = nn_cam.train_model(model, df_cam, version_last_mpu)
+            version_cam.fkOwner = model.id
+            db.add(version_cam)
+            db.commit()
+            db.refresh(version_cam)
+        # db.refresh(version_ecg)
 
-    if model.fkTipo == 1:
-        version_mpu.history = history
+        history = []
+        for capture in captures_mpu:
+            if model.fkTipo == 1:
+                history.append(tbl_history(fkCapture=capture.id, fkOwner=version_mpu.id))
+            if model.fkTipo == 2:
+                history.append(tbl_history(fkCapture=capture.id, fkOwner=version_cam.id))
+
+        if model.fkTipo == 1:
+            version_mpu.history = history
+            db.commit()
+            db.refresh(version_mpu)
+        if model.fkTipo == 2:
+            version_cam.history = history
+            db.commit()
+            db.refresh(version_cam)
+
+        model.fldSStatus = TrainingStatus.training_succeeded
         db.commit()
-        db.refresh(version_mpu)
-    if model.fkTipo == 2:
-        version_cam.history = history
+        db.refresh(model)
+        if model.fkTipo == 1:
+            publish_model_firebase(model, version_mpu.fldSUrl, 'mm_mpu_')
+        if model.fkTipo == 2:
+            publish_model_firebase(model, version_cam.fldSUrl, 'mm_cam_')
+        # publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
+    except:
+        model.fldSStatus = TrainingStatus.training_failed
         db.commit()
-        db.refresh(version_cam)
-
-    model.fldSStatus = TrainingStatus.training_succeeded
-    db.commit()
-    db.refresh(model)
-    if model.fkTipo == 1:
-        publish_model_firebase(model, version_mpu.fldSUrl, 'mm_mpu_')
-    if model.fkTipo == 2:
-        publish_model_firebase(model, version_cam.fldSUrl, 'mm_cam_')
-    # publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
-
+        db.refresh(model)
     if user.fldSFcmToken:
         send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName, body='finished training')
     db.close()
