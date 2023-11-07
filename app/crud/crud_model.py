@@ -94,6 +94,9 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
             modelo.fldSStatus = TrainingStatus.no_training_pending
         if modelo.fldSStatus == TrainingStatus.training_succeeded:
             modelo.fldSStatus = TrainingStatus.training_succeeded_pending
+        db.commit()
+        db.refresh(modelo)
+        return modelo
 
 
 model = CRUDModel(tbl_model)
