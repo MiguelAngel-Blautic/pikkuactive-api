@@ -30,6 +30,8 @@ def create_capture(
     capture = crud.capture.create_with_owner(db=db, obj_in=capture_in, movement=movement)
     #capture.ecg = []
     #capture.mpu = []
+
+    model = crud.model.setPending(db=db, model=movement.fkOwner)
     return capture
 
 

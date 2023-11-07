@@ -86,4 +86,14 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
             .all()
         )
 
+    def setPending(
+            self, db: Session, *, model: int
+    ) -> Any:
+        modelo = db.query(tbl_model).get(model)
+        if modelo.fldSStatus == TrainingStatus.no_training:
+            modelo.fldSStatus = TrainingStatus.no_training_pending
+        if modelo.fldSStatus == TrainingStatus.training_succeeded:
+            modelo.fldSStatus = TrainingStatus.training_succeeded_pending
+
+
 model = CRUDModel(tbl_model)

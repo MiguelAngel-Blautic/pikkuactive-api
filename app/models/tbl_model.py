@@ -15,6 +15,8 @@ class TrainingStatus(enum.Enum):
     training_started = 1
     training_succeeded = 2
     training_failed = 3
+    training_succeeded_pending = 4
+    no_training_pending = 5
 
 
 class tbl_categorias(Base):
