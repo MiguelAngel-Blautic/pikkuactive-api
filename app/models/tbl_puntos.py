@@ -9,7 +9,7 @@ class tbl_puntos(Base):
     fldFY = Column(Float, nullable=False)
     fkPosicion = Column(Integer, nullable=True, primary_key=True)
 
-    fkDevice = Column(ForeignKey('tbl_device.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True, primary_key=True)
+    fkDevice = Column(ForeignKey('tbl_device.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=True, index=True, primary_key=True)
     device = relationship("tbl_device")
 
     fkOwner = Column(Integer, ForeignKey("tbl_capture.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False, primary_key=True)

@@ -58,10 +58,13 @@ class CRUDCapture(CRUDBase[tbl_capture, CaptureCreate, CaptureUpdate]):
             device = db.query(tbl_device).filter(
                 and_(tbl_device.fkOwner == movement.fkOwner, tbl_device.fldNNumberDevice == n_device)).first()
             if device is None:
-                raise HTTPException(status_code=404, detail="device position {} not found".format(n_device))
+                # raise HTTPException(status_code=404, detail="device position {} not found".format(n_device))
+                idDevice = None
+            else:
+                idDevice = device.id
 
             cam.pop('fkDevice', None)
-            cam = tbl_puntos(**cam, fkOwner=id_capture, fkDevice=device.id, device =device)
+            cam = tbl_puntos(**cam, fkOwner=id_capture, fkDevice=idDevice)
             cam_list.append(cam)
         db.add_all(mpu_list)
         db.add_all(ecg_list)
