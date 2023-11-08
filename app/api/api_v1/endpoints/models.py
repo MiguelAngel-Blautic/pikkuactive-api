@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, datos_estadistica, tbl_user
-from app.models.tbl_model import tbl_categorias, tbl_compra_modelo
-from app.schemas import MovementCreate
+from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history
+from app.schemas import MovementCreate, Version
 from app.schemas.capture import CaptureResumen
-from app.schemas.model import ModelStadistics, ModelStadisticsSensor
+from app.schemas.model import ModelStadistics, ModelStadisticsSensor, Model
 from app.schemas.movement import MovementCaptures
 
 router = APIRouter()
@@ -33,7 +33,41 @@ def read_models(
         model = crud.model.get_multi_by_owner(
             db=db, owner_id=current_user.id, skip=skip, limit=limit
         )
-    return model
+    res = []
+    for m in model:
+        versions = []
+        cant = 0
+        for v in m.versions:
+            capturas = db.query(tbl_history).filter(tbl_history.fkOwner == v.id).all()
+
+            versions.append(Version(id=v.id,
+                                    fkOwner=v.fkOwner,
+                                    fldDTimeCreateTime=v.fldDTimeCreateTime,
+                                    fldFAccuracy=v.fldFAccuracy,
+                                    fldNEpoch=v.fldNEpoch,
+                                    fldFLoss=v.fldFLoss,
+                                    fldSOptimizer=v.fldSOptimizer,
+                                    fldFLearningRate=v.fldFLearningRate,
+                                    capturesCount=len(capturas)-cant))
+            cant = len(capturas)
+        res.append(Model(id=m.id,
+                         fldSName=m.fldSName,
+                         fldSDescription=m.fldSDescription,
+                         fldNDuration=m.fldNDuration,
+                         fldBPublico=m.fldBPublico,
+                         fkCategoria=m.fkCategoria,
+                         fldFPrecio=m.fldFPrecio,
+                         fldSImage=m.fldSImage,
+                         fldSVideo=m.fldSVideo,
+                         fkTipo=m.fkTipo,
+                         fkOwner=m.fkOwner,
+                         fldDTimeCreateTime=m.fldDTimeCreateTime,
+                         fldSStatus=m.fldSStatus,
+                         fldNProgress=m.fldNProgress,
+                         movements=m.movements,
+                         devices=m.devices,
+                         versions=versions))
+    return res
 
 
 @router.get("/user/{id}", response_model=List[schemas.Model])
@@ -53,7 +87,41 @@ def read_models(
     model = crud.model.get_multi_by_owner_public(
         db=db, owner_id=user.id, skip=skip, limit=limit
     )
-    return model
+    res = []
+    for m in model:
+        versions = []
+        cant = 0
+        for v in m.versions:
+            capturas = db.query(tbl_history).filter(tbl_history.fkOwner == v.id).all()
+
+            versions.append(Version(id=v.id,
+                                    fkOwner=v.fkOwner,
+                                    fldDTimeCreateTime=v.fldDTimeCreateTime,
+                                    fldFAccuracy=v.fldFAccuracy,
+                                    fldNEpoch=v.fldNEpoch,
+                                    fldFLoss=v.fldFLoss,
+                                    fldSOptimizer=v.fldSOptimizer,
+                                    fldFLearningRate=v.fldFLearningRate,
+                                    capturesCount=len(capturas)-cant))
+            cant = len(capturas)
+        res.append(Model(id=m.id,
+                         fldSName=m.fldSName,
+                         fldSDescription=m.fldSDescription,
+                         fldNDuration=m.fldNDuration,
+                         fldBPublico=m.fldBPublico,
+                         fkCategoria=m.fkCategoria,
+                         fldFPrecio=m.fldFPrecio,
+                         fldSImage=m.fldSImage,
+                         fldSVideo=m.fldSVideo,
+                         fkTipo=m.fkTipo,
+                         fkOwner=m.fkOwner,
+                         fldDTimeCreateTime=m.fldDTimeCreateTime,
+                         fldSStatus=m.fldSStatus,
+                         fldNProgress=m.fldNProgress,
+                         movements=m.movements,
+                         devices=m.devices,
+                         versions=versions))
+    return res
 
 
 @router.get("/marketplace/", response_model=List[schemas.Model])

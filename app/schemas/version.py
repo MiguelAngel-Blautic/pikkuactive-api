@@ -13,6 +13,7 @@ class VersionBase(BaseModel):
     fldFLoss: Optional[float] = None
     fldSOptimizer: Optional[str] = None
     fldFLearningRate: Optional[float] = None
+    capturesCount: Optional[int] = 0
 
 
 # Properties to receive on movement creation
