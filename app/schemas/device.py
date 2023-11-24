@@ -9,6 +9,21 @@ class DeviceBase(BaseModel):
     fldNNumberDevice: Optional[int] = None
 
 
+
+class DeviceSensorCreate(BaseModel):
+    fkPosicion: int
+    fkSensor: int
+
+
+class DeviceSensor(BaseModel):
+    id: int
+    fkPosicion: int
+    fkSensor: int
+    fkOwner: int
+    class Config:
+        orm_mode = True
+
+
 # Properties to receive on item creation
 class DeviceCreate(DeviceBase):
     fldNNumberDevice: int
@@ -40,4 +55,5 @@ class Device(DeviceInDBBase):
 
 # Properties properties stored in DB
 class DeviceInDB(DeviceInDBBase):
-    pass
+    class Config:
+        orm_mode = True

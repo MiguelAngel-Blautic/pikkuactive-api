@@ -6,7 +6,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
-from app.models import tbl_mpu, tbl_movement, tbl_device, tbl_model, tbl_ecg
+from app.models import tbl_mpu, tbl_movement, tbl_device, tbl_model, tbl_ecg, tbl_dato
 from app.models.tbl_capture import tbl_capture
 from app.models.tbl_puntos import tbl_puntos
 from app.schemas.capture import CaptureCreate, CaptureUpdate
@@ -17,58 +17,22 @@ class CRUDCapture(CRUDBase[tbl_capture, CaptureCreate, CaptureUpdate]):
             self, db: Session, *, obj_in: CaptureCreate, movement: tbl_movement
     ) -> tbl_capture:
         obj_in_data = jsonable_encoder(obj_in)
-        mpu_in_capture = obj_in_data.pop('mpu', None)
-        ecg_in_capture = obj_in_data.pop('ecg', None)
-        cam_in_capture = obj_in_data.pop('cam', None)
+        data_in_captura = obj_in_data.pop('datos', None)
 
         db_obj = self.model(**obj_in_data, fkOwner=movement.id)
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         id_capture = db_obj.id
-        mpu_list: List[tbl_mpu] = []
-        ecg_list: List[tbl_ecg] = []
-        cam_list: List[tbl_puntos] = []
+        datos_list = []
 
-        for mpu in mpu_in_capture:
-            n_device = mpu.pop('fkDevice', None)
-            print(n_device)
-            print(movement.fkOwner)
-            device = db.query(tbl_device).filter(
-                    and_(tbl_device.fkOwner == movement.fkOwner, tbl_device.fldNNumberDevice == n_device)).first()
-            if device is None:
-                raise HTTPException(status_code=404, detail="device position {} not found".format(n_device))
-            mpu.pop('fkDevice', None)
-            data = tbl_mpu(**mpu, fkOwner=id_capture, fkDevice=device.id)
-            mpu_list.append(data)
-
-        for ecg in ecg_in_capture:
-            n_device = ecg.get('fkDevice')
-            device = db.query(tbl_device).filter(
-                    and_(tbl_device.fkOwner == movement.fkOwner, tbl_device.fldNNumberDevice == n_device)).first()
-            if device is None:
-                raise HTTPException(status_code=404, detail="device position {} not found".format(n_device))
-
-            ecg.pop('fkDevice', None)
-            ecg = tbl_ecg(**ecg, fkOwner=id_capture, fkDevice=device.id)
-            ecg_list.append(ecg)
-
-        for cam in cam_in_capture:
-            n_device = cam.get('fkDevice')
-            device = db.query(tbl_device).filter(
-                and_(tbl_device.fkOwner == movement.fkOwner, tbl_device.fldNNumberDevice == n_device)).first()
-            if device is None:
-                # raise HTTPException(status_code=404, detail="device position {} not found".format(n_device))
-                idDevice = None
-            else:
-                idDevice = device.id
-
-            cam.pop('fkDevice', None)
-            cam = tbl_puntos(**cam, fkOwner=id_capture, fkDevice=idDevice)
-            cam_list.append(cam)
-        db.add_all(mpu_list)
-        db.add_all(ecg_list)
-        db.add_all(cam_list)
+        for dataList in data_in_captura:
+            sensor = dataList.pop('sensor', None)
+            datos = dataList.pop('data', None)
+            for dato in datos:
+                datos_list.append(tbl_dato(fldNSample=dato["fldNSample"], fldFValor=dato["fldFValor"],
+                             fkCaptura=id_capture, fkDispositivoSensor=sensor))
+        db.add_all(datos_list)
         db.commit()
         db.refresh(db_obj)
         return db_obj

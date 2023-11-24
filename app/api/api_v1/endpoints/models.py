@@ -7,10 +7,12 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
-from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, datos_estadistica, tbl_user
+from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, \
+    datos_estadistica, tbl_user
 from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history
 from app.schemas import MovementCreate, Version
 from app.schemas.capture import CaptureResumen
+from app.schemas.device import DeviceSensor
 from app.schemas.model import ModelStadistics, ModelStadisticsSensor, Model
 from app.schemas.movement import MovementCaptures
 
@@ -19,10 +21,10 @@ router = APIRouter()
 
 @router.get("/user/", response_model=List[schemas.Model])
 def read_models(
-    db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        db: Session = Depends(deps.get_db),
+        skip: int = 0,
+        limit: int = 100,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve models.
@@ -48,8 +50,15 @@ def read_models(
                                     fldFLoss=v.fldFLoss,
                                     fldSOptimizer=v.fldSOptimizer,
                                     fldFLearningRate=v.fldFLearningRate,
-                                    capturesCount=len(capturas)-cant))
+                                    capturesCount=len(capturas) - cant))
             cant = len(capturas)
+        dispositivos = []
+        for d in m.dispositivos:
+            dispositivos.append(DeviceSensor(
+                id=d.id,
+                fkPosicion=d.fkPosicion,
+                fkSensor=d.fkSensor,
+                fkOwner=d.fkOwner))
         res.append(Model(id=m.id,
                          fldSName=m.fldSName,
                          fldSDescription=m.fldSDescription,
@@ -66,17 +75,18 @@ def read_models(
                          fldNProgress=m.fldNProgress,
                          movements=m.movements,
                          devices=m.devices,
-                         versions=versions))
+                         versions=versions,
+                         dispositivos=dispositivos))
     return res
 
 
 @router.get("/user/{id}", response_model=List[schemas.Model])
 def read_models(
-    id: int,
-    db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        id: int,
+        db: Session = Depends(deps.get_db),
+        skip: int = 0,
+        limit: int = 100,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve models.
@@ -102,8 +112,15 @@ def read_models(
                                     fldFLoss=v.fldFLoss,
                                     fldSOptimizer=v.fldSOptimizer,
                                     fldFLearningRate=v.fldFLearningRate,
-                                    capturesCount=len(capturas)-cant))
+                                    capturesCount=len(capturas) - cant))
             cant = len(capturas)
+        dispositivos = []
+        for d in m.dispositivos:
+            dispositivos.append(DeviceSensor(
+                id=d.id,
+                fkPosicion=d.fkPosicion,
+                fkSensor=d.fkSensor,
+                fkOwner=d.fkOwner))
         res.append(Model(id=m.id,
                          fldSName=m.fldSName,
                          fldSDescription=m.fldSDescription,
@@ -120,46 +137,47 @@ def read_models(
                          fldNProgress=m.fldNProgress,
                          movements=m.movements,
                          devices=m.devices,
-                         versions=versions))
+                         versions=versions,
+                         dispositivos=dispositivos))
     return res
 
 
 @router.get("/marketplace/", response_model=List[schemas.Model])
 def read_models_marketplace(
-    db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        db: Session = Depends(deps.get_db),
+        skip: int = 0,
+        limit: int = 100,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve models.
     """
     return crud.model.get_multi_market(
-            db=db, owner_id=current_user.id, skip=skip, limit=limit
-        )
+        db=db, owner_id=current_user.id, skip=skip, limit=limit
+    )
 
 
 @router.get("/adquiridos/", response_model=List[schemas.Model])
 def read_models_adquiridos(
-    db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        db: Session = Depends(deps.get_db),
+        skip: int = 0,
+        limit: int = 100,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve models.
     """
     return crud.model.get_multi_adquiridos(
-            db=db, owner_id=current_user.id, skip=skip, limit=limit
-        )
+        db=db, owner_id=current_user.id, skip=skip, limit=limit
+    )
 
 
 @router.post("/", response_model=schemas.Model)
 def create_model(
-    *,
-    db: Session = Depends(deps.get_db),
-    model_in: schemas.ModelCreate,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        *,
+        db: Session = Depends(deps.get_db),
+        model_in: schemas.ModelCreate,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Create new model.
@@ -200,7 +218,8 @@ def deshacer_compra(
         model: int,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
-    registro = db.query(tbl_compra_modelo).filter(tbl_compra_modelo.fkUsuario == current_user.id).filter(tbl_compra_modelo.fkModelo == model).first()
+    registro = db.query(tbl_compra_modelo).filter(tbl_compra_modelo.fkUsuario == current_user.id).filter(
+        tbl_compra_modelo.fkModelo == model).first()
     if not registro:
         raise HTTPException(status_code=404, detail="Model not found")
     db.delete(registro)
@@ -210,10 +229,10 @@ def deshacer_compra(
 
 @router.delete("/")
 def delete_model(
-    *,
-    db: Session = Depends(deps.get_db),
-    id: int,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Delete existing model
@@ -221,7 +240,8 @@ def delete_model(
     model = crud.model.get(db=db, id=id)
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
-    if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
+    if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (
+    crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     db.delete(model)
     db.commit()
@@ -230,10 +250,10 @@ def delete_model(
 
 @router.get("/{id}", response_model=schemas.Model)
 def read_model(
-    *,
-    db: Session = Depends(deps.get_db),
-    id: int,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Get model by ID.
@@ -248,10 +268,10 @@ def read_model(
 
 @router.get("/stadistics/{id}", response_model=List[schemas.ModelStadisticsSensor])
 def read_model_stadistics(
-    *,
-    db: Session = Depends(deps.get_db),
-    id: int,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Get model by ID.
@@ -262,10 +282,12 @@ def read_model_stadistics(
     if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (model.fldBPublico == 1)):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     sensores = db.query(sensores_estadistica).filter(sensores_estadistica.fkModelo == model.id).all()
-    version = db.query(tbl_version_estadistica).filter(tbl_version_estadistica.fkOwner == model.id).order_by(desc(tbl_version_estadistica.fecha)).first()
+    version = db.query(tbl_version_estadistica).filter(tbl_version_estadistica.fkOwner == model.id).order_by(
+        desc(tbl_version_estadistica.fecha)).first()
     res = []
     for sensor in sensores:
-        datos = db.query(datos_estadistica).filter(datos_estadistica.fkVersion == version.id).filter(datos_estadistica.fkSensor == sensor.id).order_by(datos_estadistica.fldNSample).all()
+        datos = db.query(datos_estadistica).filter(datos_estadistica.fkVersion == version.id).filter(
+            datos_estadistica.fkSensor == sensor.id).order_by(datos_estadistica.fldNSample).all()
         datalist = []
         for dato in datos:
             datalist.append(ModelStadistics(sample=dato.fldNSample, media=dato.fldFMedia, std=dato.fldFStd))
@@ -275,10 +297,10 @@ def read_model_stadistics(
 
 @router.get("/capturas/{id}", response_model=schemas.MovementCaptures)
 def count_captures(
-    *,
-    db: Session = Depends(deps.get_db),
-    id: int,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Devuelve el numero de capturas de 'Movement' y de 'Other'
@@ -286,7 +308,8 @@ def count_captures(
     model = crud.model.get(db=db, id=id)
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
-    if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
+    if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (
+    crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     movements = db.query(tbl_movement).filter(tbl_movement.fkOwner == model.id).all()
     captures1 = db.query(tbl_capture).filter(tbl_capture.fkOwner == movements[0].id).all()
@@ -297,11 +320,11 @@ def count_captures(
 
 @router.put("/", response_model=schemas.Model)
 def update_model(
-    *,
-    id: int,
-    db: Session = Depends(deps.get_db),
-    model_in: schemas.ModelUpdate,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        *,
+        id: int,
+        db: Session = Depends(deps.get_db),
+        model_in: schemas.ModelUpdate,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update own user.
@@ -317,18 +340,18 @@ def update_model(
 
 @router.get("/categorias/")
 def read_categorias(
-    db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+        db: Session = Depends(deps.get_db),
+        skip: int = 0,
+        limit: int = 100,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve models.
     """
     return (db.query(tbl_categorias)
-        .offset(skip)
-        .limit(limit)
-        .all())
+            .offset(skip)
+            .limit(limit)
+            .all())
 
 
 @router.get("/captures_resumen/{id}")
@@ -345,14 +368,17 @@ def resumen_captures(
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
     if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (
-    crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
+            crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     movements = db.query(tbl_movement).filter(tbl_movement.fkOwner == model.id).all()
-    captures = db.query(tbl_capture).filter(or_(tbl_capture.fkOwner == movements[0].id, tbl_capture.fkOwner == movements[1].id)).all()
+    captures = db.query(tbl_capture).filter(
+        or_(tbl_capture.fkOwner == movements[0].id, tbl_capture.fkOwner == movements[1].id)).all()
     res = []
     for capture in captures:
         if capture.fkOwner == movements[0].id:
-            res.append(CaptureResumen(nombre=movements[0].fldSLabel, correcto=1, fecha=capture.fldDTimeCreateTime, id=capture.id))
+            res.append(CaptureResumen(nombre=movements[0].fldSLabel, correcto=1, fecha=capture.fldDTimeCreateTime,
+                                      id=capture.id))
         else:
-            res.append(CaptureResumen(nombre=movements[1].fldSLabel, correcto=0, fecha=capture.fldDTimeCreateTime, id=capture.id))
+            res.append(CaptureResumen(nombre=movements[1].fldSLabel, correcto=0, fecha=capture.fldDTimeCreateTime,
+                                      id=capture.id))
     return res

@@ -5,7 +5,7 @@ from datetime import datetime
 
 # Shared properties
 from app.models.tbl_model import TrainingStatus
-from app.schemas.device import DeviceCreate, Device
+from app.schemas.device import DeviceCreate, Device, DeviceSensor, DeviceSensorCreate
 from app.schemas.movement import Movement, MovementCreate
 from app.schemas.version import Version
 
@@ -39,6 +39,7 @@ class ModelCreate(ModelBase):
     fldSName: str
     fldNDuration: int
     devices: List[DeviceCreate]
+    dispositivos: List[DeviceSensorCreate] = []
 
 
 # Properties to receive on item update
@@ -60,6 +61,7 @@ class ModelInDBBase(ModelBase):
     movements: List[Movement] = []
     devices: List[Device] = []
     versions: List[Version] = []
+    dispositivos: List[DeviceSensor] = []
 
     class Config:
         orm_mode = True

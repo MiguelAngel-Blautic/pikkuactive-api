@@ -9,3 +9,4 @@ class tbl_position(Base):
     fldSName = Column(String(255), nullable=False)
     fldSDescription = Column(String)
     positions = relationship("tbl_device", back_populates="position", cascade="all,delete", single_parent=True)
+    posiciones = relationship("tbl_dispositivo_sensor", back_populates="posicion", cascade="all,delete", single_parent=True)

@@ -5,6 +5,7 @@ from datetime import datetime
 
 # Shared properties
 from app.schemas.cam import CamCreate, Cam
+from app.schemas.data import Data, DataCreate
 from app.schemas.mpu import MpuCreate, Mpu
 from app.schemas.ecg import EcgCreate, Ecg
 
@@ -13,11 +14,14 @@ class CaptureBase(BaseModel):
     pass
 
 
+class CaptureEntrada(BaseModel):
+    sensor: int
+    data: List[DataCreate]
+
+
 # Properties to receive on movement creation
 class CaptureCreate(CaptureBase):
-    mpu: List[MpuCreate]
-    ecg: List[EcgCreate]
-    cam: List[CamCreate]
+    datos: List[CaptureEntrada]
 
 
 # Properties to receive on movement update
@@ -30,9 +34,7 @@ class CaptureInDBBase(CaptureBase):
     id: int
     fkOwner: int
     fldDTimeCreateTime: datetime
-    mpu: List[Mpu]
-    ecg: List[Ecg]
-    cam: List[Cam]
+    datos: List[Data]
     max_value: Optional[int]
     class Config:
         orm_mode = True
@@ -49,6 +51,6 @@ class CaptureResumen(BaseModel):
     fecha: datetime
     id: int
 
-# Properties properties stored in DB
+# Properties stored in DB
 class CaptureInDB(CaptureInDBBase):
     pass

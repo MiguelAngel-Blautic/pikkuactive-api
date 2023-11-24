@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
-from app.models import tbl_device, tbl_movement
+from app.models import tbl_device, tbl_movement, tbl_dispositivo_sensor
 from app.models.tbl_model import tbl_model, TrainingStatus, tbl_compra_modelo
 from app.schemas.model import ModelCreate, ModelUpdate
 
@@ -17,6 +17,7 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
         obj_in_data = obj_in.dict()
         devices_in_model = obj_in_data.pop('devices', None)
         movements_in_model = obj_in_data.pop('movements', None)
+        dispositivos_sensor = obj_in_data.pop('dispositivos', None)
 
         db_obj = self.model(**obj_in_data, fkOwner=owner_id)
         db_obj.fldSStatus = TrainingStatus.no_training
@@ -29,6 +30,12 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
             db.add(device)
             db.commit()
             db.refresh(device)
+        for dispositivo in dispositivos_sensor:
+            dato = tbl_dispositivo_sensor(fkPosicion=dispositivo["fkPosicion"], fkSensor=dispositivo["fkSensor"],
+                                          fkOwner=id_model)
+            db.add(dato)
+            db.commit()
+            db.refresh(dato)
         return db_obj
 
     def update(
