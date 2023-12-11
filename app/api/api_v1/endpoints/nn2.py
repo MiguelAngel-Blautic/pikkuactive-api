@@ -1,3 +1,4 @@
+import math
 import os
 import pickle
 import sys
@@ -19,17 +20,20 @@ from scipy.stats import mode
 from sklearn import preprocessing
 from sklearn.metrics import classification_report
 from sklearn.neighbors import KNeighborsClassifier
+from sqlalchemy import desc
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Flatten, Dense
 from tensorflow.keras.layers import Conv2D, MaxPool2D
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from app.models import tbl_version
+from app.models import tbl_version, tbl_model, tbl_version_estadistica, datos_estadistica, tbl_dispositivo_sensor, \
+    tbl_tipo_sensor, tbl_position
 
 # CONFIG
 from app.models.tbl_mensajesInferencia import tbl_mensajesInferencia
 from app.schemas import mpu
+from app.schemas.capture import CaptureEntrada
 from app.schemas.mpu import MpuEstadisticas
 
 DATA_FREQ = 20
@@ -88,15 +92,9 @@ def scale_data(data, target):
 
 
 def correct_incorrect(data, target, label):
-    # pclasss = 1
     pclass = label
-
     df_correct = data.loc[data[target] == pclass].drop(target, axis=1)
-    #print("Correct repetitions: {}".format(df_correct.shape[0]))
-
     df_incorrect = data.loc[data[target] != pclass].drop(target, axis=1)
-    #print("Incorrect repetitions: {}".format(df_incorrect.shape[0]))
-
     return df_correct, df_incorrect
 
 
@@ -115,6 +113,68 @@ def rolling_window(data, window_size):
 def normalizar(df, min, max):
     for data in df:
         data = (data - min)/(max - min)
+
+
+PARTES = 4
+def analizeDatos(datos: List[CaptureEntrada], modelo: tbl_model, db):
+    print(datos)
+    listas = []
+    version = db.query(tbl_version_estadistica).filter(tbl_version_estadistica.fkOwner == modelo.id).order_by(desc(tbl_version_estadistica.fecha)).first()
+    for dato in datos:
+        valores = db.query(datos_estadistica).filter(datos_estadistica.fkVersion == version.id).filter(
+            datos_estadistica.fkSensor == (dato.sensor+6)).order_by(datos_estadistica.fldNSample).all()
+        sensor = db.query(tbl_dispositivo_sensor).get(dato.sensor)
+        tipoSensor = db.query(tbl_tipo_sensor).get(sensor.fkSensor)
+        if 1 <= tipoSensor.id <= 3:
+            constante = 4
+        else:
+            constante = 1000
+        posicion = db.query(tbl_position).get(sensor.fkPosicion)
+        lista = []
+        l1 = []
+        lp = []
+        lm = []
+        ls = []
+        ms = []
+        mi = []
+        s = 1
+        for data in dato.data:
+            lp.append(data.fldFValor)
+            lm.append(valores[data.fldNSample - 1].fldFMedia)
+            ms.append(valores[data.fldNSample - 1].fldFMedia + valores[data.fldNSample - 1].fldFStd)
+            mi.append(valores[data.fldNSample - 1].fldFMedia - valores[data.fldNSample - 1].fldFStd)
+            ls.append(s)
+            s += 1
+            val = (1 - ((data.fldFValor + constante) / (valores[data.fldNSample - 1].fldFMedia + constante)))*100
+            # if abs(val) > valores[data.fldNSample - 1].fldFStd:
+            #     val = 0.0
+            l1.append(val)
+        plt.plot(ls, lp, color='red')
+        plt.plot(ls, lm, color='blue')
+        plt.fill_between(ls, ms, mi, color="blue", alpha=0.3)
+        plt.title(tipoSensor.fldSNombre)
+        plt.ylim((-1 * constante), constante)
+        # plt.show()
+        for i in range(PARTES):
+            lista.append(abs(sum(l1[math.floor(i*(len(l1)/PARTES)):math.floor((i+1)*(len(l1)/PARTES))])))
+            lista.append(sum(l1[math.floor(i*(len(l1)/PARTES)):math.floor((i+1)*(len(l1)/PARTES))]))
+            lista.append(tipoSensor.fldSNombre)
+            lista.append(posicion.fldSName)
+            lista.append(i)
+            listas.append(lista)
+            lista = []
+    ordenado = sorted(listas, key=lambda x: x[0], reverse=True)
+    print(ordenado)
+    ordenado = ordenado[0:3]
+    mensajes = []
+    for elem in ordenado:
+        if elem[1] < 0:
+            mensaje = "Reducir"
+        else:
+            mensaje = "Aumentar"
+        mensajes.append(mensaje + " intensidad un " + str(round(elem[0], 2)) + "% en el " + str(elem[2]) + " de " + str(elem[3]) + " en la parte " + str(elem[4]+1) + "/" + str(PARTES))
+    print(mensajes)
+    return mensajes
 
 
 def analize(mpus, db):
@@ -841,30 +901,99 @@ def data_adapter(model, captures):
         columns.append('gyr' + str(i + 5))
     columns.append('label')
     lines = []
-
-    accX = estadisticas([mpu.fldFAccX for capture in captures for mpu in capture.mpu])
-    accY = estadisticas([mpu.fldFAccY for capture in captures for mpu in capture.mpu])
-    accZ = estadisticas([mpu.fldFAccZ for capture in captures for mpu in capture.mpu])
-    gyrX = estadisticas([mpu.fldFGyrX for capture in captures for mpu in capture.mpu])
-    gyrY = estadisticas([mpu.fldFGyrY for capture in captures for mpu in capture.mpu])
-    gyrZ = estadisticas([mpu.fldFGyrZ for capture in captures for mpu in capture.mpu])
-
     for capture in captures:
         captureLin = []
-        for mpu in capture.mpu:
-            captureLin.append((((mpu.fldFAccX - accX.media)/accX.std)-accX.min)/(accX.max - accX.min))
-            captureLin.append((((mpu.fldFAccY - accY.media)/accY.std)-accY.min)/(accY.max - accY.min))
-            captureLin.append((((mpu.fldFAccZ - accZ.media)/accZ.std)-accZ.min)/(accZ.max - accZ.min))
-            captureLin.append((((mpu.fldFGyrX - gyrX.media)/gyrX.std)-gyrX.min)/(gyrX.max - gyrX.min))
-            captureLin.append((((mpu.fldFGyrY - gyrY.media)/gyrY.std)-gyrY.min)/(gyrY.max - gyrY.min))
-            captureLin.append((((mpu.fldFGyrZ - gyrZ.media)/gyrZ.std)-gyrZ.min)/(gyrZ.max - gyrZ.min))
-            # captureLin.append(mpu.fldFAccX)
-            # captureLin.append(mpu.fldFAccY)
-            # captureLin.append(mpu.fldFAccZ)
-            # captureLin.append(mpu.fldFGyrX)
-            # captureLin.append(mpu.fldFGyrY)
-            # captureLin.append(mpu.fldFGyrZ)
+        datos = capture.datos
+        datos = sorted(datos, key=lambda data: data.fkDispositivoSensor)
+        datos = sorted(datos, key=lambda data: data.fldNSample)
+        for dato in datos:
+            captureLin.append(dato.fldFValor)
         captureLin.append(capture.owner.fldSLabel)
         lines.append(captureLin)
     df = pd.DataFrame(np.array(lines), columns=columns)
-    return df, accX, accY, accZ, gyrX, gyrY, gyrZ
+    return df
+
+
+def dtw_distance2(s_ref, df_signals):
+    '''
+    Calculates the dtw distance between the reference signal and the dataset of signals passed
+    '''
+
+    distance_array= []
+    path_array = []
+
+    # Format data shape
+    s_ref = s_ref.values.reshape(1,-1)
+
+    # Calculate distances
+    for index, row in df_signals.iterrows():
+        s_comp = row.values.reshape(1,-1)
+        distance, path = fastdtw(s_ref, s_comp, dist=euclidean)
+        distance_array.append(distance)
+        path_array.append(path)
+
+    return distance_array,path_array
+
+
+def get_top_similar_reps(reference, df_signals, num_reps):
+    distances, path_array = dtw_distance2(reference, df_signals)
+    # Obtener los índices de las repeticiones más parecidas
+    top_indices = np.argsort(distances)[:num_reps]
+    # Obtener las repeticiones más parecidas
+    top_reps = df_signals.iloc[top_indices]
+    return top_reps,path_array
+
+
+def sincronizar(top_correct_reps, referencia, index):
+    distancia1, path1 = fastdtw(top_correct_reps.iloc[index], referencia)
+    result1 = []
+    for i in range(0, len(path1)):
+        result1.append([
+            path1[i][0] - path1[i][1]])
+    result1_mean = np.array(result1).mean()
+    media_redondeada = int((math.ceil(abs(result1_mean)) * (result1_mean/abs(result1_mean))))
+    nueva_rep = np.zeros(len(referencia))
+    inicio = 0
+    fin = 0
+    if media_redondeada > 0:
+        inicio = abs(media_redondeada)
+        fin = 0
+    if media_redondeada < 0:
+        inicio = 0
+        fin = abs(media_redondeada)
+    for j in range(inicio, len(top_correct_reps.iloc[index]) - fin):
+        nueva_rep[j + fin] = top_correct_reps.iloc[index][j - inicio]
+
+    # nueva_rep_sincronizada = np.zeros(len(referencia))
+    # nueva_rep_sincronizada[0:len(referencia) - media_redondeada] = top_correct_reps.iloc[index][
+    #                                                                media_redondeada:len(referencia)]
+    return nueva_rep
+
+def separarDatos(labelCorrect, df, index):
+    # df_mov_pre = scale_data(df_mov, mov_target)
+    df_mov_pre = df
+    for col in df_mov_pre.columns[:-1]:
+        df_mov_pre[col] = df_mov_pre[col].astype(float)
+    df_mov_sensor = df_mov_pre[df_mov_pre.columns[index::6]]
+    df_mov_sensor['label'] = df_mov_pre['label']
+    df, _ = correct_incorrect(df_mov_sensor, 'label', labelCorrect)
+    df = remove_outliers(df, 0.99)
+    REPETICIONES = math.ceil(len(df)/10)
+    # Calcular la media de las cinco repeticiones más parecidas de las repeticiones correctas
+    top_correct_reps,path_array = get_top_similar_reps(df.mean(), df, REPETICIONES)
+
+    referencia = top_correct_reps.iloc[0]
+    reps = []
+    reps.append(referencia)
+    for i in range(1, REPETICIONES):
+        nueva_rep_sincronizada = sincronizar(top_correct_reps, referencia, i)
+        reps.append(nueva_rep_sincronizada)
+
+    nuevas_reps_mean = np.mean(reps, axis=0)
+    desviacion = np.std(reps, axis=0)
+    lista1 = []
+    lista2 = []
+    for i in range(len(nuevas_reps_mean)):
+        lista1.append(nuevas_reps_mean[i])
+        lista2.append(desviacion[i])
+    return lista1, lista2

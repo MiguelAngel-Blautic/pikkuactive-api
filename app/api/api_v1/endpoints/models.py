@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, \
-    datos_estadistica, tbl_user
+    datos_estadistica, tbl_user, tbl_dispositivo_sensor, tbl_tipo_sensor
 from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history
 from app.schemas import MovementCreate, Version
 from app.schemas.capture import CaptureResumen
@@ -281,7 +281,7 @@ def read_model_stadistics(
         raise HTTPException(status_code=404, detail="Model not found")
     if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (model.fldBPublico == 1)):
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    sensores = db.query(sensores_estadistica).filter(sensores_estadistica.fkModelo == model.id).all()
+    sensores = db.query(tbl_dispositivo_sensor).filter(tbl_dispositivo_sensor.fkOwner == model.id).all()
     version = db.query(tbl_version_estadistica).filter(tbl_version_estadistica.fkOwner == model.id).order_by(
         desc(tbl_version_estadistica.fecha)).first()
     res = []
@@ -291,7 +291,8 @@ def read_model_stadistics(
         datalist = []
         for dato in datos:
             datalist.append(ModelStadistics(sample=dato.fldNSample, media=dato.fldFMedia, std=dato.fldFStd))
-        res.append(ModelStadisticsSensor(id=sensor.id, nombre=sensor.fldSNombre, datos=datalist))
+        tiposensor = db.query(tbl_tipo_sensor).get(sensor.fkSensor)
+        res.append(ModelStadisticsSensor(id=sensor.id, nombre=tiposensor.fldSNombre, datos=datalist))
     return res
 
 

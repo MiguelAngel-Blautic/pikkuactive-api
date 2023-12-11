@@ -97,9 +97,9 @@ def split_normalize_data(model, df):
     return X_reshaped_train, X_reshaped_test, y_train, y_test
 
 
-def generate_columns_index(end):
+def generate_columns_index(end, sens):
     columns_list = list(range(0, end))
-    for i in range(0, len(columns_list), SENS_NUMBER):
+    for i in range(0, len(columns_list), sens):
         columns_list[i] = 'ac' + str(columns_list[i])
         columns_list[i + 1] = 'ac' + str(columns_list[i + 1])
         columns_list[i + 2] = 'ac' + str(columns_list[i + 2])
@@ -110,6 +110,30 @@ def generate_columns_index(end):
 
 
 def data_adapter(model, captures):
+    columns = len(model.dispositivos)
+    rows = model.fldNDuration * DATA_FREQ
+    columns_list = generate_columns_index(columns * rows, len(model.dispositivos))
+    df = pd.DataFrame(columns=columns_list)
+    # print(df)
+    labels = []
+    for capture in captures:
+        datos = []
+        for dato in capture.datos:
+            datos.append(dato)
+        datos_sorted_partial = sorted(datos, key=lambda muestra:muestra.fkDispositivoSensor)
+        datos_sorted = sorted(datos_sorted_partial, key=lambda muestra: muestra.fldNSample)
+        lista = []
+        for data in datos_sorted:
+            lista.append(data.fldFValor)
+        labels.append(capture.owner.fldSLabel)
+        np_data = np.resize(lista, (1, len(lista)))
+        df_length = len(df)
+        df.loc[df_length] = np_data[0].tolist()
+    pd.set_option('display.max_columns', columns * rows)
+    df['label'] = labels
+    return df
+
+def data_adapter_old(model, captures):
     columns = len(model.devices) * SENS_NUMBER
     rows = model.fldNDuration * DATA_FREQ
 

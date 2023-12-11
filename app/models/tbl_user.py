@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from mariadb.constants.FIELD_TYPE import DATE
 from pymysql import Date, TIMESTAMP
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, TIMESTAMP
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, TIMESTAMP, DateTime
 from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
@@ -20,6 +20,7 @@ class tbl_user(Base):
     fldSTelefono = Column(String)
     fldSImagen = Column(String)
     fldTNacimiento = Column(TIMESTAMP)
+    fldFCreacion = Column(DateTime)
     fldNSexo = Column(Integer)
     fkRol = Column(Integer)
     idPlataforma = Column(Integer)

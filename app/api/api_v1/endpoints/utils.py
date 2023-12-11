@@ -1,21 +1,32 @@
 import json
+import math
+from datetime import datetime
 from statistics import mean
+from time import strftime
 from typing import Any, List
 
+import numpy as np
 import pandas as pd
+import sa
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from fastapi.encoders import jsonable_encoder
+from fastdtw import fastdtw
 from numpy import std
 from pydantic.networks import EmailStr
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.functions import count, func
+
 from app import models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints import nn_ecg, nn, nn_cam, nn2
 from app.api.api_v1.endpoints.models import read_model
-from app.api.api_v1.endpoints.nn2 import joinMOV, modelo
-from app.models import tbl_model, tbl_version_estadistica, sensores_estadistica, tbl_movement, tbl_capture, datos_estadistica, tbl_mpu
-from app.models.tbl_model import TrainingStatus, tbl_history
+from app.api.api_v1.endpoints.nn2 import joinMOV, modelo, remove_outliers
+from app.models import tbl_model, tbl_version_estadistica, sensores_estadistica, tbl_movement, tbl_capture, \
+    datos_estadistica, tbl_mpu, tbl_dispositivo_sensor, tbl_user
+from app.models.tbl_model import TrainingStatus, tbl_history, tbl_version
 from app.schemas import mpu
+from app.schemas.capture import CaptureEntrada
 from app.schemas.mpu import MpuList
 from app.utils import send_test_email
 import requests
@@ -55,6 +66,15 @@ def training_model(
 
 
 @router.post("/analize/")
+def analizeDatos(*, model: int, datos: List[CaptureEntrada]) -> Any:
+    db: Session = SessionLocal()
+    modelo = db.query(tbl_model).get(model)
+    if not model:
+        return ["", "", ""]
+    res = nn2.analizeDatos(datos, modelo, db)
+    return res
+
+
 def analize(*, mpus: MpuList) -> Any:
     # print(mpus)
     # print("\n")
@@ -64,21 +84,16 @@ def analize(*, mpus: MpuList) -> Any:
     return res
 
 
-def completar_entrenamiento(db, df, columns, orden, nombre, model, version):
-    max = df.max().max()
-    min = df.min().min()
-    # df = (df - min) / (max - min)
-    sensor = db.query(sensores_estadistica).filter(sensores_estadistica.fkModelo == model.id).filter(sensores_estadistica.fldNOrden == orden).first()
-    if not sensor:
-        sensor = sensores_estadistica(fkModelo=model.id, fldNOrden=orden, fldSNombre=nombre, fldFMax=max, fldFMin=min)
-        db.add(sensor)
-        db.commit()
-        db.refresh(sensor)
+def completar_entrenamiento(db, df, nombre, model, version, index):
+    l1, l2 = nn2.separarDatos(model.fldSName, df, index)
+    sensores = db.query(tbl_dispositivo_sensor).filter(tbl_dispositivo_sensor.fkOwner == model.id).all()
+    sensor = sensores[index]
     sample = 1
-    for column in columns:
-        media = mean(df[column])
-        desviacion = std(df[column])
-        dato = datos_estadistica(fkSensor=sensor.id, fkVersion=version.id, fldNSample=sample, fldFStd=desviacion, fldFMedia=media)
+    for i in range(len(l1)):
+        media = l1[i]
+        desviacion = l2[i]
+        dato = datos_estadistica(fkSensor=sensor.id, fkVersion=version.id, fldNSample=sample, fldFStd=desviacion,
+                                 fldFMedia=media)
         db.add(dato)
         db.commit()
         db.refresh(dato)
@@ -89,52 +104,19 @@ def completar_entrenamiento(db, df, columns, orden, nombre, model, version):
 @router.get("/entrena_stadistic/")
 def entrena_estadistica(id_model: int, db: Session = Depends(deps.get_db)) -> Any:
     model = db.query(models.tbl_model).filter(models.tbl_model.id == id_model).first()
-    if not model:
-        raise HTTPException(status_code=404, detail="Unknow ID")
-    movements = db.query(tbl_movement).filter(tbl_movement.fkOwner == model.id).all()
-    for movement in movements:
-        if movement.fldSLabel == 'Other' or movement.fldSLabel == 'other':
-            continue
-        version = tbl_version_estadistica(fkOwner=model.id, fldSLabel=movement.fldSLabel, accuracy=0)
-        db.add(version)
-        db.commit()
-        db.refresh(version)
-        captures = db.query(tbl_capture).filter(tbl_capture.fkOwner == movement.id).all()
-        for device in model.devices:
-            if device.fldNSensores == 1:  # MPU
-                columns = []
-                FREQ = 20
-                for i in range(model.fldNDuration * FREQ):
-                    columns.append("Sample-" + str(i + 1))
-                loc = 0
-                dfAccX = pd.DataFrame(columns=columns)
-                dfAccY = pd.DataFrame(columns=columns)
-                dfAccZ = pd.DataFrame(columns=columns)
-                dfGyrX = pd.DataFrame(columns=columns)
-                dfGyrY = pd.DataFrame(columns=columns)
-                dfGyrZ = pd.DataFrame(columns=columns)
-                for capture in captures:
-                    # mpus = db.query(tbl_mpu).filter(tbl_mpu.fkOwner == capture.id).all()
-                    accX = [mpu.fldFAccX for mpu in capture.mpu]
-                    accY = [mpu.fldFAccY for mpu in capture.mpu]
-                    accZ = [mpu.fldFAccZ for mpu in capture.mpu]
-                    gyrX = [mpu.fldFGyrX for mpu in capture.mpu]
-                    gyrY = [mpu.fldFGyrY for mpu in capture.mpu]
-                    gyrZ = [mpu.fldFGyrZ for mpu in capture.mpu]
-                    dfAccX.loc[loc] = accX
-                    dfAccY.loc[loc] = accY
-                    dfAccZ.loc[loc] = accZ
-                    dfGyrX.loc[loc] = gyrX
-                    dfGyrY.loc[loc] = gyrY
-                    dfGyrZ.loc[loc] = gyrZ
-                    loc = loc + 1
-                completar_entrenamiento(db, dfAccX, columns, 1, 'AccX', model, version)
-                completar_entrenamiento(db, dfAccY, columns, 2, 'AccY', model, version)
-                completar_entrenamiento(db, dfAccZ, columns, 3, 'AccZ', model, version)
-                completar_entrenamiento(db, dfGyrX, columns, 4, 'GyrX', model, version)
-                completar_entrenamiento(db, dfGyrY, columns, 5, 'GyrY', model, version)
-                completar_entrenamiento(db, dfGyrZ, columns, 6, 'GyrZ', model, version)
-    return 1
+    movements = (db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).
+                 filter(models.tbl_movement.fldSLabel != "Other").
+                 filter(models.tbl_movement.fldSLabel != "other").all())
+    ids_movements = [mov.id for mov in movements]
+    version = tbl_version_estadistica(fkOwner=model.id, fldSLabel=model.fldSName, accuracy=0)
+    db.add(version)
+    db.commit()
+    db.refresh(version)
+    captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
+    df_mpu = nn2.data_adapter(model, captures_mpu)
+    nombres = ["AccX", "AccY", "AccZ", "GyrX", "GyrY", "GyrZ"]
+    for i in range(6):
+        completar_entrenamiento(db, df_mpu, nombres[i], model, version, i)
 
 
 @router.post("/analize_stadistic/")
@@ -314,3 +296,34 @@ def publish_model_firebase(
             model_format=tflite_format)
         new_model = ml.create_model(model)
         ml.publish_model(new_model.model_id)
+
+
+@router.get("/dashboard/")
+def dashboard(inicio: datetime, fin: datetime, db: Session = Depends(deps.get_db)) -> Any:
+    usuarios = len(db.query(tbl_user).filter(tbl_user.fldFCreacion >= inicio).filter(
+        tbl_user.fldFCreacion <= fin).all())
+    modelos = db.query(tbl_model).filter(tbl_model.fldDTimeCreateTime >= inicio).filter(
+        tbl_model.fldDTimeCreateTime <= fin).all()
+    creacion_modelos = db.query(func.count(tbl_model.id), func.date(tbl_model.fldDTimeCreateTime)).filter(tbl_model.fldDTimeCreateTime >= inicio).filter(
+        tbl_model.fldDTimeCreateTime <= fin).group_by(func.date(tbl_model.fldDTimeCreateTime)).all()
+    Lcreacion_modelos = []
+    for num in creacion_modelos:
+        Lcreacion_modelos.append({"valor": num[0], "fecha": num[1]})
+    creacion_usuarios = db.query(func.count(tbl_user.id), func.date(tbl_user.fldFCreacion)).filter(tbl_user.fldFCreacion >= inicio).filter(
+        tbl_user.fldFCreacion <= fin).group_by(func.date(tbl_user.fldFCreacion)).all()
+    Lcreacion_usuarios = []
+    for num in creacion_usuarios:
+        Lcreacion_usuarios.append({"valor": num[0], "fecha": num[1]})
+    versiones = db.query(tbl_version).filter(tbl_version.fldDTimeCreateTime >= inicio).filter(
+        tbl_version.fldDTimeCreateTime <= fin).all()
+    modelos_tipo1 = len([model for model in modelos if model.fkTipo == 1])
+    modelos_tipo2 = len([model for model in modelos if model.fkTipo == 2])
+    sensores = len([model.dispositivos for model in modelos])
+    return {"creacion_modelos": Lcreacion_modelos,
+            "creacion_usuarios": Lcreacion_usuarios,
+            "usuarios": usuarios,
+            "modelos_tipo": [{"tipo": "Movimiento", "valor": modelos_tipo1}, {"tipo": "Puntos", "valor": modelos_tipo2}],
+            "dispositivos": (sensores/len(modelos)),
+            "entrenamientos": len(versiones),
+            "sensores_tipo": [{"tipo": "PIKKU/Ziven", "valor": modelos_tipo1}, {"tipo": "Cámara", "valor": modelos_tipo2}],
+            "modelos": len(modelos)}

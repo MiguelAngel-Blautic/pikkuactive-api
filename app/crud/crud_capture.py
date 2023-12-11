@@ -30,7 +30,7 @@ class CRUDCapture(CRUDBase[tbl_capture, CaptureCreate, CaptureUpdate]):
             sensor = dataList.pop('sensor', None)
             datos = dataList.pop('data', None)
             for dato in datos:
-                datos_list.append(tbl_dato(fldNSample=dato["fldNSample"], fldFValor=dato["fldFValor"],
+                datos_list.append(tbl_dato(fldNSample=dato["fldNSample"], fldFValor=dato["fldFValor"], fldFValor2=dato["fldFValor2"], fldFValor3=dato["fldFValor3"],
                              fkCaptura=id_capture, fkDispositivoSensor=sensor))
         db.add_all(datos_list)
         db.commit()

@@ -31,6 +31,8 @@ class tbl_dispositivo_sensor(Base):
 class tbl_dato(Base):
     fldNSample = Column(Integer, primary_key=True)
     fldFValor = Column(Float)
+    fldFValor2 = Column(Float, nullable=True)
+    fldFValor3 = Column(Float, nullable=True)
     fkDispositivoSensor = Column(Integer, ForeignKey("tbl_dispositivo_sensor.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     dispositivoSensor = relationship("tbl_dispositivo_sensor", back_populates="datos")
     fkCaptura = Column(Integer, ForeignKey("tbl_capture.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)

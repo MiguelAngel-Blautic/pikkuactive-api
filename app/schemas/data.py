@@ -10,6 +10,8 @@ from datetime import datetime
 class DataCreate(BaseModel):
     fldNSample: int
     fldFValor: float
+    fldFValor2: Optional[float] = None
+    fldFValor3: Optional[float] = None
 
 
 class DataDb(DataCreate):
