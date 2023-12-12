@@ -8,11 +8,11 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, \
-    datos_estadistica, tbl_user, tbl_dispositivo_sensor, tbl_tipo_sensor
+    datos_estadistica, tbl_user, tbl_dispositivo_sensor, tbl_tipo_sensor, tbl_position
 from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history
-from app.schemas import MovementCreate, Version
+from app.schemas import MovementCreate, Version, Position
 from app.schemas.capture import CaptureResumen
-from app.schemas.device import DeviceSensor
+from app.schemas.device import DeviceSensor, Device
 from app.schemas.model import ModelStadistics, ModelStadisticsSensor, Model
 from app.schemas.movement import MovementCaptures
 
@@ -53,12 +53,34 @@ def read_models(
                                     capturesCount=len(capturas) - cant))
             cant = len(capturas)
         dispositivos = []
+        devices = m.devices
+        crearDevices = len(devices) < 1
+        posicion = -1
+        nDevices = 0
+        if crearDevices:
+            devices = []
         for d in m.dispositivos:
             dispositivos.append(DeviceSensor(
                 id=d.id,
                 fkPosicion=d.fkPosicion,
                 fkSensor=d.fkSensor,
                 fkOwner=d.fkOwner))
+            if crearDevices and d.fkPosicion != posicion:
+                posicion = d.fkPosicion
+                nDevices += 1
+                if d.fkSensor <= 6:
+                    nsensores = 6
+                else:
+                    nsensores = 17
+                pos = db.query(tbl_position).get(d.fkPosicion)
+                devices.append(Device(id=d.id,
+                                      fldNNumberDevice=nDevices,
+                                      fkPosition=posicion,
+                                      fkOwner=d.fkOwner,
+                                      position=Position(fldSName=pos.fldSName, fldSDescription=pos.fldSDescription,
+                                                        id=pos.id),
+                                      fldNSensores=nsensores
+                                      ))
         res.append(Model(id=m.id,
                          fldSName=m.fldSName,
                          fldSDescription=m.fldSDescription,
@@ -74,7 +96,7 @@ def read_models(
                          fldSStatus=m.fldSStatus,
                          fldNProgress=m.fldNProgress,
                          movements=m.movements,
-                         devices=m.devices,
+                         devices=devices,
                          versions=versions,
                          dispositivos=dispositivos))
     return res
@@ -115,12 +137,35 @@ def read_models(
                                     capturesCount=len(capturas) - cant))
             cant = len(capturas)
         dispositivos = []
+        devices = m.devices
+        crearDevices = len(devices) < 1
+        posicion = -1
+        nDevices = 0
+        if crearDevices:
+            devices = []
         for d in m.dispositivos:
             dispositivos.append(DeviceSensor(
                 id=d.id,
                 fkPosicion=d.fkPosicion,
                 fkSensor=d.fkSensor,
                 fkOwner=d.fkOwner))
+            if crearDevices and d.fkPosicion != posicion:
+                posicion = d.fkPosicion
+                nDevices += 1
+                if d.fkSensor <= 6:
+                    nsensores = 6
+                else:
+                    nsensores = 17
+                pos = db.query(tbl_position).get(d.fkPosicion)
+                devices.append(Device(id=d.id,
+                                      fldNNumberDevice=nDevices,
+                                      fkPosition=posicion,
+                                      fkOwner=d.fkOwner,
+                                      position=Position(fldSName=pos.fldSName, fldSDescription=pos.fldSDescription,
+                                                        id=pos.id),
+                                      fldNSensores=nsensores
+                                      ))
+
         res.append(Model(id=m.id,
                          fldSName=m.fldSName,
                          fldSDescription=m.fldSDescription,
@@ -136,7 +181,7 @@ def read_models(
                          fldSStatus=m.fldSStatus,
                          fldNProgress=m.fldNProgress,
                          movements=m.movements,
-                         devices=m.devices,
+                         devices=devices,
                          versions=versions,
                          dispositivos=dispositivos))
     return res
@@ -241,7 +286,7 @@ def delete_model(
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
     if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (
-    crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
+            crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     db.delete(model)
     db.commit()
@@ -310,7 +355,7 @@ def count_captures(
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
     if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (
-    crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
+            crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     movements = db.query(tbl_movement).filter(tbl_movement.fkOwner == model.id).all()
     captures1 = db.query(tbl_capture).filter(tbl_capture.fkOwner == movements[0].id).all()
