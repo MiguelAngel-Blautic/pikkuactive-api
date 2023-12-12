@@ -303,12 +303,75 @@ def read_model(
     """
     Get model by ID.
     """
-    model = crud.model.get(db=db, id=id)
-    if not model:
+    m = crud.model.get(db=db, id=id)
+    if not m:
         raise HTTPException(status_code=404, detail="Model not found")
-    if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (model.fldBPublico == 1)):
+    if not (crud.user.is_superuser(current_user) or (m.fkOwner == current_user.id) or (m.fldBPublico == 1)):
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    return model
+    versions = []
+    cant = 0
+    for v in m.versions:
+        capturas = db.query(tbl_history).filter(tbl_history.fkOwner == v.id).all()
+
+        versions.append(Version(id=v.id,
+                                fkOwner=v.fkOwner,
+                                fldDTimeCreateTime=v.fldDTimeCreateTime,
+                                fldFAccuracy=v.fldFAccuracy,
+                                fldNEpoch=v.fldNEpoch,
+                                fldFLoss=v.fldFLoss,
+                                fldSOptimizer=v.fldSOptimizer,
+                                fldFLearningRate=v.fldFLearningRate,
+                                capturesCount=len(capturas) - cant))
+        cant = len(capturas)
+    dispositivos = []
+    devices = m.devices
+    crearDevices = len(devices) < 1
+    posicion = -1
+    nDevices = 0
+    if crearDevices:
+        devices = []
+    for d in m.dispositivos:
+        dispositivos.append(DeviceSensor(
+            id=d.id,
+            fkPosicion=d.fkPosicion,
+            fkSensor=d.fkSensor,
+            fkOwner=d.fkOwner))
+        if crearDevices and d.fkPosicion != posicion:
+            posicion = d.fkPosicion
+            nDevices += 1
+            if d.fkSensor <= 6:
+                nsensores = 6
+            else:
+                nsensores = 17
+            pos = db.query(tbl_position).get(d.fkPosicion)
+            devices.append(Device(id=d.id,
+                                  fldNNumberDevice=nDevices,
+                                  fkPosition=posicion,
+                                  fkOwner=d.fkOwner,
+                                  position=Position(fldSName=pos.fldSName, fldSDescription=pos.fldSDescription,
+                                                    id=pos.id),
+                                  fldNSensores=nsensores
+                                  ))
+
+    mod = Model(id=m.id,
+                fldSName=m.fldSName,
+                fldSDescription=m.fldSDescription,
+                fldNDuration=m.fldNDuration,
+                fldBPublico=m.fldBPublico,
+                fkCategoria=m.fkCategoria,
+                fldFPrecio=m.fldFPrecio,
+                fldSImage=m.fldSImage,
+                fldSVideo=m.fldSVideo,
+                fkTipo=m.fkTipo,
+                fkOwner=m.fkOwner,
+                fldDTimeCreateTime=m.fldDTimeCreateTime,
+                fldSStatus=m.fldSStatus,
+                fldNProgress=m.fldNProgress,
+                movements=m.movements,
+                devices=devices,
+                versions=versions,
+                dispositivos=dispositivos)
+    return mod
 
 
 @router.get("/stadistics/{id}", response_model=List[schemas.ModelStadisticsSensor])
