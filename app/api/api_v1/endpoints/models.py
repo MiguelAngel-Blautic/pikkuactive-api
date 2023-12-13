@@ -83,7 +83,7 @@ def read_models(
                                       fldNSensores=nsensores
                                       ))
         if isDevices != 1:
-            devices = []
+            devices = [d for d in devices if d.fkPosition != 0]
         res.append(Model(id=m.id,
                          fldSName=m.fldSName,
                          fldSDescription=m.fldSDescription,
@@ -99,7 +99,7 @@ def read_models(
                          fldSStatus=m.fldSStatus,
                          fldNProgress=m.fldNProgress,
                          movements=m.movements,
-                         devices=[],
+                         devices=devices,
                          versions=versions,
                          dispositivos=dispositivos))
     return res
