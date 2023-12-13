@@ -20,7 +20,8 @@ import tensorflow as tf
 router = APIRouter()
 serverToken = 'AAAAyNDqQ8c:APA91bEETtU_JtV_41C71VDqsr3bsZvRlBaDFHezOO0zm1Iac5UhUURVylMJVPCOAmTev6D-oCq-qWmtT7EjzJm9jEHp5BgreYK8nVfK5wqKKuzqg4SD-mblR-QM0XtYTlzNKPRX7Ppm'
 firebase_admin.initialize_app(
-    credentials.Certificate('app/blautic-ai-firebase.json'),
+    # credentials.Certificate('app/blautic-ai-firebase.json'),
+    credentials.Certificate('/home/diego/PycharmProjects/pikkuactive-api/app/blautic-ai-firebase.json'),
     options={
         'storageBucket': 'blautic-ai-9632f.appspot.com',
     })

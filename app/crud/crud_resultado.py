@@ -44,7 +44,7 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
         fecha30dias = hoy - timedelta(days=30)
         sql_text = text("""
             select distinct aux.id
-            from (select p.id as id, max(e.fldDDia) as fin, min(e.fldDDia) as inicio
+            from (select p.id as id, date(max(e.fldDDia)) as fin, date(min(e.fldDDia)) as inicio
                 from tbl_ejercicio e
                     left join tbl_planes p on (e.fkPlan = p.id)
                     left join tbl_asignado a on (a.fkPlan = p.id)
