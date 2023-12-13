@@ -24,6 +24,7 @@ def read_models(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
+        isDevices: int = 1,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -81,6 +82,8 @@ def read_models(
                                                         id=pos.id),
                                       fldNSensores=nsensores
                                       ))
+        if isDevices != 1:
+            devices = []
         res.append(Model(id=m.id,
                          fldSName=m.fldSName,
                          fldSDescription=m.fldSDescription,
