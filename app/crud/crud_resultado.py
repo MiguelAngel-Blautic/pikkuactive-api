@@ -124,9 +124,9 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
         # 7/2/23 -> Luis quiere que le pase todos los dias un array de ejercicios con el mismo tamaño y siempre igual ordenado
         if(plan != 0):
             sql_text = text("""
-                Select distinct CONVERT(e.fldDDia, DATE)
+                Select distinct date(e.fldDDia)
                 from tbl_ejercicio e
-                where e.fkPlan = """+str(plan)+""" and e.fldDDia <= '"""+str(hoy)+"""' and e.fldDDia is not null;
+                where e.fkPlan = """+str(plan)+""" and date(e.fldDDia) <= '"""+str(hoy)+"""' and e.fldDDia is not null;
                 """)
             res = db.execute(sql_text)
             for row in res:
@@ -137,7 +137,7 @@ class CRUDResultado(CRUDBase[tbl_historico_valores, ResultadoCreate, ResultadoUp
                         from tbl_historico_valores thv 
                             left join tbl_umbrales tu on (thv.fkUmbral = tu.id)
                             left join tbl_ejercicio te on (tu.fkEjercicio = te.id)
-                            where te.fkEjercicio = m.id and thv.fldFvalor >= tu.fldFValor and CONVERT(thv.fldDTimeFecha, DATE) = '"""+str(row[0])+"""'
+                            where te.fkEjercicio = m.id and thv.fldFvalor >= tu.fldFValor and date(thv.fldDTimeFecha) = '"""+str(row[0])+"""'
                         )
                     from tbl_ejercicio te left join tbl_model m on (te.fkEjercicio = m.id)
                     where te.fkPlan = """+str(plan)+""";
