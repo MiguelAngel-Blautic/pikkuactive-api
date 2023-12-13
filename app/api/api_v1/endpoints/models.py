@@ -96,7 +96,7 @@ def read_models(
                          fldSStatus=m.fldSStatus,
                          fldNProgress=m.fldNProgress,
                          movements=m.movements,
-                         devices=devices,
+                         devices=[],
                          versions=versions,
                          dispositivos=dispositivos))
     return res
