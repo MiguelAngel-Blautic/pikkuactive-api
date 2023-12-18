@@ -1,7 +1,7 @@
 import enum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, ForeignKey, Integer, String, text, Boolean, TIMESTAMP, Float, Enum, BIGINT
+from sqlalchemy import Column, ForeignKey, Integer, String, text, Boolean, TIMESTAMP, Float, Enum, BIGINT, LargeBinary
 from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
@@ -31,8 +31,8 @@ class tbl_model(Base):
     fldSDescription = Column(String, index=True)
     fldNDuration = Column(Integer, nullable=False)
     fldDTimeCreateTime = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
-    fldSImage = Column(String)
-    fldSVideo = Column(String)
+    fkImagen = Column(Integer)
+    fkVideo = Column(Integer)
     fldSStatus = Column(Enum(TrainingStatus))
     fldNProgress = Column(Integer)
     fldBPublico = Column(Integer)
@@ -85,3 +85,8 @@ class tbl_history(Base):
 class tbl_tipo_modelo(Base):
     id = Column(Integer, primary_key=True)
     fkSNombre = Column(Integer)
+
+
+class tbl_imagenes(Base):
+    id = Column(Integer, primary_key=True)
+    data = Column(LargeBinary)

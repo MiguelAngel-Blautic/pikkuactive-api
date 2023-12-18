@@ -1,7 +1,10 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from pydantic import BaseModel
 from datetime import datetime
+
+from scipy.constants import blob
+from sqlalchemy import LargeBinary
 
 # Shared properties
 from app.models.tbl_model import TrainingStatus
@@ -29,8 +32,8 @@ class ModelBase(BaseModel):
     fldBPublico: Optional[int] = 0
     fkCategoria: Optional[int] = None
     fldFPrecio: Optional[float] = 0
-    fldSImage: Optional[str] = None
-    fldSVideo: Optional[str] = None
+    fkImagen: Optional[int] = None
+    fkVideo: Optional[int] = None
     fkTipo: Optional[int] = 1
 
 
@@ -40,6 +43,7 @@ class ModelCreate(ModelBase):
     fldNDuration: int
     devices: List[DeviceCreate]
     dispositivos: List[DeviceSensorCreate] = []
+    imagen: Optional[bytes] = None
 
 
 # Properties to receive on item update
@@ -62,6 +66,7 @@ class ModelInDBBase(ModelBase):
     devices: List[Device] = []
     versions: List[Version] = []
     dispositivos: List[DeviceSensor] = []
+    imagen: Optional[bytes] = None
 
     class Config:
         orm_mode = True

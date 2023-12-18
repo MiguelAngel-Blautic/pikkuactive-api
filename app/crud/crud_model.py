@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
 from app.models import tbl_device, tbl_movement, tbl_dispositivo_sensor
-from app.models.tbl_model import tbl_model, TrainingStatus, tbl_compra_modelo
+from app.models.tbl_model import tbl_model, TrainingStatus, tbl_compra_modelo, tbl_imagenes
 from app.schemas.model import ModelCreate, ModelUpdate
 
 
@@ -18,8 +18,16 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
         devices_in_model = obj_in_data.pop('devices', None)
         movements_in_model = obj_in_data.pop('movements', None)
         dispositivos_sensor = obj_in_data.pop('dispositivos', None)
-
+        imagen = obj_in_data.pop('imagen', None)
+        imgId = None
+        if imagen:
+            img = tbl_imagenes(data=imagen)
+            db.add(img)
+            db.commit()
+            db.refresh(img)
+            imgId = img.id
         db_obj = self.model(**obj_in_data, fkOwner=owner_id)
+        db_obj.fkImagen = imgId
         db_obj.fldSStatus = TrainingStatus.no_training
         db.add(db_obj)
         db.commit()

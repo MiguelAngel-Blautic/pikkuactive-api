@@ -9,7 +9,7 @@ from app import crud, models, schemas
 from app.api import deps
 from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, \
     datos_estadistica, tbl_user, tbl_dispositivo_sensor, tbl_tipo_sensor, tbl_position
-from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history
+from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history, tbl_imagenes
 from app.schemas import MovementCreate, Version, Position
 from app.schemas.capture import CaptureResumen
 from app.schemas.device import DeviceSensor, Device
@@ -91,8 +91,6 @@ def read_models(
                          fldBPublico=m.fldBPublico,
                          fkCategoria=m.fkCategoria,
                          fldFPrecio=m.fldFPrecio,
-                         fldSImage=m.fldSImage,
-                         fldSVideo=m.fldSVideo,
                          fkTipo=m.fkTipo,
                          fkOwner=m.fkOwner,
                          fldDTimeCreateTime=m.fldDTimeCreateTime,
@@ -176,8 +174,6 @@ def read_models(
                          fldBPublico=m.fldBPublico,
                          fkCategoria=m.fkCategoria,
                          fldFPrecio=m.fldFPrecio,
-                         fldSImage=m.fldSImage,
-                         fldSVideo=m.fldSVideo,
                          fkTipo=m.fkTipo,
                          fkOwner=m.fkOwner,
                          fldDTimeCreateTime=m.fldDTimeCreateTime,
@@ -355,7 +351,11 @@ def read_model(
                                                     id=pos.id),
                                   fldNSensores=nsensores
                                   ))
-
+    img = None
+    if m.fkImagen != None:
+        imagen = db.query(tbl_imagenes).get(m.fkImagen)
+        if imagen:
+            img = imagen.data
     mod = Model(id=m.id,
                 fldSName=m.fldSName,
                 fldSDescription=m.fldSDescription,
@@ -363,8 +363,6 @@ def read_model(
                 fldBPublico=m.fldBPublico,
                 fkCategoria=m.fkCategoria,
                 fldFPrecio=m.fldFPrecio,
-                fldSImage=m.fldSImage,
-                fldSVideo=m.fldSVideo,
                 fkTipo=m.fkTipo,
                 fkOwner=m.fkOwner,
                 fldDTimeCreateTime=m.fldDTimeCreateTime,
@@ -373,7 +371,8 @@ def read_model(
                 movements=m.movements,
                 devices=devices,
                 versions=versions,
-                dispositivos=dispositivos)
+                dispositivos=dispositivos,
+                imagen=img)
     return mod
 
 
