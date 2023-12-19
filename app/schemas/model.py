@@ -67,6 +67,7 @@ class ModelInDBBase(ModelBase):
     versions: List[Version] = []
     dispositivos: List[DeviceSensor] = []
     imagen: Optional[bytes] = None
+    video: Optional[bytes] = None
 
     class Config:
         orm_mode = True

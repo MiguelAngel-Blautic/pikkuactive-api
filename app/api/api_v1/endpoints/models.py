@@ -352,10 +352,15 @@ def read_model(
                                   fldNSensores=nsensores
                                   ))
     img = None
-    if m.fkImagen != None:
+    if m.fkImagen is not None:
         imagen = db.query(tbl_imagenes).get(m.fkImagen)
         if imagen:
             img = imagen.data
+    vid = None
+    if m.fkVideo is not None:
+        video = db.query(tbl_imagenes).get(m.fkVideo)
+        if video:
+            vid = video.data
     mod = Model(id=m.id,
                 fldSName=m.fldSName,
                 fldSDescription=m.fldSDescription,
@@ -372,7 +377,8 @@ def read_model(
                 devices=devices,
                 versions=versions,
                 dispositivos=dispositivos,
-                imagen=img)
+                imagen=img,
+                video=vid)
     return mod
 
 
