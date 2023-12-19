@@ -19,6 +19,7 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
         movements_in_model = obj_in_data.pop('movements', None)
         dispositivos_sensor = obj_in_data.pop('dispositivos', None)
         imagen = obj_in_data.pop('imagen', None)
+        video = obj_in_data.pop('video', None)
         imgId = None
         if imagen:
             img = tbl_imagenes(data=imagen)
@@ -26,8 +27,16 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
             db.commit()
             db.refresh(img)
             imgId = img.id
+        vidId = None
+        if video:
+            vid = tbl_imagenes(data=video)
+            db.add(vid)
+            db.commit()
+            db.refresh(vid)
+            vidId = vid.id
         db_obj = self.model(**obj_in_data, fkOwner=owner_id)
         db_obj.fkImagen = imgId
+        db_obj.fkVideo = vidId
         db_obj.fldSStatus = TrainingStatus.no_training
         db.add(db_obj)
         db.commit()
