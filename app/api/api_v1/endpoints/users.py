@@ -200,3 +200,15 @@ def complete_user(
         )
     user = crud.user.complete(db, obj_in=user_in)
     return user
+
+
+@router.get("/comprobar/")
+def read_user_me(
+        id: str,
+        db: Session = Depends(deps.get_db),
+) -> Any:
+    user = crud.user.get_remote(db, id=id)
+    if user:
+        return user.id
+    else:
+        return 0
