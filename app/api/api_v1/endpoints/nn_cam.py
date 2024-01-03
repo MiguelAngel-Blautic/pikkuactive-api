@@ -124,7 +124,6 @@ def data_adapter(model, captures):
             datos.sort(key=lambda x: (x.fldNSample, x.fkDispositivoSensor))
             for data in datos:
                 only_data.append(data.fldFValor)
-                only_data.append(data.fldFValor2)
 
             labels.append(capture.owner.fldSLabel)
             np_data = np.resize(only_data, (1, len(only_data)))

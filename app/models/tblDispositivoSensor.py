@@ -14,6 +14,7 @@ class tbl_tipo_sensor(Base):
     id = Column(Integer, primary_key=True, index=True)
     fldSNombre = Column(String)
     fldNFrecuencia = Column(Integer)
+    fldNValores = Column(Integer)
     sensores = relationship("tbl_dispositivo_sensor", back_populates="sensor", cascade="all,delete", single_parent=True)
 
 

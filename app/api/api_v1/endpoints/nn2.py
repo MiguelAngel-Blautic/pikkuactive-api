@@ -122,7 +122,7 @@ def analizeDatos(datos: List[CaptureEntrada], modelo: tbl_model, db):
     version = db.query(tbl_version_estadistica).filter(tbl_version_estadistica.fkOwner == modelo.id).order_by(desc(tbl_version_estadistica.fecha)).first()
     for dato in datos:
         valores = db.query(datos_estadistica).filter(datos_estadistica.fkVersion == version.id).filter(
-            datos_estadistica.fkSensor == (dato.sensor+6)).order_by(datos_estadistica.fldNSample).all()
+            datos_estadistica.fkSensor == (dato.sensor)).order_by(datos_estadistica.fldNSample).all()
         sensor = db.query(tbl_dispositivo_sensor).get(dato.sensor)
         tipoSensor = db.query(tbl_tipo_sensor).get(sensor.fkSensor)
         if 1 <= tipoSensor.id <= 3:
@@ -891,23 +891,22 @@ def estadisticas(lista):
 
 def data_adapter(model, captures):
     columns = []
-    nColumns = len(model.devices) * model.fldNDuration * SENS_NUMBER * DATA_FREQ
-    for i in range(0, nColumns, SENS_NUMBER):
-        columns.append('acc' + str(i))
-        columns.append('acc' + str(i + 1))
-        columns.append('acc' + str(i + 2))
-        columns.append('gyr' + str(i + 3))
-        columns.append('gyr' + str(i + 4))
-        columns.append('gyr' + str(i + 5))
+    nColumns = 0
+    for dispositivo in model.dispositivos:
+        nColumns += dispositivo.sensor.fldNFrecuencia * model.fldNDuration
+        for i in range(0, dispositivo.sensor.fldNFrecuencia * model.fldNDuration):
+                columns.append(dispositivo.sensor.fldSNombre + str(i))
     columns.append('label')
     lines = []
     for capture in captures:
         captureLin = []
-        datos = capture.datos
-        datos = sorted(datos, key=lambda data: data.fkDispositivoSensor)
-        datos = sorted(datos, key=lambda data: data.fldNSample)
-        for dato in datos:
-            captureLin.append(dato.fldFValor)
+        dispositivos = list(set(obj.dispositivoSensor for obj in capture.datos))
+        dispositivos = sorted(dispositivos, key=lambda d: d.id)
+        for dispositivo in dispositivos:
+            datos = [x for x in capture.datos if x.fkDispositivoSensor == dispositivo.id]
+            datos = sorted(datos, key=lambda data: data.fldNSample)
+            for dato in datos:
+                captureLin.append(dato.fldFValor)
         captureLin.append(capture.owner.fldSLabel)
         lines.append(captureLin)
     df = pd.DataFrame(np.array(lines), columns=columns)
@@ -951,7 +950,10 @@ def sincronizar(top_correct_reps, referencia, index):
         result1.append([
             path1[i][0] - path1[i][1]])
     result1_mean = np.array(result1).mean()
-    media_redondeada = int((math.ceil(abs(result1_mean)) * (result1_mean/abs(result1_mean))))
+    if result1_mean != 0:
+        media_redondeada = int((math.ceil(abs(result1_mean)) * (result1_mean/abs(result1_mean))))
+    else:
+        media_redondeada = 0
     nueva_rep = np.zeros(len(referencia))
     inicio = 0
     fin = 0
@@ -969,17 +971,17 @@ def sincronizar(top_correct_reps, referencia, index):
     #                                                                media_redondeada:len(referencia)]
     return nueva_rep
 
-def separarDatos(labelCorrect, df, index):
+def separarDatos(labelCorrect, df, ini, fin):
     # df_mov_pre = scale_data(df_mov, mov_target)
     df_mov_pre = df
     for col in df_mov_pre.columns[:-1]:
         df_mov_pre[col] = df_mov_pre[col].astype(float)
-    df_mov_sensor = df_mov_pre[df_mov_pre.columns[index::6]]
+    df_mov_sensor = df_mov_pre[df_mov_pre.columns[ini:fin]]
     df_mov_sensor['label'] = df_mov_pre['label']
     df, _ = correct_incorrect(df_mov_sensor, 'label', labelCorrect)
     df = remove_outliers(df, 0.99)
-    REPETICIONES = math.ceil(len(df)/10)
-    # Calcular la media de las cinco repeticiones más parecidas de las repeticiones correctas
+    REPETICIONES = math.ceil(len(df)/1)
+    # Calcular la media de las repeticiones más parecidas de las repeticiones correctas
     top_correct_reps,path_array = get_top_similar_reps(df.mean(), df, REPETICIONES)
 
     referencia = top_correct_reps.iloc[0]

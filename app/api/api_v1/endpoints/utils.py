@@ -84,8 +84,11 @@ def analize(*, mpus: MpuList) -> Any:
     return res
 
 
-def completar_entrenamiento(db, df, nombre, model, version, index):
-    l1, l2 = nn2.separarDatos(model.fldSName, df, index)
+def completar_entrenamiento(db, df, model, version, index):
+    inicio = 0
+    for i in range(index - 1):
+        inicio += (model.dispositivos[i].sensor.fldNFrecuencia * model.fldNDuration)
+    l1, l2 = nn2.separarDatos(model.fldSName, df, inicio, inicio + (model.dispositivos[index].sensor.fldNFrecuencia * model.fldNDuration))
     sensores = db.query(tbl_dispositivo_sensor).filter(tbl_dispositivo_sensor.fkOwner == model.id).all()
     sensor = sensores[index]
     sample = 1
@@ -114,9 +117,8 @@ def entrena_estadistica(id_model: int, db: Session = Depends(deps.get_db)) -> An
     db.refresh(version)
     captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
     df_mpu = nn2.data_adapter(model, captures_mpu)
-    nombres = ["AccX", "AccY", "AccZ", "GyrX", "GyrY", "GyrZ"]
-    for i in range(6):
-        completar_entrenamiento(db, df_mpu, nombres[i], model, version, i)
+    for i in range(len(model.dispositivos)):
+        completar_entrenamiento(db, df_mpu, model, version, i)
 
 
 @router.post("/analize_stadistic/")
