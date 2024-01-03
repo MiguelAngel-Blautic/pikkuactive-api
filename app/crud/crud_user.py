@@ -11,7 +11,7 @@ from app.models.tbl_ejercicio import tbl_ejercicio, tbl_umbrales, tbl_historico_
 from app.models.tbl_entrena import tbl_entrena
 from app.models.tbl_plan import tbl_planes
 from app.models.tbl_user import tbl_user
-from app.schemas.user import UserCreate, UserUpdate, User
+from app.schemas.user import UserCreate, UserUpdate, User, UserComplete
 
 
 class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
@@ -231,6 +231,20 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
 
     def getRol(self, user: tbl_user) -> int:
         return user.fkRol
+
+    def complete(self, db: Session, *, obj_in: UserComplete) -> tbl_user:
+        db_obj = tbl_user(
+            fldSFullName=obj_in.fldSFullName,
+            fldBActive=obj_in.fldBActive,
+            fldSTelefono=obj_in.fldSTelefono,
+            fldSImagen=obj_in.fldSImagen,
+            fkRol=obj_in.fkRol,
+            idPlataforma=obj_in.idPlataforma,
+        )
+        db.add(db_obj)
+        db.commit()
+        db_obj = self.get_remote(db=db, id=obj_in.idPlataforma)
+        return db_obj
 
 
 user = CRUDUser(tbl_user)

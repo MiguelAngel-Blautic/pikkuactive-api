@@ -181,3 +181,22 @@ def update_user(
     user_in.fldSFcmToken = user.fldSFcmToken
     user = crud.user.update(db, db_obj=user, obj_in=user_in)
     return user
+
+
+@router.post("/complete/", response_model=schemas.User)
+def complete_user(
+    *,
+    db: Session = Depends(deps.get_db),
+    user_in: schemas.UserComplete,
+) -> Any:
+    """
+    Complete new user.
+    """
+    user = crud.user.get_remote(db, id=user_in.idPlataforma)
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this username already exists in the system.",
+        )
+    user = crud.user.complete(db, obj_in=user_in)
+    return user

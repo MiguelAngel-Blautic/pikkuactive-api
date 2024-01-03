@@ -45,3 +45,12 @@ class User(UserInDBBase):
 # Additional properties stored in DB
 class UserInDB(UserInDBBase):
     fldSHashedPassword: str
+
+
+class UserComplete(BaseModel):
+    fldBActive: Optional[bool] = True
+    fldSTelefono: Optional[str] = None
+    fldSImagen: Optional[str] = None
+    fkRol: Optional[int] = 1
+    fldSFullName: Optional[str] = None
+    idPlataforma: Optional[int] = None
