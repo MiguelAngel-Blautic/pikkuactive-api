@@ -121,9 +121,14 @@ def data_adapter(model, captures):
         datos = capture.datos
         if len(datos) > 1:
 
-            datos.sort(key=lambda x: (x.fldNSample, x.fkDispositivoSensor))
-            for data in datos:
-                only_data.append(data.fldFValor)
+            # datos.sort(key=lambda x: (x.fldNSample, x.fkDispositivoSensor))
+            datosX = [objeto for objeto in datos if objeto.dispositivoSensor.fkSensor < 25]
+            datosX.sort(key=lambda x: (x.fldNSample, x.fkDispositivoSensor))
+            datosY = [x for x in datos if x.dispositivoSensor.fkSensor > 25]
+            datosY.sort(key=lambda x: (x.fldNSample, x.fkDispositivoSensor))
+            for i in range(len(datosX)):
+                only_data.append(datosX[i].fldFValor)
+                only_data.append(datosY[i].fldFValor)
 
             labels.append(capture.owner.fldSLabel)
             np_data = np.resize(only_data, (1, len(only_data)))

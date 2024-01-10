@@ -86,7 +86,7 @@ def analize(*, mpus: MpuList) -> Any:
 
 def completar_entrenamiento(db, df, model, version, index):
     inicio = 0
-    for i in range(index - 1):
+    for i in range(index):
         inicio += (model.dispositivos[i].sensor.fldNFrecuencia * model.fldNDuration)
     l1, l2 = nn2.separarDatos(model.fldSName, df, inicio, inicio + (model.dispositivos[index].sensor.fldNFrecuencia * model.fldNDuration))
     sensores = db.query(tbl_dispositivo_sensor).filter(tbl_dispositivo_sensor.fkOwner == model.id).all()
@@ -219,6 +219,7 @@ def training_task(id_model: int):
             db.commit()
             db.refresh(version_cam)
 
+        entrena_estadistica(id_model=id_model, db=db)
         model.fldSStatus = TrainingStatus.training_succeeded
         db.commit()
         db.refresh(model)

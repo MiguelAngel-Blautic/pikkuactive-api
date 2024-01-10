@@ -120,15 +120,20 @@ def analizeDatos(datos: List[CaptureEntrada], modelo: tbl_model, db):
     print(datos)
     listas = []
     version = db.query(tbl_version_estadistica).filter(tbl_version_estadistica.fkOwner == modelo.id).order_by(desc(tbl_version_estadistica.fecha)).first()
+    valoresStd = db.query(datos_estadistica).filter(datos_estadistica.fkVersion == version.id).all()
+    stds = [x.fldFStd for x in valoresStd]
+    maxSTD = max(stds)
     for dato in datos:
         valores = db.query(datos_estadistica).filter(datos_estadistica.fkVersion == version.id).filter(
             datos_estadistica.fkSensor == (dato.sensor)).order_by(datos_estadistica.fldNSample).all()
         sensor = db.query(tbl_dispositivo_sensor).get(dato.sensor)
         tipoSensor = db.query(tbl_tipo_sensor).get(sensor.fkSensor)
         if 1 <= tipoSensor.id <= 3:
-            constante = 4
+            constante = 0 # 4
+        elif 4 <= tipoSensor.id <= 6:
+            constante = 0 # 1000
         else:
-            constante = 1000
+            constante = 1
         posicion = db.query(tbl_position).get(sensor.fkPosicion)
         lista = []
         l1 = []
@@ -141,11 +146,21 @@ def analizeDatos(datos: List[CaptureEntrada], modelo: tbl_model, db):
         for data in dato.data:
             lp.append(data.fldFValor)
             lm.append(valores[data.fldNSample - 1].fldFMedia)
-            ms.append(valores[data.fldNSample - 1].fldFMedia + valores[data.fldNSample - 1].fldFStd)
-            mi.append(valores[data.fldNSample - 1].fldFMedia - valores[data.fldNSample - 1].fldFStd)
+            # ms.append(valores[data.fldNSample - 1].fldFMedia + valores[data.fldNSample - 1].fldFStd)
+            # mi.append(valores[data.fldNSample - 1].fldFMedia - valores[data.fldNSample - 1].fldFStd)
+            ms.append(valores[data.fldNSample - 1].fldFMedia + maxSTD)
+            mi.append(valores[data.fldNSample - 1].fldFMedia - maxSTD)
             ls.append(s)
             s += 1
-            val = (1 - ((data.fldFValor + constante) / (valores[data.fldNSample - 1].fldFMedia + constante)))*100
+            val = (abs(data.fldFValor + constante) - abs(valores[data.fldNSample - 1].fldFMedia + constante))/maxSTD
+            if abs(val) < 1:
+                val = 0.0
+            else:
+                if val > 0:
+                    val -= 1
+                else:
+                    val += 1
+            # val = (1 - ((data.fldFValor + constante) / (valores[data.fldNSample - 1].fldFMedia + constante)))*100
             # if abs(val) > valores[data.fldNSample - 1].fldFStd:
             #     val = 0.0
             l1.append(val)
@@ -158,22 +173,29 @@ def analizeDatos(datos: List[CaptureEntrada], modelo: tbl_model, db):
         for i in range(PARTES):
             lista.append(abs(sum(l1[math.floor(i*(len(l1)/PARTES)):math.floor((i+1)*(len(l1)/PARTES))])))
             lista.append(sum(l1[math.floor(i*(len(l1)/PARTES)):math.floor((i+1)*(len(l1)/PARTES))]))
-            lista.append(tipoSensor.fldSNombre)
-            lista.append(posicion.fldSName)
+            lista.append(tipoSensor.id) #elem[2]
+            lista.append(posicion.id) #elem[3]
             lista.append(i)
+            lista.append(tipoSensor.id) #elem[5]
             listas.append(lista)
             lista = []
-    ordenado = sorted(listas, key=lambda x: x[0], reverse=True)
+    filtrado = [objeto for objeto in listas if not ((30 <= objeto[2] <= 33) or (8 <= objeto[2] <= 11))] # Eliminamos las incorrecciones de ojos y orejas
+    ordenado = sorted(filtrado, key=lambda x: x[0], reverse=True)
     print(ordenado)
     ordenado = ordenado[0:3]
+    ordenado = [objeto for objeto in ordenado if objeto[0] > 1]
     mensajes = []
     for elem in ordenado:
-        if elem[1] < 0:
-            mensaje = "Reducir"
-        else:
-            mensaje = "Aumentar"
-        mensajes.append(mensaje + " intensidad un " + str(round(elem[0], 2)) + "% en el " + str(elem[2]) + " de " + str(elem[3]) + " en la parte " + str(elem[4]+1) + "/" + str(PARTES))
+        intensidad = elem[1] / elem[0]
+        posicion = elem[3]
+        sensor = elem[2]
+        mensaje = db.query(tbl_mensajesInferencia).filter(tbl_mensajesInferencia.fldNSensor == sensor). \
+            filter(tbl_mensajesInferencia.fldNDevice == posicion). \
+            filter(tbl_mensajesInferencia.fldNIntensidad == intensidad).first()
+        mensajes.append(mensaje.fldSMensaje + "(" + str(elem[4]+1) + "/" + str(PARTES) + ")")
     print(mensajes)
+    if len(mensajes) < 1:
+        mensajes.append("")
     return mensajes
 
 
@@ -544,7 +566,7 @@ def plot_data(sref, sref_upper, sref_lower, sdiff, rep):
   ax1.set_ylabel('Value of the sensors scaled')
   ax1.set_ylim(0,1)
   ax2.set_ylim(0, 1)
-  plt.show()
+  # plt.show()
 
 
 def generate_Single(modelo, datos, index):
@@ -980,7 +1002,7 @@ def separarDatos(labelCorrect, df, ini, fin):
     df_mov_sensor['label'] = df_mov_pre['label']
     df, _ = correct_incorrect(df_mov_sensor, 'label', labelCorrect)
     df = remove_outliers(df, 0.99)
-    REPETICIONES = math.ceil(len(df)/1)
+    REPETICIONES = math.ceil(len(df)/10)
     # Calcular la media de las repeticiones más parecidas de las repeticiones correctas
     top_correct_reps,path_array = get_top_similar_reps(df.mean(), df, REPETICIONES)
 
@@ -988,9 +1010,9 @@ def separarDatos(labelCorrect, df, ini, fin):
     reps = []
     reps.append(referencia)
     for i in range(1, REPETICIONES):
-        nueva_rep_sincronizada = sincronizar(top_correct_reps, referencia, i)
-        reps.append(nueva_rep_sincronizada)
-
+        # nueva_rep_sincronizada = sincronizar(top_correct_reps, referencia, i)
+        # reps.append(nueva_rep_sincronizada)
+        reps.append(top_correct_reps.iloc[i])
     nuevas_reps_mean = np.mean(reps, axis=0)
     desviacion = np.std(reps, axis=0)
     lista1 = []
