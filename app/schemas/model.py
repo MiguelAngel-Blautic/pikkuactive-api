@@ -23,6 +23,7 @@ class ModelStadisticsSensor(BaseModel):
     id: int
     nombre: str
     datos: List[ModelStadistics]
+    idPosicion: Optional[int] = None
 
 
 class ModelBase(BaseModel):

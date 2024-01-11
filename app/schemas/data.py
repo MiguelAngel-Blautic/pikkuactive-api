@@ -17,6 +17,7 @@ class DataCreate(BaseModel):
 class DataDb(DataCreate):
     fkCaptura: int
     fkDispositivoSensor: int
+    idPosicion: Optional[int] = None
 
     class Config:
         orm_mode = True

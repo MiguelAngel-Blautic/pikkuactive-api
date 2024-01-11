@@ -408,7 +408,7 @@ def read_model_stadistics(
         for dato in datos:
             datalist.append(ModelStadistics(sample=dato.fldNSample, media=dato.fldFMedia, std=dato.fldFStd))
         tiposensor = db.query(tbl_tipo_sensor).get(sensor.fkSensor)
-        res.append(ModelStadisticsSensor(id=sensor.id, nombre=tiposensor.fldSNombre, datos=datalist))
+        res.append(ModelStadisticsSensor(id=sensor.id, nombre=tiposensor.fldSNombre, datos=datalist, idPosicion=tiposensor.id))
     return res
 
 
