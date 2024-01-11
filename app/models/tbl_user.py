@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from mariadb.constants.FIELD_TYPE import DATE
@@ -20,7 +21,7 @@ class tbl_user(Base):
     fldSTelefono = Column(String)
     fldSImagen = Column(String)
     fldTNacimiento = Column(TIMESTAMP)
-    fldFCreacion = Column(DateTime)
+    fldFCreacion = Column(DateTime, default=datetime.now())
     fldNSexo = Column(Integer)
     fkRol = Column(Integer)
     idPlataforma = Column(Integer)
