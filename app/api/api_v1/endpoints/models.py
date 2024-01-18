@@ -324,7 +324,7 @@ def read_model(
         cant = len(capturas)
     dispositivos = []
     devices = m.devices
-    crearDevices = len(devices) < 1
+    crearDevices = True # len(devices) < 1
     posicion = -1
     nDevices = 0
     if crearDevices:
@@ -343,13 +343,19 @@ def read_model(
             else:
                 nsensores = 17
             pos = db.query(tbl_position).get(d.fkPosicion)
+            imagen = None
+            if d.fkImagen is not None:
+                img = db.query(tbl_imagenes).get(d.fkImagen)
+                if img:
+                    imagen = img.data
             devices.append(Device(id=d.id,
                                   fldNNumberDevice=nDevices,
                                   fkPosition=posicion,
                                   fkOwner=d.fkOwner,
                                   position=Position(fldSName=pos.fldSName, fldSDescription=pos.fldSDescription,
                                                     id=pos.id),
-                                  fldNSensores=nsensores
+                                  fldNSensores=nsensores,
+                                  imagen=imagen
                                   ))
     img = None
     if m.fkImagen is not None:

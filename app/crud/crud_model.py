@@ -48,8 +48,16 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
             db.commit()
             db.refresh(device)
         for dispositivo in dispositivos_sensor:
+            imgId = None
+            imagen = dispositivo["imagen"]
+            if imagen:
+                img = tbl_imagenes(data=imagen)
+                db.add(img)
+                db.commit()
+                db.refresh(img)
+                imgId = img.id
             dato = tbl_dispositivo_sensor(fkPosicion=dispositivo["fkPosicion"], fkSensor=dispositivo["fkSensor"],
-                                          fkOwner=id_model)
+                                          fkOwner=id_model, fkImagen=imgId)
             db.add(dato)
             db.commit()
             db.refresh(dato)

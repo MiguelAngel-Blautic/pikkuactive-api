@@ -1,3 +1,4 @@
+from tokenize import String
 from typing import Optional
 
 from pydantic import BaseModel
@@ -13,6 +14,7 @@ class DeviceBase(BaseModel):
 class DeviceSensorCreate(BaseModel):
     fkPosicion: int
     fkSensor: int
+    imagen: Optional[str] = None
 
 
 class DeviceSensor(BaseModel):
@@ -42,6 +44,7 @@ class DeviceInDBBase(DeviceBase):
     fldNNumberDevice: int
     fkPosition: int
     fkOwner: int
+    imagen: Optional[str] = None
     position: Optional[Position]
 
     class Config:

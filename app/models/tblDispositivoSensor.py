@@ -23,6 +23,7 @@ class tbl_dispositivo_sensor(Base):
     fkPosicion = Column(Integer, ForeignKey("tbl_position.id", ondelete="CASCADE", onupdate="CASCADE"))
     posicion = relationship("tbl_position", back_populates="posiciones")
     fkOwner = Column(Integer, ForeignKey("tbl_model.id", ondelete="CASCADE", onupdate="CASCADE"))
+    fkImagen = Column(Integer)
     owner = relationship("tbl_model", back_populates="dispositivos")
     fkSensor = Column(Integer, ForeignKey("tbl_tipo_sensor.id", ondelete="CASCADE", onupdate="CASCADE"))
     sensor = relationship("tbl_tipo_sensor", back_populates="sensores")
