@@ -99,7 +99,8 @@ def read_models(
                          movements=m.movements,
                          devices=devices,
                          versions=versions,
-                         dispositivos=dispositivos))
+                         dispositivos=dispositivos,
+                         tuyo=(m.fkOwner == current_user.id)))
     return res
 
 
@@ -182,7 +183,8 @@ def read_models(
                          movements=m.movements,
                          devices=devices,
                          versions=versions,
-                         dispositivos=dispositivos))
+                         dispositivos=dispositivos,
+                         tuyo=(m.fkOwner == current_user.id)))
     return res
 
 
@@ -226,6 +228,7 @@ def create_model(
     """
     Create new model.
     """
+    model_in.fldBPublico = 0 # De momento para forzarlos a ser privados por ahora
     model = crud.model.create_with_owner(db=db, obj_in=model_in, owner_id=current_user.id)
     movement_correct = MovementCreate(fldSLabel=model.fldSName, fldSDescription=model.fldSName)
     crud.movement.create_with_owner(db=db, obj_in=movement_correct, fkOwner=model.id)
@@ -384,7 +387,8 @@ def read_model(
                 versions=versions,
                 dispositivos=dispositivos,
                 imagen=img,
-                video=vid)
+                video=vid,
+                tuyo=(m.fkOwner == current_user.id))
     return mod
 
 
@@ -432,7 +436,8 @@ def count_captures(
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
     if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (
-            crud.ejercicio.asigned(db=db, user=current_user.id, model=model.id))):
+        model.fldBPublico == 1
+    )):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     movements = db.query(tbl_movement).filter(tbl_movement.fkOwner == model.id).all()
     captures1 = db.query(tbl_capture).filter(tbl_capture.fkOwner == movements[0].id).all()

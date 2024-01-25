@@ -69,6 +69,7 @@ class ModelInDBBase(ModelBase):
     dispositivos: List[DeviceSensor] = []
     imagen: Optional[bytes] = None
     video: Optional[bytes] = None
+    tuyo: Optional[int] = 0
 
     class Config:
         orm_mode = True
