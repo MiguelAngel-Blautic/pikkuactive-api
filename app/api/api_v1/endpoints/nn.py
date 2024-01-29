@@ -10,6 +10,10 @@ from tensorflow.keras.layers import Flatten, Dense
 from tensorflow.keras.layers import Conv2D, MaxPool2D
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Concatenate
+from tensorflow.python.keras import Model
+
 from app.models import tbl_version
 
 # CONFIG
@@ -38,6 +42,20 @@ def create_model(model,output_size=2):
     # cnn.compile(optimizer=SGD(learning_rate=0.0045), loss='categorical_crossentropy', metrics=['accuracy'])
     cnn.save(model_uuid)
     return model_uuid
+
+def train_model2(model, df, version_last):
+    input_shape = Input(shape=(model.fldNDuration*20, 6, 1))
+    x = Conv2D(32, 5, activation='relu', padding='same')(input_shape)
+    x = Conv2D(16, 3, activation='relu', padding='same')(x)
+    x = MaxPool2D(pool_size=(2, 2))(x)
+    x = Flatten()(x)
+    x = Model(inputs=input_shape, outputs=x)
+
+    combined = Concatenate(axis=1)([x.output])
+    z = Dense(2, activation="relu")(combined)
+    z = Dense(1, activation="sigmoid")(z)
+
+    model = Model(inputs=[x.input], outputs=z)
 
 
 def train_model(model, df, version_last):
@@ -110,6 +128,30 @@ def generate_columns_index(end, sens):
 
 
 def data_adapter(model, captures):
+    columns = len(model.dispositivos)
+    rows = model.fldNDuration * DATA_FREQ
+    columns_list = generate_columns_index(columns * rows, len(model.dispositivos))
+    df = pd.DataFrame(columns=columns_list)
+    # print(df)
+    labels = []
+    for capture in captures:
+        datos = []
+        for dato in capture.datos:
+            datos.append(dato)
+        datos_sorted_partial = sorted(datos, key=lambda muestra:muestra.fkDispositivoSensor)
+        datos_sorted = sorted(datos_sorted_partial, key=lambda muestra: muestra.fldNSample)
+        lista = []
+        for data in datos_sorted:
+            lista.append(data.fldFValor)
+        labels.append(capture.owner.fldSLabel)
+        np_data = np.resize(lista, (1, len(lista)))
+        df_length = len(df)
+        df.loc[df_length] = np_data[0].tolist()
+    pd.set_option('display.max_columns', columns * rows)
+    df['label'] = labels
+    return df
+
+def data_adapter2(model, captures):
     columns = len(model.dispositivos)
     rows = model.fldNDuration * DATA_FREQ
     columns_list = generate_columns_index(columns * rows, len(model.dispositivos))
