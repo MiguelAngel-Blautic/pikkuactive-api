@@ -11,7 +11,7 @@ from tensorflow.keras.layers import Conv2D, MaxPool2D
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import Concatenate
+from tensorflow.keras.layers import concatenate
 from tensorflow.python.keras import Model
 
 from app.models import tbl_version
@@ -43,20 +43,43 @@ def create_model(model,output_size=2):
     cnn.save(model_uuid)
     return model_uuid
 
-def train_model2(model, df, version_last):
-    input_shape = Input(shape=(model.fldNDuration*20, 6, 1))
+def train_model2(modelo, df, version_last):
+    num_epoch = 500
+    input_shape = Input(shape=(modelo.fldNDuration*20, 6, 1))
+    input_shape2 = Input(shape=(modelo.fldNDuration*20, 6, 1))
     x = Conv2D(32, 5, activation='relu', padding='same')(input_shape)
     x = Conv2D(16, 3, activation='relu', padding='same')(x)
     x = MaxPool2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
     x = Model(inputs=input_shape, outputs=x)
+    y = Conv2D(32, 5, activation='relu', padding='same')(input_shape2)
+    y = Conv2D(16, 3, activation='relu', padding='same')(y)
+    y = MaxPool2D(pool_size=(2, 2))(y)
+    y = Flatten()(y)
+    y = Model(inputs=input_shape2, outputs=y)
 
-    combined = Concatenate(axis=1)([x.output])
+    if True:
+        combined = x.output
+    else:
+        combined = concatenate([x.output, y.output], axis=-1)
     z = Dense(2, activation="relu")(combined)
     z = Dense(1, activation="sigmoid")(z)
 
     model = Model(inputs=[x.input], outputs=z)
+    model_uuid = 'static/mul_' + str(uuid.uuid1()) + '.h5'
+    X_reshaped_train, X_reshaped_test, y_train, y_test = split_normalize_data(modelo, df)
+    model.compile(optimizer='adam', loss='mean_absolute_percentage_error', metrics=['accuracy'])
+    history = model.fit(x=X_reshaped_train, y=y_train, verbose=1)
+    model.save(model_uuid)
+    evaluation = model.evaluate(X_reshaped_test, y_test)
+    version = tbl_version(fldSUrl=model_uuid,
+                          fldFAccuracy=float(evaluation[1]),
+                          fldNEpoch=num_epoch,
+                          fldFLoss=float(evaluation[0]),
+                          fldSOptimizer='SGD',
+                          fldFLearningRate=0.0045)
 
+    return version
 
 def train_model(model, df, version_last):
     url = ''

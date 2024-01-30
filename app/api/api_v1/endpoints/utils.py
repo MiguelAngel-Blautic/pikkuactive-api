@@ -154,7 +154,10 @@ def training_task(id_model: int):
 
     # try:
     user = db.query(models.tbl_user).filter(models.tbl_user.id == model.fkOwner).first()
-    movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all()
+    if model.fkTipo == 3:
+        movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == 228).all()
+    else:
+        movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all()
     ids_movements = [mov.id for mov in movements]
 
     # version_last_mpu = db.query(models.Version).filter(models.Version.owner_id == model.id).order_by(
@@ -169,6 +172,7 @@ def training_task(id_model: int):
     # captures_mpu = db.query(models.tbl_capture).filter(or_(models.tbl_capture.fkOwner.in_(ids_movements)), models.tbl_capture.grupo.isnot(None)).all()
     captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
 
+    print(len(captures_mpu))
     if not captures_mpu or len(captures_mpu) < 2:
         send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName,
                           body='There is not pending captures')
@@ -185,7 +189,7 @@ def training_task(id_model: int):
         # version_ecg.fkOwner = model.id
         # db.add(version_ecg)
 
-        if model.fkTipo == 0:
+        if model.fkTipo == 3:
             df_mpu = nn.data_adapter2(model, captures_mpu)
             version = nn.train_model2(model, df_mpu, version_last_mpu)
             version.fkOwner = model.id
@@ -212,13 +216,13 @@ def training_task(id_model: int):
 
         history = []
         for capture in captures_mpu:
-            if model.fkTipo == 0:
+            if model.fkTipo == 3:
                 history.append(tbl_history(fkCapture=capture.id, fkOwner=version.id))
             if model.fkTipo == 1:
                 history.append(tbl_history(fkCapture=capture.id, fkOwner=version_mpu.id))
             if model.fkTipo == 2:
                 history.append(tbl_history(fkCapture=capture.id, fkOwner=version_cam.id))
-        if model.fkTipo == 0:
+        if model.fkTipo == 3:
             version.history = history
             db.commit()
             db.refresh(version)
@@ -231,11 +235,12 @@ def training_task(id_model: int):
             db.commit()
             db.refresh(version_cam)
 
-        entrena_estadistica(id_model=id_model, db=db)
+        if model.fkTipo != 3:
+            entrena_estadistica(id_model=id_model, db=db)
         model.fldSStatus = TrainingStatus.training_succeeded
         db.commit()
         db.refresh(model)
-        if model.fkTipo == 0:
+        if model.fkTipo == 3:
             publish_model_firebase(model, version.fldSUrl, 'mm_')
         if model.fkTipo == 1:
             publish_model_firebase(model, version_mpu.fldSUrl, 'mm_mpu_')

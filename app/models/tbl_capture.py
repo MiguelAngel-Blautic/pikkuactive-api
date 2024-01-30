@@ -16,7 +16,7 @@ class tbl_capture(Base):
     owner = relationship("tbl_movement")
     fkGrupoNegativo = Column(Integer, ForeignKey("tbl_grupo_negativo.id", ondelete="CASCADE", onupdate="CASCADE"))
     grupo = relationship("tbl_grupo_negativo", back_populates="grupo")
-    datos = relationship("tbl_dato", back_populates="captura")
+    datos = relationship("tbl_dato", back_populates="captura", cascade="all,delete", order_by="tbl_dato.fldNSample")
 
     mpu = relationship("tbl_mpu", back_populates="owner", cascade="all,delete", order_by="tbl_mpu.fldNSample")
     ecg = relationship("tbl_ecg", back_populates="owner", cascade="all,delete", order_by="tbl_ecg.fldNSample")
