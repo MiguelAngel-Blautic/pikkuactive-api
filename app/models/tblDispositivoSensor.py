@@ -27,7 +27,7 @@ class tbl_dispositivo_sensor(Base):
     owner = relationship("tbl_model", back_populates="dispositivos")
     fkSensor = Column(Integer, ForeignKey("tbl_tipo_sensor.id", ondelete="CASCADE", onupdate="CASCADE"))
     sensor = relationship("tbl_tipo_sensor", back_populates="sensores")
-    datos = relationship("tbl_dato", single_parent=True)
+    datos = relationship("tbl_dato", single_parent=True, cascade="all,delete")
 
 
 class tbl_dato(Base):
