@@ -389,6 +389,8 @@ def read_model(
                 imagen=img,
                 video=vid,
                 tuyo=(m.fkOwner == current_user.id))
+    db.execute("""insert into tbl_consultas (fkUser, fkModel) VALUES ("""+str(current_user.id)+""", """+str(mod.id)+""")""")
+    db.commit()
     return mod
 
 

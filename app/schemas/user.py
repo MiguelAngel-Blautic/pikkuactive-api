@@ -53,6 +53,17 @@ class User(UserInDBBase):
     idRelacion: Optional[int] = 0
 
 
+class UserGenerales(BaseModel):
+    id: int
+    nombre: str
+    consultas: int
+    capturas: int
+    entrenamientos: int
+    ultimaConsulta: Optional[datetime]
+    ultimaCaptura: Optional[datetime]
+    ultimoEntrenamiento: Optional[datetime]
+
+
 # Additional properties stored in DB
 class UserInDB(UserInDBBase):
     fldSHashedPassword: str
