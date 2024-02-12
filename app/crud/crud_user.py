@@ -58,6 +58,7 @@ class CRUDUser(CRUDBase[tbl_user, UserCreate, UserUpdate]):
             fldSTelefono=obj_in.fldSTelefono,
             fldSImagen=obj_in.fldSImagen,
             fkRol=obj_in.fkRol,
+            fldSEmail=obj_in.fldSEmail,
             idPlataforma=obj_in.idPlataforma,
         )
         db.add(db_obj)

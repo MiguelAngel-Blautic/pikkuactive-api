@@ -18,6 +18,7 @@ class UserBase(BaseModel):
 
 class UserComplete(BaseModel):
     fldBActive: Optional[bool] = True
+    fldSEmail: Optional[str] = None
     fldNSexo: Optional[int] = None
     fldTNacimiento: Optional[datetime] = None
     fldSTelefono: Optional[str] = None
