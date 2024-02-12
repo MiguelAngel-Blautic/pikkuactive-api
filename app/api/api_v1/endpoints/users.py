@@ -70,6 +70,7 @@ def get_users_generla(
             conUltimo = con[1]
         res.append(UserGenerales(id=user.id,
                                 nombre=user.fldSFullName,
+                                correo=user.fldSEmail,
                                 consultas=conTotal,
                                 capturas=capTotal,
                                 entrenamientos=entTotal,

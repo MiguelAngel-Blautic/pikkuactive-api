@@ -57,6 +57,7 @@ class UserGenerales(BaseModel):
     id: int
     nombre: str
     consultas: int
+    correo: str
     capturas: int
     entrenamientos: int
     ultimaConsulta: Optional[datetime]
