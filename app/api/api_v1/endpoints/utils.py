@@ -23,7 +23,7 @@ from app.api.api_v1.endpoints import nn_ecg, nn, nn_cam, nn2
 from app.api.api_v1.endpoints.models import read_model
 from app.api.api_v1.endpoints.nn2 import joinMOV, modelo, remove_outliers
 from app.models import tbl_model, tbl_version_estadistica, sensores_estadistica, tbl_movement, tbl_capture, \
-    datos_estadistica, tbl_mpu, tbl_dispositivo_sensor, tbl_user
+    datos_estadistica, tbl_mpu, tbl_dispositivo_sensor, tbl_user, tbl_notificaciones
 from app.models.tbl_model import TrainingStatus, tbl_history, tbl_version
 from app.schemas import mpu
 from app.schemas.capture import CaptureEntrada
@@ -154,10 +154,7 @@ def training_task(id_model: int):
 
     # try:
     user = db.query(models.tbl_user).filter(models.tbl_user.id == model.fkOwner).first()
-    if model.fkTipo == 3:
-        movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == 228).all()
-    else:
-        movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all()
+    movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all()
     ids_movements = [mov.id for mov in movements]
 
     # version_last_mpu = db.query(models.Version).filter(models.Version.owner_id == model.id).order_by(
@@ -189,63 +186,31 @@ def training_task(id_model: int):
         # version_ecg.fkOwner = model.id
         # db.add(version_ecg)
 
-        if model.fkTipo == 3:
-            df_mpu = nn.data_adapter2(model, captures_mpu)
-            version = nn.train_model2(model, df_mpu, version_last_mpu)
-            version.fkOwner = model.id
-            db.add(version)
-            db.commit()
-            db.refresh(version)
-
-        if model.fkTipo == 1:
+        df_mpu, labels, frecuencias, cantidad, nFrecuencias = nn.data_adapter2(model, captures_mpu)
+        version = nn.train_model2(model, df_mpu, labels, frecuencias, cantidad, nFrecuencias, version_last_mpu)
+        if model.fkTipo == 4: # 1:
             df_mpu = nn.data_adapter(model, captures_mpu)
-            version_mpu = nn.train_model(model, df_mpu, version_last_mpu)
-            version_mpu.fkOwner = model.id
-            db.add(version_mpu)
-            db.commit()
-            db.refresh(version_mpu)
-
-        if model.fkTipo == 2:
+            version = nn.train_model(model, df_mpu, version_last_mpu)
+        if model.fkTipo == 4: # 2:
             df_cam = nn_cam.data_adapter(model, captures_mpu)
-            version_cam = nn_cam.train_model(model, df_cam, version_last_mpu)
-            version_cam.fkOwner = model.id
-            db.add(version_cam)
-            db.commit()
-            db.refresh(version_cam)
-        # db.refresh(version_ecg)
+            version = nn_cam.train_model(model, df_cam, version_last_mpu)
+        version.fkOwner = model.id
+        db.add(version)
+        db.commit()
+        db.refresh(version)
 
         history = []
         for capture in captures_mpu:
-            if model.fkTipo == 3:
-                history.append(tbl_history(fkCapture=capture.id, fkOwner=version.id))
-            if model.fkTipo == 1:
-                history.append(tbl_history(fkCapture=capture.id, fkOwner=version_mpu.id))
-            if model.fkTipo == 2:
-                history.append(tbl_history(fkCapture=capture.id, fkOwner=version_cam.id))
-        if model.fkTipo == 3:
-            version.history = history
-            db.commit()
-            db.refresh(version)
-        if model.fkTipo == 1:
-            version_mpu.history = history
-            db.commit()
-            db.refresh(version_mpu)
-        if model.fkTipo == 2:
-            version_cam.history = history
-            db.commit()
-            db.refresh(version_cam)
+            history.append(tbl_history(fkCapture=capture.id, fkOwner=version.id))
+        version.history = history
+        db.commit()
+        db.refresh(version)
 
-        if model.fkTipo != 3:
-            entrena_estadistica(id_model=id_model, db=db)
+        entrena_estadistica(id_model=id_model, db=db)
         model.fldSStatus = TrainingStatus.training_succeeded
         db.commit()
         db.refresh(model)
-        if model.fkTipo == 3:
-            publish_model_firebase(model, version.fldSUrl, 'mm_')
-        if model.fkTipo == 1:
-            publish_model_firebase(model, version_mpu.fldSUrl, 'mm_mpu_')
-        if model.fkTipo == 2:
-            publish_model_firebase(model, version_cam.fldSUrl, 'mm_cam_')
+        publish_model_firebase(model, version.fldSUrl, 'mm_')
         # publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
     except:
         model.fldSStatus = TrainingStatus.training_failed
@@ -262,6 +227,34 @@ def training_task(id_model: int):
     #     db.refresh(model)
     #     db.close()
     #     return False
+
+
+@router.get("/notificaciones/", response_model=List[str])
+def leerNotificaciones(
+        *,
+        db: Session = Depends(deps.get_db),
+        version: str,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    res = []
+    mensajes = db.query(tbl_notificaciones).all()
+    for m in mensajes:
+        add = True
+        if m.fldSVersionExclude:
+            if version == m.fldSVersionExclude:
+                add = False
+        if m.fldSVersionInclude:
+            if version != m.fldSVersionInclude:
+                add = False
+        if m.fldNUserExclude:
+            if current_user.id == m.fldNUserExclude:
+                add = False
+        if m.fldNUserInclude:
+            if current_user.id != m.fldNUserInclude:
+                add = False
+        if add:
+            res.append(m.fldSTexto)
+    return res
 
 
 @router.post("/notification/", response_model=schemas.Msg, status_code=201)

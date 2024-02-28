@@ -8,6 +8,7 @@ from .tbl_capture import tbl_capture
 from .tbl_mpu import tbl_mpu
 from .tbl_ecg import tbl_ecg
 from .tbl_version import tbl_version_estadistica, sensores_estadistica, datos_estadistica
+from .tbl_notificaciones import tbl_notificaciones
 
 from .tbl_model import tbl_version
 from .tbl_model import tbl_history

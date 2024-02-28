@@ -168,8 +168,10 @@ def analizeDatos(datos: List[CaptureEntrada], modelo: tbl_model, db):
         plt.plot(ls, lm, color='blue')
         plt.fill_between(ls, ms, mi, color="blue", alpha=0.3)
         plt.title(tipoSensor.fldSNombre)
-        plt.ylim((-1 * constante), constante)
+        plt.ylim(-1, 1)
         # plt.show()
+        plt.savefig(tipoSensor.fldSNombre+".png")
+        plt.clf()
         for i in range(PARTES):
             lista.append(abs(sum(l1[math.floor(i*(len(l1)/PARTES)):math.floor((i+1)*(len(l1)/PARTES))])))
             lista.append(sum(l1[math.floor(i*(len(l1)/PARTES)):math.floor((i+1)*(len(l1)/PARTES))]))
@@ -917,7 +919,7 @@ def data_adapter(model, captures):
     for dispositivo in model.dispositivos:
         nColumns += dispositivo.sensor.fldNFrecuencia * model.fldNDuration
         for i in range(0, dispositivo.sensor.fldNFrecuencia * model.fldNDuration):
-                columns.append(dispositivo.sensor.fldSNombre + str(i))
+                columns.append(str(dispositivo.fkPosicion) + dispositivo.sensor.fldSNombre + str(i))
     columns.append('label')
     lines = []
     for capture in captures:

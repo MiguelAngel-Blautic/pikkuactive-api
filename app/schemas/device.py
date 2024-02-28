@@ -8,6 +8,7 @@ from app.schemas.position import Position
 # Shared properties
 class DeviceBase(BaseModel):
     fldNNumberDevice: Optional[int] = None
+    fldNSensores: Optional[int] = 1
 
 
 

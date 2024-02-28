@@ -14,7 +14,7 @@ from app.schemas import MovementCreate, Version, Position
 from app.schemas.capture import CaptureResumen
 from app.schemas.device import DeviceSensor, Device
 from app.schemas.model import ModelStadistics, ModelStadisticsSensor, Model
-from app.schemas.movement import MovementCaptures
+from app.schemas.movement import MovementCaptures, Movement
 
 router = APIRouter()
 
@@ -96,8 +96,20 @@ def read_models(
                          fldDTimeCreateTime=m.fldDTimeCreateTime,
                          fldSStatus=m.fldSStatus,
                          fldNProgress=m.fldNProgress,
-                         movements=m.movements,
-                         devices=devices,
+                         movements=[Movement(fldSLabel=mm.fldSLabel,
+                                             fldSDescription=mm.fldSDescription,
+                                             id=mm.id,
+                                             fkOwner=mm.fkOwner,
+                                             fldDTimeCreateTime=mm.fldDTimeCreateTime) for mm in m.movements],
+                         devices=[Device(id=d.id,
+                                         fldNNumberDevice=d.fldNNumberDevice,
+                                         fkPosition=d.fkPosition,
+                                         fkOwner=d.fkOwner,
+                                         position=Position(fldSName=d.position.fldSName,
+                                                           fldSDescription=d.position.fldSDescription,
+                                                           id=d.position.id),
+                                         fldNSensores=d.fldNSensores
+                                         ) for d in devices],
                          versions=versions,
                          dispositivos=dispositivos,
                          tuyo=(m.fkOwner == current_user.id)))
@@ -228,7 +240,7 @@ def create_model(
     """
     Create new model.
     """
-    model_in.fldBPublico = 0 # De momento para forzarlos a ser privados por ahora
+    model_in.fldBPublico = 0  # De momento para forzarlos a ser privados por ahora
     model = crud.model.create_with_owner(db=db, obj_in=model_in, owner_id=current_user.id)
     movement_correct = MovementCreate(fldSLabel=model.fldSName, fldSDescription=model.fldSName)
     crud.movement.create_with_owner(db=db, obj_in=movement_correct, fkOwner=model.id)
@@ -327,7 +339,7 @@ def read_model(
         cant = len(capturas)
     dispositivos = []
     devices = m.devices
-    crearDevices = True # len(devices) < 1
+    crearDevices = True  # len(devices) < 1
     posicion = -1
     nDevices = 0
     if crearDevices:
@@ -389,7 +401,8 @@ def read_model(
                 imagen=img,
                 video=vid,
                 tuyo=(m.fkOwner == current_user.id))
-    db.execute("""insert into tbl_consultas (fkUser, fkModel) VALUES ("""+str(current_user.id)+""", """+str(mod.id)+""")""")
+    db.execute("""insert into tbl_consultas (fkUser, fkModel) VALUES (""" + str(current_user.id) + """, """ + str(
+        mod.id) + """)""")
     db.commit()
     return mod
 
@@ -420,7 +433,8 @@ def read_model_stadistics(
         for dato in datos:
             datalist.append(ModelStadistics(sample=dato.fldNSample, media=dato.fldFMedia, std=dato.fldFStd))
         tiposensor = db.query(tbl_tipo_sensor).get(sensor.fkSensor)
-        res.append(ModelStadisticsSensor(id=sensor.id, nombre=tiposensor.fldSNombre, datos=datalist, idPosicion=tiposensor.id))
+        res.append(
+            ModelStadisticsSensor(id=sensor.id, nombre=tiposensor.fldSNombre, datos=datalist, idPosicion=tiposensor.id))
     return res
 
 
@@ -438,7 +452,7 @@ def count_captures(
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
     if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id) or (
-        model.fldBPublico == 1
+            model.fldBPublico == 1
     )):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     movements = db.query(tbl_movement).filter(tbl_movement.fkOwner == model.id).all()
