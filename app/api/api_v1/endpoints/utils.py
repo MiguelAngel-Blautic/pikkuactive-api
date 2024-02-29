@@ -187,7 +187,9 @@ def training_task(id_model: int):
         # db.add(version_ecg)
 
         df_mpu, labels, frecuencias, cantidad, nFrecuencias = nn.data_adapter2(model, captures_mpu)
+        print("Data Adapter")
         version = nn.train_model2(model, df_mpu, labels, frecuencias, cantidad, nFrecuencias, version_last_mpu)
+        print("Train Model")
         if model.fkTipo == 4: # 1:
             df_mpu = nn.data_adapter(model, captures_mpu)
             version = nn.train_model(model, df_mpu, version_last_mpu)
