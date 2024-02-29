@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import concatenate
-from tensorflow.python.keras import Model
+from tensorflow.keras import Model
 
 from app.models import tbl_version
 
