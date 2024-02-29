@@ -63,16 +63,22 @@ def train_model2(modelo, dfs, labels, frecuencias, cantidad, nFrecuencias, versi
         combined = models[0].output
     else:
         combined = concatenate([x.output for x in models], axis=-1)
+    print("Hoja")
     z = Dense(60, activation="tanh")(combined)
     z = Dense(2, activation="sigmoid")(z)
-
+    print("Capas")
     model = Model(inputs=[x.input for x in models], outputs=z)
+    print("modelo")
     model_uuid = 'static/mul_' + str(uuid.uuid1()) + '.h5'
     model.compile(optimizer=SGD(learning_rate=0.0045), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    print("compile")
     X_train, X_test, y_train, y_test = split_normalize_data2(modelo, dfs, cantidad, frecuencias, nFrecuencias, labels)
+    print("normalize")
     history = model.fit(X_train, y_train, batch_size=32, shuffle=True, epochs=num_epoch, validation_data=(X_test, y_test), verbose=1)
+    print("fit")
     model.save(model_uuid)
     evaluation = model.evaluate(X_test, y_test)
+    print("evaluate")
     version = tbl_version(fldSUrl=model_uuid,
                           fldFAccuracy=float(evaluation[1]),
                           fldNEpoch=num_epoch,
