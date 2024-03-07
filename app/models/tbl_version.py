@@ -20,6 +20,13 @@ class tbl_version_estadistica(Base):
     owner = relationship("tbl_model",  single_parent=True)
 
 
+class tbl_registroEstaditica(Base):
+    id = Column(Integer, primary_key=True)
+    fkCaptura = Column(Integer)
+    fkSensor = Column(Integer)
+    fkversion = Column(Integer)
+
+
 class sensores_estadistica(Base):
     id = Column(Integer, primary_key=True)
     fldSNombre = Column(String)

@@ -1007,7 +1007,6 @@ def separarDatos(labelCorrect, df, ini, fin):
     REPETICIONES = math.ceil(len(df)/10)
     # Calcular la media de las repeticiones más parecidas de las repeticiones correctas
     top_correct_reps,path_array = get_top_similar_reps(df.mean(), df, REPETICIONES)
-
     referencia = top_correct_reps.iloc[0]
     reps = []
     reps.append(referencia)
@@ -1022,4 +1021,4 @@ def separarDatos(labelCorrect, df, ini, fin):
     for i in range(len(nuevas_reps_mean)):
         lista1.append(nuevas_reps_mean[i])
         lista2.append(desviacion[i])
-    return lista1, lista2
+    return top_correct_reps.axes[0].values, lista1, lista2

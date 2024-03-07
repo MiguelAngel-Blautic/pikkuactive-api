@@ -260,6 +260,26 @@ def data_adapter2(model, captures):
     # pd.set_option('display.max_columns', len(columns_list))
     return dfs, labels, frecuencias, cantidad, nFrecuencias
 
+
+def generar_negativos(dfs, labels, nombre):
+    negativos = len([x for x in labels if x != nombre])
+    positivos = len([x for x in labels if x == nombre])
+    lpositivos = [i for i, valor in enumerate(labels) if valor == nombre]
+    repeticiones = round(positivos/negativos) - 1
+    if repeticiones > 0:
+        for i in range(negativos+positivos):
+            if labels[i] != nombre:
+                for j in range(repeticiones):
+                    for k in range(len(dfs)):
+                        dfs[k].loc[len(dfs[k])] = dfs[k].loc[i]
+                        for l in range(len(dfs[k].iloc[i])):
+                            std = abs(1 - np.std(dfs[k].iloc[lpositivos, l]))
+                            factor = random.uniform(1-std, 1+std)
+                            dfs[k].iloc[len(dfs[k])-1, l] *= factor
+                    labels.append(labels[i])
+    return dfs, labels
+
+
 def data_adapter_old(model, captures):
     columns = len(model.devices) * SENS_NUMBER
     rows = model.fldNDuration * DATA_FREQ

@@ -21,14 +21,14 @@ from app import models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints import nn_ecg, nn, nn_cam, nn2
 from app.api.api_v1.endpoints.models import read_model
+from app.api.api_v1.endpoints.nn import generar_negativos
 from app.api.api_v1.endpoints.nn2 import joinMOV, modelo, remove_outliers
 from app.models import tbl_model, tbl_version_estadistica, sensores_estadistica, tbl_movement, tbl_capture, \
-    datos_estadistica, tbl_mpu, tbl_dispositivo_sensor, tbl_user, tbl_notificaciones
+    datos_estadistica, tbl_mpu, tbl_dispositivo_sensor, tbl_user, tbl_notificaciones, tbl_registroEstaditica
 from app.models.tbl_model import TrainingStatus, tbl_history, tbl_version
 from app.schemas import mpu
 from app.schemas.capture import CaptureEntrada
 from app.schemas.mpu import MpuList
-from app.utils import send_test_email
 import requests
 from app.db.session import SessionLocal
 import firebase_admin
@@ -39,8 +39,8 @@ import tensorflow as tf
 router = APIRouter()
 serverToken = 'AAAAmpw87-E:APA91bGxqsAff2uwrO0uMaaujmiy7nBNCm82HcTFvM0LwsR_7DL-39mNc1JtVj1yEWbjAxepY-ZgdLWkBLo9IoTcUQpuddDoYQJtthQwNriRbJkNDmbfH_v1-UydDVDRinMAW0-9FKF3'
 firebase_admin.initialize_app(
-    credentials.Certificate('/home/diego/PycharmProjects/pikkuactive-api/app/blautic-mm-firebase.json'),
-    # credentials.Certificate('./app/blautic-mm-firebase.json'),
+    # credentials.Certificate('/home/diego/PycharmProjects/pikkuactive-api/app/blautic-mm-firebase.json'),
+    credentials.Certificate('./app/blautic-mm-firebase.json'),
     options={
         'storageBucket': 'blautic-mm.appspot.com',
     })
@@ -88,9 +88,9 @@ def completar_entrenamiento(db, df, model, version, index):
     inicio = 0
     for i in range(index):
         inicio += (model.dispositivos[i].sensor.fldNFrecuencia * model.fldNDuration)
-    l1, l2 = nn2.separarDatos(model.fldSName, df, inicio, inicio + (model.dispositivos[index].sensor.fldNFrecuencia * model.fldNDuration))
     sensores = db.query(tbl_dispositivo_sensor).filter(tbl_dispositivo_sensor.fkOwner == model.id).all()
     sensor = sensores[index]
+    capturas, l1, l2 = nn2.separarDatos(model.fldSName, df, inicio, inicio + (model.dispositivos[index].sensor.fldNFrecuencia * model.fldNDuration))
     sample = 1
     for i in range(len(l1)):
         media = l1[i]
@@ -101,7 +101,7 @@ def completar_entrenamiento(db, df, model, version, index):
         db.commit()
         db.refresh(dato)
         sample = sample + 1
-    pass
+    return capturas, sensor.id, version.id
 
 
 @router.get("/entrena_stadistic/")
@@ -118,7 +118,12 @@ def entrena_estadistica(id_model: int, db: Session = Depends(deps.get_db)) -> An
     captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
     df_mpu = nn2.data_adapter(model, captures_mpu)
     for i in range(len(model.dispositivos)):
-        completar_entrenamiento(db, df_mpu, model, version, i)
+        capturas, sensor, versionId = completar_entrenamiento(db, df_mpu, model, version, i)
+        for cap in capturas:
+            capturaUsada = tbl_registroEstaditica(fkCaptura=captures_mpu[cap.item()].id, fkSensor=sensor, fkversion=versionId)
+            db.add(capturaUsada)
+            db.commit()
+            db.refresh(capturaUsada)
 
 
 @router.post("/analize_stadistic/")
@@ -187,6 +192,7 @@ def training_task(id_model: int):
     # db.add(version_ecg)
 
     df_mpu, labels, frecuencias, cantidad, nFrecuencias = nn.data_adapter2(model, captures_mpu)
+    df_mpu, labels = generar_negativos(df_mpu, labels, model.fldSName)
     print("Data Adapter")
     version = nn.train_model2(model, df_mpu, labels, frecuencias, cantidad, nFrecuencias, version_last_mpu)
     print("Train Model")
