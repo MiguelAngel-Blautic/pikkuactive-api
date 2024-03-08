@@ -55,7 +55,7 @@ def read_models(
             cant = len(capturas)
         dispositivos = []
         devices = m.devices
-        crearDevices = len(devices) < 1
+        crearDevices = True
         posicion = -1
         nDevices = 0
         if crearDevices:
