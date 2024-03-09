@@ -1003,7 +1003,7 @@ def separarDatos(labelCorrect, df, ini, fin):
     df_mov_sensor = df_mov_pre[df_mov_pre.columns[ini:fin]]
     df_mov_sensor['label'] = df_mov_pre['label']
     df, _ = correct_incorrect(df_mov_sensor, 'label', labelCorrect)
-    df = remove_outliers(df, 0.99)
+    # df = remove_outliers(df, 0.99)
     REPETICIONES = math.ceil(len(df)/10)
     # Calcular la media de las repeticiones más parecidas de las repeticiones correctas
     top_correct_reps,path_array = get_top_similar_reps(df.mean(), df, REPETICIONES)
