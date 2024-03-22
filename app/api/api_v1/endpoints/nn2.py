@@ -122,7 +122,7 @@ def analizeDatos(datos: List[CaptureEntrada], modelo: tbl_model, db):
     version = db.query(tbl_version_estadistica).filter(tbl_version_estadistica.fkOwner == modelo.id).order_by(desc(tbl_version_estadistica.fecha)).first()
     valoresStd = db.query(datos_estadistica).filter(datos_estadistica.fkVersion == version.id).all()
     stds = [x.fldFStd for x in valoresStd]
-    maxSTD = max(stds)
+    maxSTD = max(max(stds), 0.01)
     for dato in datos:
         valores = db.query(datos_estadistica).filter(datos_estadistica.fkVersion == version.id).filter(
             datos_estadistica.fkSensor == (dato.sensor)).order_by(datos_estadistica.fldNSample).all()
