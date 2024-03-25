@@ -113,7 +113,7 @@ def read_models(
                          versions=versions,
                          dispositivos=dispositivos,
                          tuyo=(m.fkOwner == current_user.id)))
-    return res
+    return res[::-1]
 
 
 @router.get("/user/{id}", response_model=List[schemas.Model])
@@ -194,10 +194,10 @@ def read_models(
                          fldNProgress=m.fldNProgress,
                          movements=m.movements,
                          devices=devices,
-                         versions=versions,
+                         versions=versions[::-1],
                          dispositivos=dispositivos,
                          tuyo=(m.fkOwner == current_user.id)))
-    return res
+    return res[::-1]
 
 
 @router.get("/marketplace/", response_model=List[schemas.Model])
@@ -212,7 +212,7 @@ def read_models_marketplace(
     """
     return crud.model.get_multi_market(
         db=db, owner_id=current_user.id, skip=skip, limit=limit
-    )
+    )[::-1]
 
 
 @router.get("/adquiridos/", response_model=List[schemas.Model])
@@ -227,7 +227,7 @@ def read_models_adquiridos(
     """
     return crud.model.get_multi_adquiridos(
         db=db, owner_id=current_user.id, skip=skip, limit=limit
-    )
+    )[::-1]
 
 
 @router.post("/", response_model=schemas.Model)
@@ -396,7 +396,7 @@ def read_model(
                 fldNProgress=m.fldNProgress,
                 movements=m.movements,
                 devices=devices,
-                versions=versions,
+                versions=versions[::-1],
                 dispositivos=dispositivos,
                 imagen=img,
                 video=vid,
@@ -525,4 +525,4 @@ def resumen_captures(
         else:
             res.append(CaptureResumen(nombre=movements[1].fldSLabel, correcto=0, fecha=capture.fldDTimeCreateTime,
                                       id=capture.id))
-    return res
+    return res[::-1]
