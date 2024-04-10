@@ -9,7 +9,6 @@ from app.api.api_v1.endpoints import nn_ecg, nn
 from app.api.api_v1.endpoints.models import read_model
 from app.models import tbl_model
 from app.models.tbl_model import TrainingStatus, tbl_history
-from app.utils import send_test_email
 import requests
 from app.db.session import SessionLocal
 import firebase_admin
@@ -20,8 +19,8 @@ import tensorflow as tf
 router = APIRouter()
 serverToken = 'AAAAyNDqQ8c:APA91bEETtU_JtV_41C71VDqsr3bsZvRlBaDFHezOO0zm1Iac5UhUURVylMJVPCOAmTev6D-oCq-qWmtT7EjzJm9jEHp5BgreYK8nVfK5wqKKuzqg4SD-mblR-QM0XtYTlzNKPRX7Ppm'
 firebase_admin.initialize_app(
-    # credentials.Certificate('app/blautic-ai-firebase.json'),
-    credentials.Certificate('/home/diego/PycharmProjects/pikkuactive-api/app/blautic-ai-firebase.json'),
+    credentials.Certificate('app/blautic-ai-firebase.json'),
+    # credentials.Certificate('/home/diego/PycharmProjects/pikkuactive-api/app/blautic-ai-firebase.json'),
     options={
         'storageBucket': 'blautic-ai-9632f.appspot.com',
     })
@@ -176,14 +175,3 @@ def publish_model_firebase(
         new_model = ml.create_model(model)
         ml.publish_model(new_model.model_id)
 
-
-@router.post("/test-email/", response_model=schemas.Msg, status_code=201)
-def test_email(
-        email_to: EmailStr,
-        current_user: models.tbl_user = Depends(deps.get_current_active_superuser),
-) -> Any:
-    """
-    Test emails.
-    """
-    send_test_email(email_to=email_to)
-    return {"msg": "Test email sent"}
