@@ -8,7 +8,7 @@ class Token(BaseModel):
     token_type: str
     rol: int
     id: int
-
+    fullName: str
 
 class TokenPayload(BaseModel):
     sub: Optional[int] = None

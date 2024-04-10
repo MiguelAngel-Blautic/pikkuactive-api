@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 class tbl_user(Base):
     id = Column(Integer, primary_key=True, index=True)
+    fldSFullName = Column(String)
     fldBActive = Column(Boolean(), default=True)
     fldSDireccion = Column(String)
     fldSTelefono = Column(String)
