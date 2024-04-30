@@ -11,6 +11,7 @@ from app import crud, models, schemas
 from app.core import security
 from app.core.config import settings
 from app.db.session import SessionLocal
+from app.models import tbl_user
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -38,27 +39,9 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    user = crud.user.get_remote(db, id=token_data.sub)
+    user = db.query(tbl_user).filter(tbl_user.idPlataforma == token_data.sub).first()
     if not user:
-        user = crud.user.get(db, id=token_data.sub)
+        user = db.query(tbl_user).filter(tbl_user.id == token_data.sub).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
     return user
-
-
-def get_current_active_user(
-        current_user: models.tbl_user = Depends(get_current_user),
-) -> models.tbl_user:
-    if not crud.user.fldBActive(current_user):
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
-
-def get_current_active_superuser(
-        current_user: models.tbl_user = Depends(get_current_user),
-) -> models.tbl_user:
-    if not crud.user.is_superuser(current_user):
-        raise HTTPException(
-            status_code=400, detail="The user doesn't have enough privileges"
-        )
-    return current_user

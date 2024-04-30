@@ -1,28 +1,17 @@
-from typing import TYPE_CHECKING
-
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
-
+from sqlalchemy import Column, Integer, String
 from app.db.base_class import Base
-
-if TYPE_CHECKING:
-    from .tbl_model import tbl_model  # noqa: F401
 
 
 class tbl_user(Base):
     id = Column(Integer, primary_key=True, index=True)
-    fldSFullName = Column(String, index=True)
-    fldSEmail = Column(String, unique=True, index=True, nullable=False)
-    fldSHashedPassword = Column(String, nullable=False)
-    fldBActive = Column(Boolean(), default=True)
-    fldSDireccion = Column(String)
-    fldSTelefono = Column(String)
-    fldSImagen = Column(String)
+    fldSFullName = Column(String)
+    fldSEmail = Column(String)
+    fldSHashedPassword = Column(String, nullable=True)
+    fldSDireccion = Column(String, nullable=True)
+    fldSTelefono = Column(String, nullable=True)
+    fldSImagen = Column(String, nullable=True)
     idPlataforma = Column(Integer)
-    fkRol = Column(ForeignKey('tbl_rol.id', ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True, primary_key=True)
-    rol = relationship("tbl_rol")
-    fldSFcmToken = Column(String, nullable=True)
-    models = relationship("tbl_model", back_populates="owner", cascade="all,delete", )
+    fkRol = Column(Integer)
 
 
 class tbl_rol(Base):

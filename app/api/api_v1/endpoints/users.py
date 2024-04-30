@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.core.config import settings
+from app.models import tbl_user, tbl_entrena
 
 router = APIRouter()
 
@@ -15,22 +16,15 @@ router = APIRouter()
 @router.get("/", response_model=List[schemas.User])
 def read_users(
     db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     """
     Retrieve users.
     """
+    users = []
     if current_user.fkRol == 1:
-        users = crud.user.get_centros(db, user=current_user.id, skip=skip, limit=limit)
-    if current_user.fkRol == 2:
-        users = crud.user.get_clientes(db, user=current_user.id, rol=current_user.fkRol)
-    if current_user.fkRol == 3:
-        users = crud.user.get_clientes(db, user=current_user.id, rol=current_user.fkRol)
-    if current_user.fkRol == 4:
-        users = crud.user.get_multi(db, skip=skip, limit=limit)
-
+        idUsers = db.query(tbl_entrena).filter(tbl_entrena.fkProfesional == current_user.id).all()
+        users = db.query(tbl_user).filter(tbl_user .id.in_([user.id for user in idUsers])).all()
     return users
 
 
@@ -39,66 +33,58 @@ def create_user(
     *,
     db: Session = Depends(deps.get_db),
     user_in: schemas.UserCreate,
-    current_user: models.tbl_user = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Create new user.
     """
-    user = crud.user.get_by_email(db, email=user_in.fldSEmail)
+    user = db.query(tbl_user).filter(tbl_user.fldSEmail == user_in.fldSEmail).first()
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this username already exists in the system.",
         )
-    user = crud.user.create(db, obj_in=user_in)
-    return user
-
-
-@router.put("/token", response_model=schemas.User)
-def send_fcm_token(
-    *,
-    fcm_token: str,
-    db: Session = Depends(deps.get_db),
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Send fcm token own user.
-    """
-
-    if fcm_token is not None:
-        current_user.fldSFcmToken = fcm_token
+    user = db.query(tbl_user).filter(tbl_user.idPlataforma == user_in.idPlataforma).first()
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this user already exists in the system.",
+        )
+    newUser = tbl_user( fldSFullName = user_in.fldSFullName,
+                        fldSEmail = user_in.fldSEmail,
+                        fldSDireccion = user_in.fldSDireccion,
+                        fldSTelefono = user_in.fldSTelefono,
+                        fldSImagen = user_in.fldSImagen,
+                        idPlataforma = user_in.idPlataforma,
+                        fkRol = user_in.fkRol)
+    db.add(newUser)
     db.commit()
-    return current_user
+    db.refresh(newUser)
+    return newUser
 
 
-@router.put("/me", response_model=schemas.User)
-def update_user_me(
+@router.put("/", response_model=schemas.User)
+def update_user(
     *,
     db: Session = Depends(deps.get_db),
-    password: str = Body(None),
-    full_name: str = Body(None),
-    email: EmailStr = Body(None),
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+    user_in: schemas.UserUpdate,
+    current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     """
     Update own user.
     """
-    current_user_data = jsonable_encoder(current_user)
-    user_in = schemas.UserUpdate(**current_user_data)
-    if password is not None:
-        user_in.password = password
-    if full_name is not None:
-        user_in.fldSFullName = full_name
-    if email is not None:
-        user_in.fldSEmail = email
-    user = crud.user.update(db, db_obj=current_user, obj_in=user_in)
-    return user
+    current_user.fldSDireccion = user_in.fldSDireccion
+    current_user.fldSTelefono = user_in.fldSTelefono
+    current_user.fldSImagen = user_in.fldSImagen
+    current_user.fldSFullName = user_in.fldSFullName
+    db.commit()
+    db.refresh(current_user)
+    return current_user
 
 
 @router.get("/me", response_model=schemas.User)
 def read_user_me(
     db: Session = Depends(deps.get_db),
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     """
     Get current user.
@@ -106,100 +92,17 @@ def read_user_me(
     return current_user
 
 
-@router.post("/open", response_model=schemas.User)
-def create_user_open(
-    *,
-    db: Session = Depends(deps.get_db),
-    user_in: schemas.UserCreate,
-) -> Any:
-    """
-    Create new user.
-    """
-    user = crud.user.get_by_email(db, email=user_in.fldSEmail)
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this username already exists in the system.",
-        )
-    user_in.fkRol = 1
-    user = crud.user.create(db, obj_in=user_in)
-    return user
-
-
 @router.get("/{user_id}", response_model=schemas.User)
 def read_user_by_id(
     user_id: int,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
     Get a specific user by id.
     """
-    user = crud.user.get(db, id=user_id)
-    #if user == current_user:
-    #    return user
-    #if not crud.user.is_superuser(current_user):
-    #    raise HTTPException(
-    #        status_code=400, detail="The user doesn't have enough privileges"
-    #    )
+    relacion = db.query(tbl_entrena).filter(tbl_entrena.fkProfesional == current_user.id).filter(tbl_entrena.fkUsuario == user_id).first()
+    if not relacion:
+        raise HTTPException(status_code=404, detail="The user doesn't have enough privileges")
+    user = db.query(tbl_user).get(user_id)
     return user
-
-
-@router.put("/{user_id}", response_model=schemas.User)
-def update_user(
-    *,
-    db: Session = Depends(deps.get_db),
-    user_id: int,
-    user_in: schemas.UserUpdate,
-    current_user: models.tbl_user = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Update a user.
-    """
-    if (user_id != current_user.id) and (current_user.fkRol < 3):
-        raise HTTPException(
-            status_code=400,
-            detail="Only can update your user",
-        )
-    user = crud.user.get(db, id=user_id)
-    if not user_in.password:
-        user_in.password = ""
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system",
-        )
-    user_in.fldSFcmToken = user.fldSFcmToken
-    user = crud.user.update(db, db_obj=user, obj_in=user_in)
-    return user
-
-
-@router.post("/complete/", response_model=schemas.User)
-def complete_user(
-    *,
-    db: Session = Depends(deps.get_db),
-    user_in: schemas.UserComplete,
-) -> Any:
-    """
-    Complete new user.
-    """
-    user = crud.user.get_remote(db, id=user_in.idPlataforma)
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this username already exists in the system.",
-        )
-    user = crud.user.complete(db, obj_in=user_in)
-    return user
-
-
-@router.get("/comprobar/")
-def read_user_me(
-        id: str,
-        db: Session = Depends(deps.get_db),
-) -> Any:
-    user = crud.user.get_remote(db, id=id)
-    if user:
-        return user.id
-    else:
-        return 0

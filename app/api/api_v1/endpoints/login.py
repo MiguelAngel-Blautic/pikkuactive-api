@@ -9,8 +9,8 @@ from app import crud, models, schemas
 from app.api import deps
 from app.core import security
 from app.core.config import settings
-from app.core.security import get_password_hash
-
+from app.core.security import get_password_hash, verify_password
+from app.models import tbl_user
 
 router = APIRouter()
 
@@ -22,13 +22,11 @@ def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    user = crud.user.authenticate(
-        db, email=form_data.username, password=form_data.password
-    )
+    user = db.query(tbl_user).filter(tbl_user.fldSEmail == form_data.username).first()
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
-    elif not crud.user.fldBActive(user):
-        raise HTTPException(status_code=400, detail="Inactive user")
+    if not verify_password(form_data.password, user.fldSHashedPassword):
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": security.create_access_token(
