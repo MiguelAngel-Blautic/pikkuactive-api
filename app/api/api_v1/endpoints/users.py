@@ -28,6 +28,20 @@ def read_users(
     return users
 
 
+@router.get("/comprobar")
+def check_user(
+    db: Session = Depends(deps.get_db),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Retrieve users.
+    """
+    if current_user.idPlataforma == None:
+        return 0
+    else:
+        return current_user.idPlataforma
+
+
 @router.post("/", response_model=schemas.User)
 def create_user(
     *,
