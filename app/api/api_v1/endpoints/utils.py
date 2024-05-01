@@ -159,8 +159,9 @@ def training_task(id_model: int):
 
     # try:
     user = db.query(models.tbl_user).filter(models.tbl_user.id == model.fkOwner).first()
-    movements = db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all()
+    movements = (db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).all())
     ids_movements = [mov.id for mov in movements]
+    ids_movementsr = [mov.id for mov in movements if mov.fldSLabel == model.fldSName]
 
     # version_last_mpu = db.query(models.Version).filter(models.Version.owner_id == model.id).order_by(
     #     desc(models.Version.create_time)).first()
@@ -173,8 +174,9 @@ def training_task(id_model: int):
     version_last_mpu = None
     # captures_mpu = db.query(models.tbl_capture).filter(or_(models.tbl_capture.fkOwner.in_(ids_movements)), models.tbl_capture.grupo.isnot(None)).all()
     captures_mpu = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
+    captures_mpur = db.query(models.tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movementsr)).all()
 
-    print(len(captures_mpu))
+    print(str(len(captures_mpur))+"/"+str(len(captures_mpu)))
     if not captures_mpu or len(captures_mpu) < 2:
         send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName,
                           body='There is not pending captures')
@@ -184,22 +186,17 @@ def training_task(id_model: int):
     db.commit()
     db.refresh(model)
     try:
-
+        df_mpuR, labelsR, frecuenciasR, cantidadR, nFrecuenciasR = nn.data_adapter3(model, captures_mpur)
+        versionRurl = nn.train_model3(model, df_mpuR, labelsR, frecuenciasR, cantidadR, nFrecuenciasR, version_last_mpu)
         df_mpu, labels, frecuencias, cantidad, nFrecuencias = nn.data_adapter2(model, captures_mpu)
         df_mpu, labels = generar_negativos(df_mpu, labels, model.fldSName)
         print("Data Adapter")
         version = nn.train_model2(model, df_mpu, labels, frecuencias, cantidad, nFrecuencias, version_last_mpu)
-        print("Train Model")
-        if model.fkTipo == 4: # 1:
-            df_mpu = nn.data_adapter(model, captures_mpu)
-            version = nn.train_model(model, df_mpu, version_last_mpu)
-        if model.fkTipo == 4: # 2:
-            df_cam = nn_cam.data_adapter(model, captures_mpu)
-            version = nn_cam.train_model(model, df_cam, version_last_mpu)
         version.fkOwner = model.id
         db.add(version)
         db.commit()
         db.refresh(version)
+        print("Version save")
 
         history = []
         for capture in captures_mpu:
@@ -213,8 +210,10 @@ def training_task(id_model: int):
         db.commit()
         db.refresh(model)
         publish_model_firebase(model, version.fldSUrl, 'mm_')
+        publish_model_firebase(model, versionRurl, 'mmr_')
             # publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
-    except:
+    except Exception as Argument:
+        print(str(Argument))
         model.fldSStatus = TrainingStatus.training_failed
         db.commit()
         db.refresh(model)
@@ -257,6 +256,67 @@ def leerNotificaciones(
         if add:
             res.append(m.fldSTexto)
     return res
+
+
+@router.get("/getDatasheet/")
+def get_datasheet(
+        *,
+        movement: int,
+        db: Session = Depends(deps.get_db)
+) -> Any:
+    captures = db.query(tbl_capture).filter(tbl_capture.fkOwner == movement).all()
+    for cap in captures:
+        estado = 0
+        s = 0.0
+        m = None
+        f = 20.0
+        for dato in cap.datos:
+            if dato.dispositivoSensor.fkSensor == 16:
+                if estado == 0 :
+                    if 0.2 < dato.fldFValor:
+                        s = dato.fldNSample
+                        estado = 1
+                if estado == 1:
+                    if dato.fldFValor < -0.25:
+                        m = dato.fldNSample
+                        estado = 2
+                if estado == 2:
+                    if dato.fldFValor > -0.2:
+                        f = dato.fldNSample
+                        estado = 3
+        if not m:
+            m = s + ((f-s)/2)
+        cap.fldFStart = (s/20)
+        cap.fldFMid = (m/20)
+        cap.fldFEnd = (f/20)
+        db.commit()
+    return
+
+@router.get("/datos")
+def calcular(
+        *,
+        db: Session = Depends(deps.get_db)
+) -> Any:
+    ids_movements = [1687, 1688]
+    captures = db.query(tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
+    res = []
+    captura = 0
+    model = tf.keras.models.load_model("/home/miguelangel/PycharmProjects/pikkuactive-api/static/mulR_4caa4ee2-07b7-11ef-a84f-dd95c999a420.h5")
+    for cap in captures:
+        captura += 1
+        print(captura)
+        datos = []
+        for i in range(20):
+            datos.append([])
+        for dato in cap.datos:
+            datos[dato.fldNSample].append(dato.fldFValor)
+        datas = np.array(datos)
+        datas = datas.reshape(1, 20, 34, 1)
+        output = model.predict(datas)
+        res.append([output[0][0], output[0][1], output[0][2]])
+    print(res)
+
+
 
 
 @router.post("/notification/", response_model=schemas.Msg, status_code=201)

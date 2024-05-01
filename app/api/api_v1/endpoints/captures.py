@@ -1,13 +1,13 @@
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import desc, and_
+from sqlalchemy import desc, and_, or_
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints.models import read_models, read_model
-from app.models import tbl_movement
+from app.models import tbl_movement, tbl_model, tbl_capture, tbl_dato
 from app.schemas import Capture
 from app.schemas.data import Data
 
@@ -54,6 +54,41 @@ def delete_capture(
     db.delete(capture)
     db.commit()
     return
+
+
+@router.get("/clone/")
+def clone_capture(
+        *,
+        captura: int,
+        movimiento: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    capture_origin = crud.capture.get(db=db, id=captura)
+    if not capture_origin:
+        raise HTTPException(status_code=404, detail="Capture not found")
+    movement_origin = db.query(tbl_movement).get(capture_origin.fkOwner)
+    model_origin = db.query(tbl_model).get(movement_origin.fkOwner)
+    movement = db.query(tbl_movement).get(movimiento)
+    if movement:
+        raise HTTPException(status_code=404, detail="Movement not found")
+    model = db.query(tbl_model).get(movement.fkOwner)
+    diff = model.dispositivos[0].id - model_origin.dispositivos[0].id
+    capture = tbl_capture(fkOwner=movimiento)
+    db.add(capture)
+    db.commit()
+    db.refresh(capture)
+    for dato in capture_origin.datos:
+        dato_new = tbl_dato(fldNSample=dato.fldNSample,
+                            fldFValor=dato.fldFValor,
+                            fkDispositivoSensor=dato.fkDispositivoSensor + diff,
+                            fkCaptura=capture.id)
+        db.add(dato_new)
+        db.commit()
+
+
+
+
 
 
 @router.get("/", response_model=schemas.Capture)

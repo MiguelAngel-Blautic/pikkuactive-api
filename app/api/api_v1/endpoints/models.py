@@ -12,8 +12,8 @@ from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistic
 from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history, tbl_imagenes
 from app.schemas import MovementCreate, Version, Position
 from app.schemas.capture import CaptureResumen
-from app.schemas.device import DeviceSensor, Device
-from app.schemas.model import ModelStadistics, ModelStadisticsSensor, Model
+from app.schemas.device import DeviceSensor, Device, DeviceCreate, DeviceSensorCreate
+from app.schemas.model import ModelStadistics, ModelStadisticsSensor, Model, ModelCreate
 from app.schemas.movement import MovementCaptures, Movement
 
 router = APIRouter()
@@ -114,6 +114,36 @@ def read_models(
                          dispositivos=dispositivos,
                          tuyo=(m.fkOwner == current_user.id)))
     return res[::-1]
+
+
+@router.get("/clone/{id}")
+def clonar_model(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    model = crud.model.get(db=db, id=id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    devices = []
+    for device in model.devices:
+        devices.append(DeviceCreate(fldNNumberDevice=device.fldNNumberDevice,
+                       fldNSensores=device.fldNSensores,
+                       fkPosition=device.fkPosition))
+    dispositivos = []
+    for dispositivo in model.dispositivos:
+        dispositivos.append(DeviceSensorCreate(fkPosicion=dispositivo.fkPosicion,
+                                               fkSensor=dispositivo.fkSensor))
+    model_in = ModelCreate(fldSName=model.fldSName+"_copia",
+                           fldNDuration=model.fldNDuration,
+                           devices=devices,
+                           dispositivos=dispositivos)
+    modelo = crud.model.create_with_owner(db=db, obj_in=model_in, owner_id=current_user.id)
+    movement_correct = MovementCreate(fldSLabel=modelo.fldSName, fldSDescription=modelo.fldSName)
+    crud.movement.create_with_owner(db=db, obj_in=movement_correct, fkOwner=modelo.id)
+    movement_incorrect = MovementCreate(fldSLabel="Other", fldSDescription="Other")
+    crud.movement.create_with_owner(db=db, obj_in=movement_incorrect, fkOwner=modelo.id)
+    return model
 
 
 @router.get("/user/{id}", response_model=List[schemas.Model])

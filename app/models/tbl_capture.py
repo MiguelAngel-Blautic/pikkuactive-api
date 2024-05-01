@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, ForeignKey, Integer, String, text, Boolean, TIMESTAMP
+from sqlalchemy import Column, ForeignKey, Integer, String, text, Boolean, TIMESTAMP, Float
 from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 class tbl_capture(Base):
     id = Column(Integer, primary_key=True, index=True)
     fldDTimeCreateTime = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+    fldFStart = Column(Float)
+    fldFMid = Column(Float)
+    fldFEnd = Column(Float)
     fkOwner = Column(Integer, ForeignKey("tbl_movement.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_movement")
     fkGrupoNegativo = Column(Integer, ForeignKey("tbl_grupo_negativo.id", ondelete="CASCADE", onupdate="CASCADE"))
