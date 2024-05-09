@@ -265,31 +265,44 @@ def get_datasheet(
         db: Session = Depends(deps.get_db)
 ) -> Any:
     captures = db.query(tbl_capture).filter(tbl_capture.fkOwner == movement).all()
+    num = 0
     for cap in captures:
-        estado = 0
+        estado = 1
         s = 0.0
         m = None
-        f = 20.0
-        for dato in cap.datos:
-            if dato.dispositivoSensor.fkSensor == 16:
-                if estado == 0 :
-                    if 0.2 < dato.fldFValor:
-                        s = dato.fldNSample
-                        estado = 1
-                if estado == 1:
-                    if dato.fldFValor < -0.25:
-                        m = dato.fldNSample
-                        estado = 2
-                if estado == 2:
-                    if dato.fldFValor > -0.2:
-                        f = dato.fldNSample
-                        estado = 3
+        f = 40.0
+        datos = [d for d in cap.datos if d.dispositivoSensor.fkSensor == 1]
+        i = 0
+        while estado == 1:
+            if i >= len(datos):
+                s = 0
+                estado = 2
+                pass
+            if datos[i].fldFValor < 0.22:
+                s = max(0, datos[i].fldNSample - 1)
+                estado = 2
+            i = i+1
+        i = len(datos) - 1
+        while estado == 2:
+            if i < 0:
+                f = 40
+                estado = 3
+                pass
+            if datos[i].fldFValor < -0.3:
+                f = min(datos[i].fldNSample + 3, 40)
+                estado = 3
+            if datos[i].fldFValor > -0.2:
+                f = min(datos[i].fldNSample + 3, 40)
+                estado = 3
+            i = i-1
         if not m:
             m = s + ((f-s)/2)
-        cap.fldFStart = (s/20)
-        cap.fldFMid = (m/20)
-        cap.fldFEnd = (f/20)
+        cap.fldFStart = (s/40)
+        cap.fldFMid = (m/40)
+        cap.fldFEnd = (f/40)
         db.commit()
+        num = num + 1
+        print(str(num) + "/" + str(len(captures)))
     return
 
 @router.get("/datos")
@@ -297,23 +310,23 @@ def calcular(
         *,
         db: Session = Depends(deps.get_db)
 ) -> Any:
-    ids_movements = [1687, 1688]
+    ids_movements = [1723]
     captures = db.query(tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
     res = []
     captura = 0
-    model = tf.keras.models.load_model("/home/miguelangel/PycharmProjects/pikkuactive-api/static/mulR_4caa4ee2-07b7-11ef-a84f-dd95c999a420.h5")
+    model = tf.keras.models.load_model("/home/miguelangel/PycharmProjects/pikkuactive-api/static/mulR_b2108b32-0df4-11ef-a7f3-0da8a20e2380.h5")
     for cap in captures:
         captura += 1
         print(captura)
         datos = []
-        for i in range(20):
+        for i in range(40):
             datos.append([])
         for dato in cap.datos:
             datos[dato.fldNSample].append(dato.fldFValor)
         datas = np.array(datos)
-        datas = datas.reshape(1, 20, 34, 1)
+        datas = datas.reshape(1, 40, 6, 1)
         output = model.predict(datas)
-        res.append([output[0][0], output[0][1], output[0][2]])
+        res.append([output[0][0], output[0][1], output[0][2], cap.id])
     print(res)
 
 

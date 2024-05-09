@@ -81,7 +81,7 @@ def train_model3(modelo, dfs, labels, frecuencias, cantidad, nFrecuencias, versi
         combined = concatenate([x.output for x in models], axis=-1)
     print("Hoja")
     z = Dense(60, activation="tanh")(combined)
-    z = Dense(3, activation="sigmoid")(z)
+    z = Dense(3, activation="linear")(z)
     print("Capas")
     model = Model(inputs=[x.input for x in models], outputs=z)
     print("modelo")
@@ -253,20 +253,29 @@ def data_adapter3(model, captures):
             listas[i] = [d.fldFValor for d in datos_sorted]
             np_data = np.resize(listas[i], (1, len(listas[i])))
             df_length = len(dfs[i])
-            dfs[i].loc[df_length] = np_data[0].tolist()
-        labels.append([capture.fldFStart, capture.fldFMid, capture.fldFEnd])
+            #dfs[i].loc[df_length] = np_data[0].tolist()
+        #labels.append([capture.fldFStart, capture.fldFMid, capture.fldFEnd])
+        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
+        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
+        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
+        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
+        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
     # pd.set_option('display.max_columns', len(columns_list))
     return dfs, labels, frecuencias, cantidad, nFrecuencias
 
-def otro(nFrecuencias, capture, frecuencias, dfs, labels):
+def otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad):
     datos = []
     listas = []
     for i in range(nFrecuencias):
         datos.append([])
         listas.append([])
-    reandVal = random.randint(-5, 5)
+    reandVal = random.randint(-25, 25)/100
     if reandVal == 0:
-        reandVal = 1
+        reandVal = 0.1
+    if reandVal > (1-capture.fldFEnd):
+        reandVal = 0
+    if -1*reandVal > capture.fldFStart:
+        reandVal = 0
     for dato in capture.datos:
         index = frecuencias.index(dato.dispositivoSensor.sensor.fldNFrecuencia)
         datos[index].append(dato)
@@ -274,22 +283,23 @@ def otro(nFrecuencias, capture, frecuencias, dfs, labels):
         datos_sorted_partial = sorted(datos[i], key=lambda muestra: muestra.fkDispositivoSensor)
         datos_sorted = sorted(datos_sorted_partial, key=lambda muestra: muestra.fldNSample)
         listas[i] = [d.fldFValor for d in datos_sorted]
+        desplazamiento = round(frecuencias[i] * reandVal)
         if reandVal > 0:
-            for j in range(abs(reandVal)):
-                for l in range(34):
+            for j in range(abs(desplazamiento)):
+                for l in range(cantidad[i]):
                     for k in range(len(listas[i])-1):
                         listas[i][-1 * k] = listas[i][(-1 * k)-1]
                     listas[i][0] = 0.0
         else:
-            for j in range(abs(reandVal)):
-                for l in range(34):
+            for j in range(abs(desplazamiento)):
+                for l in range(cantidad[i]):
                     for k in range(len(listas[i])-1):
                         listas[i][k] = listas[i][k+1]
                     listas[i][-1] = 0.0
         np_data = np.resize(listas[i], (1, len(listas[i])))
         df_length = len(dfs[i])
         dfs[i].loc[df_length] = np_data[0].tolist()
-    labels.append([max(min(capture.fldFStart + (reandVal/20), 1), 0), max(min(capture.fldFMid + (reandVal/20), 1), 0), max(min(capture.fldFEnd + (reandVal/20), 1), 0)])
+    labels.append([max(min(capture.fldFStart + reandVal, 1), 0), max(min(capture.fldFMid + reandVal, 1), 0), max(min(capture.fldFEnd + reandVal, 1), 0)])
 
 
 def generar_negativos(dfs, labels, nombre):
