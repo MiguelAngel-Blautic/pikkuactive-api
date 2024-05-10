@@ -137,7 +137,7 @@ def change_order(
         series = db.query(tbl_series).filter(tbl_series.fkBloque == serie.fkBloque).filter(tbl_series.fldNOrden > serie.fldNOrden).filter(tbl_series.fldNOrden <= new_posicion).all()
         for s in series:
             s.fldNOrden = s.fldNOrden - 1
-        series.fldNOrden = new_posicion
+        serie.fldNOrden = new_posicion
     else:
         series = db.query(tbl_series).filter(tbl_series.fkBloque == serie.fkBloque).filter(
             tbl_series.fldNOrden < serie.fldNOrden).filter(tbl_series.fldNOrden >= new_posicion).all()
