@@ -7,10 +7,20 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
+from app.api.api_v1.endpoints.users import read_user_by_id_plataforma
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes
 
 router = APIRouter()
+
+@router.get("/platform/", response_model=List[schemas.Plan])
+def read_planes_by_user_plataforma(
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    user = read_user_by_id_plataforma(user_id=user_id, db=db, current_user=current_user)
+    return read_planes_by_user(user_id=user.id, db=db, current_user=current_user)
 
 
 @router.get("/", response_model=List[schemas.Plan])
@@ -33,6 +43,21 @@ def read_planes_by_id(
     if not plan:
         raise HTTPException(status_code=404, detail="The plan doesn't exist")
     return plan
+
+
+@router.post("/platform/", response_model=schemas.Plan)
+def create_plan_plataforma(
+    *,
+    db: Session = Depends(deps.get_db),
+    plan_in: schemas.PlanCreate,
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Create new plan
+    """
+    user = read_user_by_id_plataforma(user_id=plan_in.fkCliente, db=db, current_user=current_user)
+    plan_in.fkCliente = user.id
+    return create_plan(db=db, plan_in=plan_in, current_user=current_user)
 
 
 @router.post("/", response_model=schemas.Plan)

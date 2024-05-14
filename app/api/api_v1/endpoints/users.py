@@ -106,6 +106,21 @@ def read_user_me(
     return current_user
 
 
+@router.get("/platform/{user_id}", response_model=schemas.User)
+def read_user_by_id_plataforma(
+    user_id: int,
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    user = db.query(tbl_user).filter(tbl_user.idPlataforma == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="The user doesn't exist")
+    return user
+
+
 @router.get("/{user_id}", response_model=schemas.User)
 def read_user_by_id(
     user_id: int,
@@ -115,8 +130,7 @@ def read_user_by_id(
     """
     Get a specific user by id.
     """
-    relacion = db.query(tbl_entrena).filter(tbl_entrena.fkProfesional == current_user.id).filter(tbl_entrena.fkUsuario == user_id).first()
-    if not relacion:
-        raise HTTPException(status_code=404, detail="The user doesn't have enough privileges")
     user = db.query(tbl_user).get(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="The user doesn't exist")
     return user
