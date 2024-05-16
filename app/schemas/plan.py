@@ -19,7 +19,7 @@ class PlanUpdate(PlanBase):
 
 class Plan(PlanBase):
     fkCreador: int
-    fkCliente: int
+    fkCliente: Optional[int] = None
     id: int
     class Config:
         orm_mode = True
