@@ -15,7 +15,7 @@ class EntrenamientoCreate(EntrenamientoBase):
 
 
 class EntrenamientoUpdate(EntrenamientoBase):
-    fldDDia: date
+    fldDDia: Optional[date] = None
 
 
 class Entrenamiento(EntrenamientoBase):
