@@ -156,7 +156,7 @@ def clonar(
         db.add(new)
         db.commit()
         db.refresh(new)
-        series.clonar(old_bloque=obj.id, new_bloque=new.id)
+        series.clonar(old_bloque=obj.id, new_bloque=new.id, db=db)
     return
 
 
