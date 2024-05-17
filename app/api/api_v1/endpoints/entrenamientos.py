@@ -131,6 +131,10 @@ def asignar_entrenamiento_sesion(
     plan = planes.read_planes_by_id(db=db, current_user=current_user, id=entrenamiento.fkPlan)
     if not plan:
         raise HTTPException(status_code=404, detail="The plan doesn't exist")
+    entrenamientoAct = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPlan == plan.id).filter(
+        tbl_entrenamientos.fldDDia == dia).all()
+    if len(entrenamientoAct) > 0:
+        raise HTTPException(status_code=404, detail="The training already exist")
     newEntrenamiento = tbl_entrenamientos(fldSNombre=entrenamiento.fldSNombre,
                                           fkCreador=current_user.id,
                                           fkPadre=entrenamiento.id,
