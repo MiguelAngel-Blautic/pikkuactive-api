@@ -1,7 +1,9 @@
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, EmailStr
+
+from app.schemas import Bloquecompleto
 
 
 # Shared properties
@@ -26,3 +28,7 @@ class Entrenamiento(EntrenamientoBase):
     id: int
     class Config:
         orm_mode = True
+
+
+class EntrenamientoCompleto(Entrenamiento):
+    bloques: List[Bloquecompleto]

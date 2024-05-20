@@ -1,6 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
+from app.schemas import Seriecompleta
 
 
 # Shared properties
@@ -25,3 +26,7 @@ class Bloque(BloqueBase):
     id: int
     class Config:
         orm_mode = True
+
+
+class Bloquecompleto(Bloque):
+    series: list[Seriecompleta]

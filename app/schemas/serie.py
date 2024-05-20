@@ -1,6 +1,8 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, EmailStr
+
+from app.schemas import Ejercicio
 
 
 # Shared properties
@@ -26,3 +28,7 @@ class Serie(SerieBase):
     id: int
     class Config:
         orm_mode = True
+
+
+class Seriecompleta(Serie):
+    ejercicios: List[Ejercicio]

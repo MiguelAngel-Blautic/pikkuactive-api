@@ -9,8 +9,11 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints import planes, bloques
+from app.api.api_v1.endpoints.bloques import read_bloques_by_id
+from app.api.api_v1.endpoints.ejercicios import read_ejercicios_by_id
+from app.api.api_v1.endpoints.series import read_series_by_id
 from app.core.config import settings
-from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos
+from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos, tbl_bloques, tbl_series, tbl_ejercicios
 
 router = APIRouter()
 
@@ -20,8 +23,43 @@ def read_entrenamientos(
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
-    entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkCreador == current_user.id).filter(tbl_entrenamientos.fkPlan == None).all()
-    return entrenamientos
+    if current_user.fkRol == 1:
+        entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkCreador == current_user.id).filter(tbl_entrenamientos.fkPlan == None).all()
+        return entrenamientos
+    else:
+        planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == current_user.id).all()
+        entrenamientos = db.query(tbl_entrenamientos).filter(
+            tbl_entrenamientos.fkPlan.in_([p.id for p in planes])).all()
+        return entrenamientos
+
+
+@router.get("/detail/{id}", response_model=schemas.EntrenamientoCompleto)
+def read_entrenamiento_detail(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    entrenamiento = read_entrenamiento_by_id(db=db, id=id, current_user=current_user)
+    bloques = db.query(tbl_bloques).filter(tbl_bloques.fkEntrenamiento == entrenamiento.id).all()
+    listaBloques = []
+    for bloque in bloques:
+        series = db.query(tbl_series).filter(tbl_series.fkBloque == bloque.id).all()
+        listaSeries = []
+        for serie in series:
+            ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == serie.id).all()
+            listaEjercicios = []
+            for ejercicio in ejercicios:
+                ej = read_ejercicios_by_id(id=ejercicio.id, db=db, current_user=current_user)
+                listaEjercicios.append(ej)
+            ser = read_series_by_id(id=serie.id, db=db, current_user=current_user)
+            ser.ejercicios = listaEjercicios
+            listaSeries.append(ser)
+        bloq = read_bloques_by_id(id=bloque.id, db=db, current_user=current_user)
+        bloq.series = listaSeries
+        listaBloques.append(bloq)
+    entrenamiento.bloques = listaBloques
+    return entrenamiento
+
 
 
 @router.get("/dia", response_model=List[schemas.Entrenamiento])
