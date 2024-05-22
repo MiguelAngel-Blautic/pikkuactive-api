@@ -22,6 +22,10 @@ class CaptureEntrada(BaseModel):
 # Properties to receive on movement creation
 class CaptureCreate(CaptureBase):
     datos: List[CaptureEntrada]
+    start: Optional[float] = 0.0
+    mid: Optional[float] = 0.5
+    end: Optional[float] = 1.0
+    valor: Optional[float] = 1.0
 
 
 # Properties to receive on movement update

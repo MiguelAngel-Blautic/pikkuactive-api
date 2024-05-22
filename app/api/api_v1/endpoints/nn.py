@@ -81,7 +81,7 @@ def train_model3(modelo, dfs, labels, frecuencias, cantidad, nFrecuencias, versi
         combined = concatenate([x.output for x in models], axis=-1)
     print("Hoja")
     z = Dense(60, activation="tanh")(combined)
-    z = Dense(3, activation="linear")(z)
+    z = Dense(4, activation="linear")(z)
     print("Capas")
     model = Model(inputs=[x.input for x in models], outputs=z)
     print("modelo")
@@ -238,6 +238,8 @@ def data_adapter3(model, captures):
         dfs.append(pd.DataFrame(columns=cl))
     # print(df)
     labels = []
+    minimo = int(min(np.mean([c.fldFStart for c in captures]), 0.5)*-100)
+    maximo = int(min(1 - np.mean([c.fldFEnd for c in captures]), 0.5)*100)
     for capture in captures:
         datos = []
         listas = []
@@ -255,21 +257,18 @@ def data_adapter3(model, captures):
             df_length = len(dfs[i])
             #dfs[i].loc[df_length] = np_data[0].tolist()
         #labels.append([capture.fldFStart, capture.fldFMid, capture.fldFEnd])
-        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
-        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
-        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
-        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
-        otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad)
+        for k in range(5):
+            otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad, minimo, maximo)
     # pd.set_option('display.max_columns', len(columns_list))
     return dfs, labels, frecuencias, cantidad, nFrecuencias
 
-def otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad):
+def otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad, minimo, maximo):
     datos = []
     listas = []
     for i in range(nFrecuencias):
         datos.append([])
         listas.append([])
-    reandVal = random.randint(-25, 25)/100
+    reandVal = random.randint(minimo, maximo)/100.0
     if reandVal == 0:
         reandVal = 0.1
     if reandVal > (1-capture.fldFEnd):
@@ -299,7 +298,7 @@ def otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad):
         np_data = np.resize(listas[i], (1, len(listas[i])))
         df_length = len(dfs[i])
         dfs[i].loc[df_length] = np_data[0].tolist()
-    labels.append([max(min(capture.fldFStart + reandVal, 1), 0), max(min(capture.fldFMid + reandVal, 1), 0), max(min(capture.fldFEnd + reandVal, 1), 0)])
+    labels.append([max(min(capture.fldFStart + reandVal, 1), 0), max(min(capture.fldFMid + reandVal, 1), 0), max(min(capture.fldFEnd + reandVal, 1), 0), max(min(capture.fldFValor, 1), 0)])
 
 
 def generar_negativos(dfs, labels, nombre):

@@ -15,6 +15,7 @@ class tbl_capture(Base):
     fldFStart = Column(Float)
     fldFMid = Column(Float)
     fldFEnd = Column(Float)
+    fldFValor = Column(Float)
     fkOwner = Column(Integer, ForeignKey("tbl_movement.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_movement")
     fkGrupoNegativo = Column(Integer, ForeignKey("tbl_grupo_negativo.id", ondelete="CASCADE", onupdate="CASCADE"))

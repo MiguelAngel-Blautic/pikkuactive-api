@@ -19,7 +19,7 @@ class CRUDCapture(CRUDBase[tbl_capture, CaptureCreate, CaptureUpdate]):
         obj_in_data = jsonable_encoder(obj_in)
         data_in_captura = obj_in_data.pop('datos', None)
 
-        db_obj = self.model(**obj_in_data, fkOwner=movement.id)
+        db_obj = tbl_capture(fkOwner=movement.id, fldFStart=obj_in.start, fldFMid=obj_in.mid, fldFEnd=obj_in.end, fldFValor=obj_in.valor)
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)

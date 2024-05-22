@@ -36,6 +36,10 @@ class ModelBase(BaseModel):
     fkImagen: Optional[int] = None
     fkVideo: Optional[int] = None
     fkTipo: Optional[int] = 1
+    fldBRegresivo: Optional[int] = 0
+    fldFMinValor: Optional[float] = 0.0
+    fldFMaxValor: Optional[float] = 1.0
+    fldSNomValor: Optional[str] = None
 
 
 # Properties to receive on item creation
@@ -70,6 +74,7 @@ class ModelInDBBase(ModelBase):
     imagen: Optional[bytes] = None
     video: Optional[bytes] = None
     tuyo: Optional[int] = 0
+    fldBRegresivo: Optional[int] = 0
 
     class Config:
         orm_mode = True

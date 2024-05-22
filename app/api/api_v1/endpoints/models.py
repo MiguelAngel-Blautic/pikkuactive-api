@@ -112,7 +112,11 @@ def read_models(
                                          ) for d in devices],
                          versions=versions,
                          dispositivos=dispositivos,
-                         tuyo=(m.fkOwner == current_user.id)))
+                         tuyo=(m.fkOwner == current_user.id),
+                         fldBRegresivo=m.fldBRegresivo,
+                         fldFMinValor=m.fldFMinValor,
+                         fldFMaxValor=m.fldFMaxValor,
+                         fldSNomValor=m.fldSNomValor))
     return res[::-1]
 
 
@@ -128,13 +132,13 @@ def clonar_model(
     devices = []
     for device in model.devices:
         devices.append(DeviceCreate(fldNNumberDevice=device.fldNNumberDevice,
-                       fldNSensores=device.fldNSensores,
-                       fkPosition=device.fkPosition))
+                                    fldNSensores=device.fldNSensores,
+                                    fkPosition=device.fkPosition))
     dispositivos = []
     for dispositivo in model.dispositivos:
         dispositivos.append(DeviceSensorCreate(fkPosicion=dispositivo.fkPosicion,
                                                fkSensor=dispositivo.fkSensor))
-    model_in = ModelCreate(fldSName=model.fldSName+"_copia",
+    model_in = ModelCreate(fldSName=model.fldSName + "_copia",
                            fldNDuration=model.fldNDuration,
                            devices=devices,
                            dispositivos=dispositivos)
@@ -226,7 +230,11 @@ def read_models(
                          devices=devices,
                          versions=versions[::-1],
                          dispositivos=dispositivos,
-                         tuyo=(m.fkOwner == current_user.id)))
+                         tuyo=(m.fkOwner == current_user.id),
+                         fldBRegresivo=m.fldBRegresivo,
+                         fldFMinValor=m.fldFMinValor,
+                         fldFMaxValor=m.fldFMaxValor,
+                         fldSNomValor=m.fldSNomValor))
     return res[::-1]
 
 
@@ -430,7 +438,11 @@ def read_model(
                 dispositivos=dispositivos,
                 imagen=img,
                 video=vid,
-                tuyo=(m.fkOwner == current_user.id))
+                tuyo=(m.fkOwner == current_user.id),
+                fldBRegresivo=m.fldBRegresivo,
+                fldFMinValor=m.fldFMinValor,
+                fldFMaxValor=m.fldFMaxValor,
+                fldSNomValor=m.fldSNomValor)
     db.execute("""insert into tbl_consultas (fkUser, fkModel) VALUES (""" + str(current_user.id) + """, """ + str(
         mod.id) + """)""")
     db.commit()

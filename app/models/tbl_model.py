@@ -39,11 +39,15 @@ class tbl_model(Base):
     fkCategoria = Column(Integer, ForeignKey("tbl_categorias.id", ondelete="SET_NULL", onupdate="SET_NULL"))
     categoria = relationship("tbl_categorias", back_populates="models")
     fldFPrecio = Column(Float)
+    fldFMinValor = Column(Float)
+    fldFMaxValor = Column(Float)
+    fldSNomValor = Column(String)
 
     fkOwner = Column(Integer, ForeignKey("tbl_user.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_user", back_populates="models")
     fkTipo = Column(Integer, ForeignKey("tbl_tipo_modelo.id", ondelete="CASCADE", onupdate="CASCADE"))
     tipo = relationship("tbl_tipo_modelo")
+    fldBRegresivo = Column(Integer)
 
     movements = relationship("tbl_movement", back_populates="owner", cascade="all,delete", single_parent=True)
     devices = relationship("tbl_device", back_populates="owner", cascade="all,delete", single_parent=True)
