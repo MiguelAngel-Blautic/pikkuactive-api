@@ -95,10 +95,13 @@ def read_entrenamiento_by_id(
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
-    entrenamiento = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkCreador == current_user.id).filter(tbl_entrenamientos.id == id).first()
+    entrenamiento = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.id == id).first()
     if not entrenamiento:
         raise HTTPException(status_code=404, detail="The id doesn't exist")
-    if current_user.fkRol == 2:
+    if current_user.fkRol == 1:
+        if entrenamiento.fkCreador != current_user.id:
+            raise HTTPException(status_code=401, detail="Not enought privileges")
+    else:
         plan = db.query(tbl_planes).get(entrenamiento.fkPlan)
         if plan.fkCliente != current_user.id:
             raise HTTPException(status_code=401, detail="Not enought privileges")
