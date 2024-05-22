@@ -42,7 +42,7 @@ def read_series_by_id(
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
-    serie = db.query(tbl_series).filter(tbl_series.fkCreador == current_user.id).filter(tbl_series.id == id).first()
+    serie = db.query(tbl_series).filter(tbl_series.id == id).first()
     if not serie:
         raise HTTPException(status_code=404, detail="The serie doesn't exist")
     if current_user.fkRol == 2:

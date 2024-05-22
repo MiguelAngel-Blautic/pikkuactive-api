@@ -39,7 +39,7 @@ def read_bloques_by_id(
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
-    bloque = db.query(tbl_bloques).filter(tbl_bloques.fkCreador == current_user.id).filter(tbl_bloques.id == id).first()
+    bloque = db.query(tbl_bloques).filter(tbl_bloques.id == id).first()
     if not bloque:
         raise HTTPException(status_code=404, detail="The block doesn't exist")
     if current_user.fkRol == 2:

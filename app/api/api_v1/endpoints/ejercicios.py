@@ -44,7 +44,7 @@ def read_ejercicios_by_id(
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
-    ejercicio = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkCreador == current_user.id).filter(tbl_ejercicios.id == id).first()
+    ejercicio = db.query(tbl_ejercicios).filter(tbl_ejercicios.id == id).first()
     if not ejercicio:
         raise HTTPException(status_code=404, detail="The exercise doesn't exist")
     if current_user.fkRol == 2:
