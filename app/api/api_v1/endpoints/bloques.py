@@ -29,7 +29,10 @@ def read_bloques_by_entrenamiento(
             raise HTTPException(status_code=404, detail="The id doesn't exist")
         if plan.fkCliente != current_user.id:
             raise HTTPException(status_code=401, detail="Not enought privileges")
-    bloques = db.query(tbl_bloques).filter(tbl_bloques.fkCreador == current_user.id).filter(tbl_bloques.fkEntrenamiento == entrenamiento_id).all()
+        bloques = db.query(tbl_bloques).filter(
+            tbl_bloques.fkEntrenamiento == entrenamiento_id).all()
+    else:
+        bloques = db.query(tbl_bloques).filter(tbl_bloques.fkCreador == current_user.id).filter(tbl_bloques.fkEntrenamiento == entrenamiento_id).all()
     return bloques
 
 
@@ -150,9 +153,9 @@ def clonar(
     for obj in bloques:
         new = tbl_bloques(fldSDescripcion=obj.fldSDescripcion,
                         fkEntrenamiento=new_entrenamiento,
-                        fldNDescanso=obj.id,
-                        fldNOrden=obj.id,
-                        fkCreador=obj.id)
+                        fldNDescanso=obj.fldNDescanso,
+                        fldNOrden=obj.fldNOrden,
+                        fkCreador=obj.fkCreador)
         db.add(new)
         db.commit()
         db.refresh(new)
