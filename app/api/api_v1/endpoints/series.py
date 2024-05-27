@@ -160,10 +160,10 @@ def clonar(
     for obj in series:
         new = tbl_series(fldSDescripcion=obj.fldSDescripcion,
                         fkBloque=new_bloque,
-                        fldNRepeticiones=obj.id,
-                        fldNDescanso=obj.id,
-                        fldNOrden=obj.id,
-                        fkCreador=obj.id)
+                        fldNRepeticiones=obj.fldNRepeticiones,
+                        fldNDescanso=obj.fldNDescanso,
+                        fldNOrden=obj.fldNOrden,
+                        fkCreador=obj.fkCreador)
         db.add(new)
         db.commit()
         db.refresh(new)
