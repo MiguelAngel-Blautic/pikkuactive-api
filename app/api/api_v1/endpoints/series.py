@@ -32,7 +32,9 @@ def read_series_by_bloque(
             raise HTTPException(status_code=404, detail="The id doesn't exist")
         if plan.fkCliente != current_user.id:
             raise HTTPException(status_code=401, detail="Not enought privileges")
-    series = db.query(tbl_series).filter(tbl_series.fkCreador == current_user.id).filter(tbl_series.fkBloque == bloque_id).all()
+        series = db.query(tbl_series).filter(tbl_series.fkBloque == bloque_id).all()
+    else:
+        series = db.query(tbl_series).filter(tbl_series.fkCreador == current_user.id).filter(tbl_series.fkBloque == bloque_id).all()
     return series
 
 

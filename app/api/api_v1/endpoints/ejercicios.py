@@ -34,7 +34,9 @@ def read_ejercicios_by_serie(
             raise HTTPException(status_code=404, detail="The id doesn't exist")
         if plan.fkCliente != current_user.id:
             raise HTTPException(status_code=401, detail="Not enought privileges")
-    ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkCreador == current_user.id).filter(tbl_ejercicios.fkSerie == serie_id).all()
+        ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == serie_id).all()
+    else:
+        ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkCreador == current_user.id).filter(tbl_ejercicios.fkSerie == serie_id).all()
     return ejercicios
 
 
