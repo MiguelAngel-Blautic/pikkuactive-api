@@ -42,6 +42,7 @@ class tbl_model(Base):
     fldFMinValor = Column(Float)
     fldFMaxValor = Column(Float)
     fldSNomValor = Column(String)
+    fldSToken = Column(String)
 
     fkOwner = Column(Integer, ForeignKey("tbl_user.id", ondelete="CASCADE", onupdate="CASCADE"))
     owner = relationship("tbl_user", back_populates="models")

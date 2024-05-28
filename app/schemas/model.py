@@ -75,6 +75,7 @@ class ModelInDBBase(ModelBase):
     video: Optional[bytes] = None
     tuyo: Optional[int] = 0
     fldBRegresivo: Optional[int] = 0
+    fldSToken: Optional[str] = None
 
     class Config:
         orm_mode = True

@@ -1,5 +1,7 @@
 import json
 import math
+import random
+import string
 from datetime import datetime
 from statistics import mean
 from time import strftime
@@ -304,6 +306,18 @@ def get_datasheet(
         num = num + 1
         print(str(num) + "/" + str(len(captures)))
     return
+
+
+@router.get("/modelTokens")
+def reiniciarModelTokens(
+        *,
+        db: Session = Depends(deps.get_db)
+) -> Any:
+    models = db.query(tbl_model).all()
+    for model in models:
+        model.fldSToken = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
+    db.commit()
+
 
 @router.get("/datos")
 def calcular(

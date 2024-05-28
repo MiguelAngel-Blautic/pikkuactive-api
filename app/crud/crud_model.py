@@ -1,3 +1,5 @@
+import random
+import string
 from typing import List, Dict, Any, Union
 
 from fastapi.encoders import jsonable_encoder
@@ -38,6 +40,7 @@ class CRUDModel(CRUDBase[tbl_model, ModelCreate, ModelUpdate]):
         db_obj.fkImagen = imgId
         db_obj.fkVideo = vidId
         db_obj.fldSStatus = TrainingStatus.no_training
+        db_obj.fldSToken = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
