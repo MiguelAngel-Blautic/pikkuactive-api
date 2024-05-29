@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float
+from sqlalchemy import Column, Integer, Float, String
 from app.db.base_class import Base
 
 
@@ -13,3 +13,4 @@ class tbl_ejercicios(Base):
     fldNOrden = Column(Integer)
     fkModelo = Column(Integer, nullable=True)
     fkCreador = Column(Integer)
+    fldSToken = Column(String)

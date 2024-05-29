@@ -84,7 +84,8 @@ def create_ejercicio(
                         fldNDuracion=ejercicio_in.fldNDuracion,
                         fldFVelocidad=ejercicio_in.fldFVelocidad,
                         fldFUmbral=ejercicio_in.fldFUmbral,
-                        fkModelo=ejercicio_in.fkModelo)
+                        fkModelo=ejercicio_in.fkModelo,
+                        fldSToken=ejercicio_in.fldSToken)
     db.add(newEjercicio)
     db.commit()
     db.refresh(newEjercicio)
@@ -111,6 +112,7 @@ def update_serie(
     ejercicio.fldFVelocidad = ejercicio_in.fldFVelocidad
     ejercicio.fldFUmbral = ejercicio_in.fldFUmbral
     ejercicio.fkModelo = ejercicio_in.fkModelo
+    ejercicio.fldSToken = ejercicio_in.fldSToken
     db.commit()
     db.refresh(ejercicio)
     return ejercicio
@@ -176,7 +178,8 @@ def clonar(
                             fldFUmbral=e.fldFUmbral,
                             fldNOrden=e.fldNOrden,
                             fkModelo=e.fkModelo,
-                            fkCreador=e.fkCreador)
+                            fkCreador=e.fkCreador,
+                            fldSToken=e.fldSToken)
         db.add(new)
         db.commit()
         db.refresh(new)
