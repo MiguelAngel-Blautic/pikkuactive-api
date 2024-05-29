@@ -23,7 +23,7 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    PROJECT_NAME: str = "ExerPlan"
+    PROJECT_NAME: str = "MyoMove"
     SENTRY_DSN: Optional[HttpUrl] = "https://4fc41f93f095413cbbf5d7d5d5de5e79@o926394.ingest.sentry.io/5889110"
 
     @validator("SENTRY_DSN", pre=True)
@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "Ht12wy0"
     POSTGRES_DB: str = "pikku-active"
-    SQLALCHEMY_DATABASE_URI: Optional[str] = 'mariadb+mariadbconnector://root:$Sqnon2022!@82.223.121.8:3306/exerplan' # Optional[PostgresDsn] = None
+    SQLALCHEMY_DATABASE_URI: Optional[str] = 'mariadb+mariadbconnector://root:$Sqnon2022!@82.223.121.8:3306/myomove' # Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:

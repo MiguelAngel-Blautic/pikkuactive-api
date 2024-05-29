@@ -1,31 +1,26 @@
-from typing import Optional
+from datetime import datetime
+from typing import Optional, List
+from pydantic import BaseModel
 
-from pydantic import BaseModel, EmailStr
+
+class Dato(BaseModel):
+    sensor: int
+    valor: float
+    hora: datetime
+
+
+class Marca(BaseModel):
+    valor: int
+    hora: datetime
 
 
 # Shared properties
-class EjercicioBase(BaseModel):
-    fldNDescanso: int
-    fldNRepeticiones: Optional[int]
-    fldNDuracion: Optional[int]
-    fldFVelocidad: Optional[float]
-    fldFUmbral: Optional[float]
-    fkModelo: Optional[int]
-
-
-# Properties to receive via API on creation
-class EjercicioCreate(EjercicioBase):
-    fkSerie: int
-    pass
-
-
-class EjercicioUpdate(EjercicioBase):
-    pass
-
-
-class Ejercicio(EjercicioBase):
-    fkSerie: int
-    fldNOrden: int
-    id: int
-    class Config:
-        orm_mode = True
+class Sesion(BaseModel):
+    edad: Optional[int] = None
+    altura: Optional[int] = None
+    peso: Optional[float] = None
+    sexo: Optional[int] = None
+    datos: List[Dato]
+    etiquetas: List[Marca]
+    fases: List[Marca]
+    inicio: datetime
