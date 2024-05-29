@@ -11,7 +11,7 @@ class EjercicioBase(BaseModel):
     fldFVelocidad: Optional[float]
     fldFUmbral: Optional[float]
     fkModelo: Optional[int]
-    fldSToken: str
+    fldSToken: Optional[str]
 
 
 # Properties to receive via API on creation
