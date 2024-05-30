@@ -45,7 +45,7 @@ def add_sesion(
                                fkSesion = new_sesion.id)
         db.add(new_marca)
     db.commit()
-    return new_sesion.id
+    return '{"id": '+str(new_sesion.id)+'}'
 
 
 @router.get("/")
