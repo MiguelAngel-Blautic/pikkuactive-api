@@ -1,3 +1,4 @@
+import json
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -45,7 +46,7 @@ def add_sesion(
                                fkSesion = new_sesion.id)
         db.add(new_marca)
     db.commit()
-    return '{"id": '+str(new_sesion.id)+'}'
+    return json.loads('{"id": '+str(new_sesion.id)+'}')
 
 
 @router.get("/")
