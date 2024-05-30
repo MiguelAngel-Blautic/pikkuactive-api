@@ -453,7 +453,7 @@ def read_model(
 
 
 @router.get("/open/{id}", response_model=schemas.Model)
-def read_model(
+def read_model_open(
         *,
         db: Session = Depends(deps.get_db),
         id: int,
