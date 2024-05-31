@@ -187,41 +187,41 @@ def training_task(id_model: int):
     model.fldSStatus = TrainingStatus.training_started
     db.commit()
     db.refresh(model)
-    #try:
-    df_mpuR, labelsR, frecuenciasR, cantidadR, nFrecuenciasR = nn.data_adapter3(model, captures_mpur)
-    versionRurl = nn.train_model3(model, df_mpuR, labelsR, frecuenciasR, cantidadR, nFrecuenciasR, version_last_mpu)
-    df_mpu, labels, frecuencias, cantidad, nFrecuencias = nn.data_adapter2(model, captures_mpu)
-    df_mpu, labels = generar_negativos(df_mpu, labels, model.fldSName)
-    print("Data Adapter")
-    version = nn.train_model2(model, df_mpu, labels, frecuencias, cantidad, nFrecuencias, version_last_mpu)
-    version.fkOwner = model.id
-    db.add(version)
-    db.commit()
-    db.refresh(version)
-    print("Version save")
+    try:
+        df_mpuR, labelsR, frecuenciasR, cantidadR, nFrecuenciasR = nn.data_adapter3(model, captures_mpur)
+        versionRurl = nn.train_model3(model, df_mpuR, labelsR, frecuenciasR, cantidadR, nFrecuenciasR, version_last_mpu)
+        df_mpu, labels, frecuencias, cantidad, nFrecuencias = nn.data_adapter2(model, captures_mpu)
+        df_mpu, labels = generar_negativos(df_mpu, labels, model.fldSName)
+        print("Data Adapter")
+        version = nn.train_model2(model, df_mpu, labels, frecuencias, cantidad, nFrecuencias, version_last_mpu)
+        version.fkOwner = model.id
+        db.add(version)
+        db.commit()
+        db.refresh(version)
+        print("Version save")
 
-    history = []
-    for capture in captures_mpu:
-        history.append(tbl_history(fkCapture=capture.id, fkOwner=version.id))
-    version.history = history
-    db.commit()
-    db.refresh(version)
+        history = []
+        for capture in captures_mpu:
+            history.append(tbl_history(fkCapture=capture.id, fkOwner=version.id))
+        version.history = history
+        db.commit()
+        db.refresh(version)
 
-    entrena_estadistica(id_model=id_model, db=db)
-    model.fldSStatus = TrainingStatus.training_succeeded
-    db.commit()
-    db.refresh(model)
-    publish_model_firebase(model, version.fldSUrl, 'mm_')
-    publish_model_firebase(model, versionRurl, 'mmr_')
+        entrena_estadistica(id_model=id_model, db=db)
+        model.fldSStatus = TrainingStatus.training_succeeded
+        db.commit()
+        db.refresh(model)
+        publish_model_firebase(model, version.fldSUrl, 'mm_')
+        publish_model_firebase(model, versionRurl, 'mmr_')
             # publish_model_firebase(model, version_ecg.fldSUrl, 'ecg_')
-    #except Exception as Argument:
-    #    print(str(Argument))
-    #    model.fldSStatus = TrainingStatus.training_failed
-    #    db.commit()
-    #    db.refresh(model)
-    #    if user.fldSFcmToken:
-    #        send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName, body='finished training')
-    #    db.close()
+    except Exception as Argument:
+        print(str(Argument))
+        model.fldSStatus = TrainingStatus.training_failed
+        db.commit()
+        db.refresh(model)
+    if user.fldSFcmToken:
+        send_notification(fcm_token=user.fldSFcmToken, title='Model: ' + model.fldSName, body='finished training')
+    db.close()
     return True
     # except BaseException as e:
     #     print('Failed to do something: ' + str(e))
