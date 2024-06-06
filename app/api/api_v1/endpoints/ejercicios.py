@@ -57,9 +57,10 @@ def read_ejercicios_by_serie(
             fldFUmbral=e.fldFUmbral,
             fkModelo=e.fkModelo,
             fldSToken=e.fldSToken,
+            id=e.id
         ))
         tipodatos = []
-    return ejercicios
+    return res
 
 
 @router.get("/{id}", response_model=schemas.EjercicioTipos)
@@ -85,7 +86,7 @@ def read_ejercicios_by_id(
         if plan.fkCliente != current_user.id:
             raise HTTPException(status_code=401, detail="Not enought privileges")
     tipodatos = []
-    tipos = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == e.id).all()
+    tipos = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == ejercicio.id).all()
     for t in tipos:
         tipodatos.append(RegistroEjercicioDB(fkEjercicio=t.fkEjercicio, id=t.id, fkTipoDato=t.fkTipoDato))
     res = EjercicioTipos(
@@ -99,6 +100,7 @@ def read_ejercicios_by_id(
         fldFUmbral=ejercicio.fldFUmbral,
         fkModelo=ejercicio.fkModelo,
         fldSToken=ejercicio.fldSToken,
+        id=ejercicio.id
     )
     return res
 
