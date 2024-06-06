@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from pydantic import BaseModel, EmailStr
 
-from app.schemas import RegistroEjercicio
+from app.schemas import RegistroEjercicio, RegistroEjercicioDB
 
 
 # Shared properties
@@ -34,4 +34,4 @@ class Ejercicio(EjercicioBase):
         orm_mode = True
 
 class EjercicioTipos(Ejercicio):
-    tipodatos: List[RegistroEjercicio]
+    tipodatos: List[RegistroEjercicioDB]
