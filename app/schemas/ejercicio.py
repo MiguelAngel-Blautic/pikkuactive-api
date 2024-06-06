@@ -1,6 +1,8 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, EmailStr
+
+from app.schemas import RegistroEjercicio
 
 
 # Shared properties
@@ -17,12 +19,12 @@ class EjercicioBase(BaseModel):
 # Properties to receive via API on creation
 class EjercicioCreate(EjercicioBase):
     fkSerie: int
+    registros: List[int]
     pass
 
 
 class EjercicioUpdate(EjercicioBase):
     pass
-
 
 class Ejercicio(EjercicioBase):
     fkSerie: int
@@ -30,3 +32,6 @@ class Ejercicio(EjercicioBase):
     id: int
     class Config:
         orm_mode = True
+
+class EjercicioTipos(Ejercicio):
+    tipodatos: List[RegistroEjercicio]

@@ -7,13 +7,16 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
+from app.api.api_v1.endpoints import resultados
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_bloques, tbl_series, tbl_ejercicios, tbl_entrenamientos
+from app.models.tbl_resultados import tbl_registro_ejercicios
+from app.schemas import RegistroEjercicioDB, EjercicioTipos
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.Ejercicio])
+@router.get("/", response_model=List[EjercicioTipos])
 def read_ejercicios_by_serie(
     serie_id: int,
     db: Session = Depends(deps.get_db),
@@ -37,10 +40,29 @@ def read_ejercicios_by_serie(
         ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == serie_id).all()
     else:
         ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkCreador == current_user.id).filter(tbl_ejercicios.fkSerie == serie_id).all()
+    tipodatos = []
+    res = []
+    for e in ejercicios:
+        tipos = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == e.id).all()
+        for t in tipos:
+            tipodatos.append(RegistroEjercicioDB(fkEjercicio=t.fkEjercicio, id=t.id, fkTipoDato=t.fkTipoDato))
+        res.append(EjercicioTipos(
+            tipodatos=tipodatos,
+            fkSerie=e.fkSerie,
+            fldNOrden=e.fldNOrden,
+            fldNDescanso=e.fldNDescanso,
+            fldNRepeticiones=e.fldNRepeticiones,
+            fldNDuracion=e.fldNDuracion,
+            fldFVelocidad=e.fldFVelocidad,
+            fldFUmbral=e.fldFUmbral,
+            fkModelo=e.fkModelo,
+            fldSToken=e.fldSToken,
+        ))
+        tipodatos = []
     return ejercicios
 
 
-@router.get("/{id}", response_model=schemas.Ejercicio)
+@router.get("/{id}", response_model=schemas.EjercicioTipos)
 def read_ejercicios_by_id(
     id: int,
     db: Session = Depends(deps.get_db),
@@ -62,7 +84,23 @@ def read_ejercicios_by_id(
         plan = db.query(tbl_planes).get(entrenamiento.fkPlan)
         if plan.fkCliente != current_user.id:
             raise HTTPException(status_code=401, detail="Not enought privileges")
-    return ejercicio
+    tipodatos = []
+    tipos = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == e.id).all()
+    for t in tipos:
+        tipodatos.append(RegistroEjercicioDB(fkEjercicio=t.fkEjercicio, id=t.id, fkTipoDato=t.fkTipoDato))
+    res = EjercicioTipos(
+        tipodatos=tipodatos,
+        fkSerie=ejercicio.fkSerie,
+        fldNOrden=ejercicio.fldNOrden,
+        fldNDescanso=ejercicio.fldNDescanso,
+        fldNRepeticiones=ejercicio.fldNRepeticiones,
+        fldNDuracion=ejercicio.fldNDuracion,
+        fldFVelocidad=ejercicio.fldFVelocidad,
+        fldFUmbral=ejercicio.fldFUmbral,
+        fkModelo=ejercicio.fkModelo,
+        fldSToken=ejercicio.fldSToken,
+    )
+    return res
 
 
 @router.post("/", response_model=schemas.Ejercicio)
@@ -89,11 +127,16 @@ def create_ejercicio(
     db.add(newEjercicio)
     db.commit()
     db.refresh(newEjercicio)
+    for r in ejercicio_in.registros:
+        new = tbl_registro_ejercicios(fkTipoDato=r,
+                                      fkEjercicio=newEjercicio.id)
+        db.add(new)
+        db.commit()
     return newEjercicio
 
 
 @router.put("/{id}", response_model=schemas.Ejercicio)
-def update_serie(
+def update_ejercicio(
     *,
     id: int,
     db: Session = Depends(deps.get_db),
@@ -183,6 +226,7 @@ def clonar(
         db.add(new)
         db.commit()
         db.refresh(new)
+        resultados.clonar(old_ejercicio=e.id, new_ejercicio=new.id, db=db)
     return
 
 

@@ -5,3 +5,4 @@ from .tbl_entrenamientos import tbl_entrenamientos
 from .tbl_bloques import tbl_bloques
 from .tbl_series import tbl_series
 from .tbl_ejercicios import tbl_ejercicios
+from .tbl_resultados import tbl_resultados, tbl_tipo_datos, tbl_registro_ejercicios
