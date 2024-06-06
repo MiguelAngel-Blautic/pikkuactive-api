@@ -25,7 +25,7 @@ def train_model2(modelo, dfs, labels, frecuencias, cantidad, nFrecuencias, versi
     # input_shape = Input(shape=(modelo.fldNDuration*20, 6, 1))
     models = []
     for i in range(nFrecuencias):
-        input_shape = Input(shape=(modelo.fldNDuration*frecuencias[i], cantidad[i], 1))
+        input_shape = Input(shape=(modelo.fldNDuration*frecuencias[i], cantidad[i], 1), name="Capa_"+str(frecuencias[i]))
         x = Conv2D(32, 5, activation='relu', padding='same')(input_shape)
         x = Conv2D(16, 3, activation='relu', padding='same')(x)
         x = MaxPool2D(pool_size=(2, 2))(x)
@@ -67,7 +67,7 @@ def train_model3(modelo, dfs, labels, frecuencias, cantidad, nFrecuencias, versi
     num_epoch = 500
     models = []
     for i in range(nFrecuencias):
-        input_shape = Input(shape=(modelo.fldNDuration*frecuencias[i], cantidad[i], 1))
+        input_shape = Input(shape=(modelo.fldNDuration*frecuencias[i], cantidad[i], 1), name="Capa_"+str(frecuencias[i]))
         x = Conv2D(32, 5, activation='relu', padding='same')(input_shape)
         x = Conv2D(16, 3, activation='relu', padding='same')(x)
         x = MaxPool2D(pool_size=(2, 2))(x)
@@ -183,13 +183,9 @@ def data_adapter2(model, captures):
             for k in range(cantidad[i]):
                 column_list.append("D"+str(k)+"S"+str(j))
         columns_lists.append(column_list)
-    # columns = len(model.dispositivos)
-    # rows = model.fldNDuration * DATA_FREQ
-    # columns_list = generate_columns_index(columns * rows, len(model.dispositivos))
     dfs = []
     for cl in columns_lists:
         dfs.append(pd.DataFrame(columns=cl))
-    # print(df)
     labels = []
     for capture in captures:
         datos = []
@@ -230,13 +226,9 @@ def data_adapter3(model, captures):
             for k in range(cantidad[i]):
                 column_list.append("D"+str(k)+"S"+str(j))
         columns_lists.append(column_list)
-    # columns = len(model.dispositivos)
-    # rows = model.fldNDuration * DATA_FREQ
-    # columns_list = generate_columns_index(columns * rows, len(model.dispositivos))
     dfs = []
     for cl in columns_lists:
         dfs.append(pd.DataFrame(columns=cl))
-    # print(df)
     labels = []
     minimo = int(min(np.mean([c.fldFStart for c in captures]), 0.5)*-100)
     maximo = int(min(1 - np.mean([c.fldFEnd for c in captures]), 0.5)*100)
@@ -255,11 +247,8 @@ def data_adapter3(model, captures):
             listas[i] = [d.fldFValor for d in datos_sorted]
             np_data = np.resize(listas[i], (1, len(listas[i])))
             df_length = len(dfs[i])
-            #dfs[i].loc[df_length] = np_data[0].tolist()
-        #labels.append([capture.fldFStart, capture.fldFMid, capture.fldFEnd])
         for k in range(5):
             otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad, minimo, maximo)
-    # pd.set_option('display.max_columns', len(columns_list))
     return dfs, labels, frecuencias, cantidad, nFrecuencias
 
 def otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad, minimo, maximo):
