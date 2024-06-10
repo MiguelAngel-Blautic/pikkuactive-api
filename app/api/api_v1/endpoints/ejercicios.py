@@ -64,6 +64,30 @@ def read_ejercicios_by_serie(
     return res
 
 
+def read_ejercicios_by_idDB(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    ejercicio = db.query(tbl_ejercicios).filter(tbl_ejercicios.id == id).first()
+    if not ejercicio:
+        raise HTTPException(status_code=404, detail="The exercise doesn't exist")
+    if current_user.fkRol == 2:
+        serie = db.query(tbl_series).get(ejercicio.fkSerie)
+        if not serie:
+            raise HTTPException(status_code=404, detail="The id doesn't exist")
+        bloque = db.query(tbl_bloques).get(serie.fkBloque)
+        if not bloque:
+            raise HTTPException(status_code=404, detail="The id doesn't exist")
+        entrenamiento = db.query(tbl_entrenamientos).get(bloque.fkEntrenamiento)
+        if not entrenamiento:
+            raise HTTPException(status_code=404, detail="The id doesn't exist")
+        plan = db.query(tbl_planes).get(entrenamiento.fkPlan)
+        if plan.fkCliente != current_user.id:
+            raise HTTPException(status_code=401, detail="Not enought privileges")
+    return ejercicio
+
+
 @router.get("/{id}", response_model=schemas.EjercicioTipos)
 def read_ejercicios_by_id(
     id: int,
@@ -97,7 +121,7 @@ def read_ejercicios_by_id(
         fldNDescanso=ejercicio.fldNDescanso,
         fldNRepeticiones=ejercicio.fldNRepeticiones,
         fldNDuracion=ejercicio.fldNDuracion,
-            fldNDuracionEfectiva=e.fldNDuracionEfectiva,
+        fldNDuracionEfectiva=ejercicio.fldNDuracionEfectiva,
         fldFVelocidad=ejercicio.fldFVelocidad,
         fldFUmbral=ejercicio.fldFUmbral,
         fkModelo=ejercicio.fkModelo,
@@ -132,6 +156,10 @@ def create_ejercicio(
     db.add(newEjercicio)
     db.commit()
     db.refresh(newEjercicio)
+    new = tbl_registro_ejercicios(fkTipoDato=0,
+                                  fkEjercicio=newEjercicio.id)
+    db.add(new)
+    db.commit()
     for r in ejercicio_in.registros:
         new = tbl_registro_ejercicios(fkTipoDato=r,
                                       fkEjercicio=newEjercicio.id)
@@ -151,7 +179,7 @@ def update_ejercicio(
     """
     Update plan.
     """
-    ejercicio = read_ejercicios_by_id(id=id, db=db, current_user=current_user)
+    ejercicio = read_ejercicios_by_idDB(id=id, db=db, current_user=current_user)
     if not ejercicio:
         raise HTTPException(status_code=404, detail="The exercise doesn't exist")
     ejercicio.fldNDescanso = ejercicio_in.fldNDescanso
@@ -176,7 +204,7 @@ def delete_ejericio(
     """
     Get a specific user by id.
     """
-    ejercicio = read_ejercicios_by_id(id=id, db=db, current_user=current_user)
+    ejercicio = read_ejercicios_by_idDB(id=id, db=db, current_user=current_user)
     change_order(ejercicio.id, 0, current_user=current_user, db=db)
     db.delete(ejercicio)
     db.commit()
@@ -193,7 +221,7 @@ def change_order(
     """
     Cambia la posicion de una serie
     """
-    ejercicio = read_ejercicios_by_id(id=ejercicio_id, db=db, current_user=current_user)
+    ejercicio = read_ejercicios_by_idDB(id=ejercicio_id, db=db, current_user=current_user)
     if new_posicion == 0:
         total_ejercicios = read_ejercicios_by_serie(serie_id=ejercicio.fkSerie, db=db, current_user=current_user)
         new_posicion = len(total_ejercicios) + 1
