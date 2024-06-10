@@ -7,6 +7,7 @@ class tbl_ejercicios(Base):
     fkSerie = Column(Integer)
     fldNDescanso = Column(Integer)
     fldNDuracion = Column(Integer, nullable=True)
+    fldNDuracionEfectiva = Column(Integer, nullable=True)
     fldNRepeticiones = Column(Integer, nullable=True)
     fldFVelocidad = Column(Float, nullable=True)
     fldFUmbral = Column(Float, nullable=True)

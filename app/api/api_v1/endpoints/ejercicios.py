@@ -53,6 +53,7 @@ def read_ejercicios_by_serie(
             fldNDescanso=e.fldNDescanso,
             fldNRepeticiones=e.fldNRepeticiones,
             fldNDuracion=e.fldNDuracion,
+            fldNDuracionEfectiva=e.fldNDuracionEfectiva,
             fldFVelocidad=e.fldFVelocidad,
             fldFUmbral=e.fldFUmbral,
             fkModelo=e.fkModelo,
@@ -96,6 +97,7 @@ def read_ejercicios_by_id(
         fldNDescanso=ejercicio.fldNDescanso,
         fldNRepeticiones=ejercicio.fldNRepeticiones,
         fldNDuracion=ejercicio.fldNDuracion,
+            fldNDuracionEfectiva=e.fldNDuracionEfectiva,
         fldFVelocidad=ejercicio.fldFVelocidad,
         fldFUmbral=ejercicio.fldFUmbral,
         fkModelo=ejercicio.fkModelo,
@@ -122,6 +124,7 @@ def create_ejercicio(
                         fldNOrden=len(ejercicios)+1,
                         fldNRepeticiones=ejercicio_in.fldNRepeticiones,
                         fldNDuracion=ejercicio_in.fldNDuracion,
+                        fldNDuracionEfectiva=ejercicio_in.fldNDuracionEfectiva,
                         fldFVelocidad=ejercicio_in.fldFVelocidad,
                         fldFUmbral=ejercicio_in.fldFUmbral,
                         fkModelo=ejercicio_in.fkModelo,
@@ -154,6 +157,7 @@ def update_ejercicio(
     ejercicio.fldNDescanso = ejercicio_in.fldNDescanso
     ejercicio.fldNRepeticiones = ejercicio_in.fldNRepeticiones
     ejercicio.fldNDuracion = ejercicio_in.fldNDuracion
+    ejercicio.fldNDuracionEfectiva=ejercicio_in.fldNDuracionEfectiva
     ejercicio.fldFVelocidad = ejercicio_in.fldFVelocidad
     ejercicio.fldFUmbral = ejercicio_in.fldFUmbral
     ejercicio.fkModelo = ejercicio_in.fkModelo
@@ -218,6 +222,7 @@ def clonar(
         new = tbl_ejercicios(fkSerie=new_serie,
                             fldNDescanso=e.fldNDescanso,
                             fldNDuracion=e.fldNDuracion,
+                            fldNDuracionEfectiva = e.fldNDuracionEfectiva,
                             fldNRepeticiones=e.fldNRepeticiones,
                             fldFVelocidad=e.fldFVelocidad,
                             fldFUmbral=e.fldFUmbral,

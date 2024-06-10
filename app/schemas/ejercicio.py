@@ -10,6 +10,7 @@ class EjercicioBase(BaseModel):
     fldNDescanso: int
     fldNRepeticiones: Optional[int]
     fldNDuracion: Optional[int]
+    fldNDuracionEfectiva: Optional[int]
     fldFVelocidad: Optional[float]
     fldFUmbral: Optional[float]
     fkModelo: Optional[int]
