@@ -205,7 +205,7 @@ def training_task(id_model: int):
         db.commit()
         db.refresh(version)
 
-        # entrena_estadistica(id_model=id_model, db=db)
+        entrena_estadistica(id_model=id_model, db=db)
         model.fldSStatus = TrainingStatus.training_succeeded
         db.commit()
         db.refresh(model)
