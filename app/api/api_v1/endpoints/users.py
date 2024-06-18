@@ -218,7 +218,7 @@ def read_user_by_id_list(
     for user_id in users:
         user = db.query(tbl_user).filter(tbl_user.idPlataforma == user_id).first()
         if not user:
-            raise HTTPException(status_code=404, detail="The user doesn't exist")
+            continue
         sql = text("""
             SELECT tp.id, sum(te.fldNRepeticioneS * ts.fldNRepeticiones), min(ten.fldDDia), max(ten.fldDDia)
         from tbl_ejercicios te
