@@ -216,7 +216,7 @@ def read_user_by_id_list(
     """
     response = []
     for user_id in users:
-        user = db.query(tbl_user).get(user_id)
+        user = db.query(tbl_user).filter(tbl_user.idPlataforma == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="The user doesn't exist")
         sql = text("""
