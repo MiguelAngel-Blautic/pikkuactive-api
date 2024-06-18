@@ -205,7 +205,7 @@ def read_user_by_id(
                        completado=completado)
 
 
-@router.get("/list/", response_model=List[schemas.UserDetails])
+@router.post("/list/", response_model=List[schemas.UserDetails])
 def read_user_by_id_list(
         users: List[int],
         current_user: models.tbl_user = Depends(deps.get_current_user),
