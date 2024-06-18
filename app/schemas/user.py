@@ -30,3 +30,8 @@ class User(UserBase):
     idPlataforma: int
     class Config:
         orm_mode = True
+
+
+class UserDetails(User):
+    adherencia: int
+    completado: int

@@ -36,3 +36,10 @@ class Ejercicio(EjercicioBase):
 
 class EjercicioTipos(Ejercicio):
     tipodatos: List[RegistroEjercicioDB]
+
+
+class Resultado(BaseModel):
+    nombre: str
+    adherencia: int
+    completo: int
+    id: int

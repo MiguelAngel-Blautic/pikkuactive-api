@@ -1,4 +1,4 @@
-from .user import User, UserCreate, UserUpdate
+from .user import User, UserCreate, UserUpdate, UserDetails
 from .token import Token, TokenPayload
 from .plan import Plan, PlanCreate, PlanUpdate
 from .resultados import RegistroEjercicio, RegistroEjercicioDB, TipoDato, Resultado, ResultadoBD

@@ -8,10 +8,26 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints import ejercicios
+from app.api.api_v1.endpoints.ejercicios import read_valores_ejercicios
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_bloques, tbl_series, tbl_entrenamientos
+from app.schemas.ejercicio import Resultado
 
 router = APIRouter()
+
+
+def read_valores_series(
+    *,
+    db: Session = Depends(deps.get_db),
+    bloque: int,
+) -> Any:
+    series = db.query(tbl_series).filter(tbl_series.fkBloque == bloque).all()
+    res = []
+    for s in series:
+        ejercicios = read_valores_ejercicios(db=db, serie=s.id)
+        adh = sum(e.adherencia for e in ejercicios) / len(ejercicios)
+        res.append(Resultado(id=s.id, nombre=s.fldSDescripcion, adherencia=adh, completo=100))
+    return res
 
 
 @router.get("/", response_model=List[schemas.Serie])

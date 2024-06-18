@@ -10,8 +10,9 @@ from app.api import deps
 from app.api.api_v1.endpoints import resultados
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_bloques, tbl_series, tbl_ejercicios, tbl_entrenamientos
-from app.models.tbl_resultados import tbl_registro_ejercicios
+from app.models.tbl_resultados import tbl_registro_ejercicios, tbl_resultados
 from app.schemas import RegistroEjercicioDB, EjercicioTipos
+from app.schemas.ejercicio import Resultado
 
 router = APIRouter()
 
@@ -128,6 +129,22 @@ def read_ejercicios_by_id(
         fldSToken=ejercicio.fldSToken,
         id=ejercicio.id
     )
+    return res
+
+def read_valores_ejercicios(
+    *,
+    db: Session = Depends(deps.get_db),
+    serie: int
+) -> List[Resultado]:
+    ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == serie).all()
+    res = []
+    for e in ejercicios:
+        if e.fldNRepeticiones is not None:
+            dato = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == e.id).filter(tbl_registro_ejercicios.fkTipoDato == 2).first()
+            datos = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == dato.id).all()
+            adherencia = (len(datos)*100) / e.fldNRepeticiones
+            res.append(Resultado(id=e.id, adherencia=adherencia, completo=100, nombre=""))
+        # res.append(Resultado(id=e.id, nombre=e.fld))
     return res
 
 

@@ -9,11 +9,12 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints import planes, bloques
-from app.api.api_v1.endpoints.bloques import read_bloques_by_id
+from app.api.api_v1.endpoints.bloques import read_bloques_by_id, read_valores_bloques
 from app.api.api_v1.endpoints.ejercicios import read_ejercicios_by_id
 from app.api.api_v1.endpoints.series import read_series_by_id
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos, tbl_bloques, tbl_series, tbl_ejercicios
+from app.schemas.ejercicio import Resultado
 
 router = APIRouter()
 
@@ -31,6 +32,22 @@ def read_entrenamientos(
         entrenamientos = db.query(tbl_entrenamientos).filter(
             tbl_entrenamientos.fkPlan.in_([p.id for p in planes])).all()
         return entrenamientos
+
+
+def read_valores_entrenamiento(
+    *,
+    db: Session = Depends(deps.get_db),
+    plan: int,
+) -> Any:
+    res = []
+    entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPadre is None).filter(tbl_entrenamientos.fkPlan == plan).all()
+    for e in entrenamientos:
+        subentrenes = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPadre == e.id).all()
+        for s in subentrenes:
+            bloques = read_valores_bloques(db=db, entrene=s.id)
+            adh = sum(b.adherencia for b in bloques) / len(bloques)
+            res.append(Resultado(id=s.id, nombre=s.fldSNombre, adherencia=adh, completo=100))
+    return res
 
 
 @router.get("/detail/{id}", response_model=schemas.EntrenamientoCompleto)
