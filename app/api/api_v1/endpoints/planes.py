@@ -48,7 +48,10 @@ def read_planes_by_id_user(
     for row in res:
         diaAct = actual.date() - row[3]
         dias = row[4] - row[3]
-        completado = (100 * diaAct.days) / dias.days
+        if dias.days <= 0:
+            completado = (100 * diaAct.days)
+        else:
+            completado = (100 * diaAct.days) / dias.days
         sql = text("""
         SELECT count(*)
             from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)

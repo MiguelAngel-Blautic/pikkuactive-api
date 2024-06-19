@@ -1,9 +1,10 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
@@ -14,6 +15,7 @@ from app.api.api_v1.endpoints.ejercicios import read_ejercicios_by_id
 from app.api.api_v1.endpoints.series import read_series_by_id
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos, tbl_bloques, tbl_series, tbl_ejercicios
+from app.schemas import ResumenEstadistico
 from app.schemas.ejercicio import Resultado
 
 router = APIRouter()
@@ -32,6 +34,50 @@ def read_entrenamientos(
         entrenamientos = db.query(tbl_entrenamientos).filter(
             tbl_entrenamientos.fkPlan.in_([p.id for p in planes])).all()
         return entrenamientos
+
+
+@router.post("/list", response_model=List[schemas.ResumenEstadistico])
+def read_entrenamientos_by_id_plan(
+        plan: int,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    response = []
+    sql = text("""
+        SELECT ten.fkPadre, ten2.fldSNombre, sum(te.fldNRepeticioneS * ts.fldNRepeticiones), min(ten.fldDDia), max(ten.fldDDia) as lastDay
+from tbl_ejercicios te
+    join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento) join tbl_entrenamientos ten2 on (ten2.id = ten.fkPadre)
+   WHERE ten.fldDDia is not null and ten.fkPlan = """+str(plan)+""" group by ten.fkPadre order by lastDay desc; """)
+    res = db.execute(sql)
+    adherencia = 0
+    actual = datetime.now()
+    for row in res:
+        diaAct = actual.date() - row[3]
+        dias = row[4] - row[3]
+        if dias.days <= 0:
+            completado = (100 * diaAct.days)
+        else:
+            completado = (100 * diaAct.days) / dias.days
+        sql = text("""
+        SELECT count(*)
+            from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
+            join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
+            where ten.fkPadre=""" + str(row[0]) + """ and tre.fkTipoDato = 2;""")
+        total = db.execute(sql)
+        for t in total:
+            adherencia = (t[0] * 100) / row[2]
+        entrada = ResumenEstadistico(
+            tipo=2,
+            nombre=row[1],
+            adherencia=adherencia,
+            completo=min(completado, 100),
+            id=row[0],
+        )
+        response.append(entrada)
+    return response
 
 
 def read_valores_entrenamiento(
