@@ -28,7 +28,7 @@ def read_planes_by_user_plataforma(
 
 @router.post("/list", response_model=List[schemas.ResumenEstadistico])
 def read_planes_by_id_user(
-        user_id: int,
+        user: int,
         current_user: models.tbl_user = Depends(deps.get_current_user),
         db: Session = Depends(deps.get_db),
 ) -> Any:
