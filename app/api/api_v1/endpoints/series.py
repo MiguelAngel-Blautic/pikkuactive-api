@@ -3,6 +3,7 @@ from typing import Any, List
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
@@ -11,6 +12,7 @@ from app.api.api_v1.endpoints import ejercicios
 from app.api.api_v1.endpoints.ejercicios import read_valores_ejercicios
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_bloques, tbl_series, tbl_entrenamientos
+from app.schemas import ResumenEstadistico
 from app.schemas.ejercicio import Resultado
 
 router = APIRouter()
@@ -28,6 +30,43 @@ def read_valores_series(
         adh = sum(e.adherencia for e in ejercicios) / len(ejercicios)
         res.append(Resultado(id=s.id, nombre=s.fldSDescripcion, adherencia=adh, completo=100))
     return res
+
+
+@router.post("/list", response_model=List[schemas.ResumenEstadistico])
+def read_series_by_id_bloque(
+        bloque: int,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    response = []
+    sql = text("""
+        SELECT ts.fkPadre, ts2.fldSDescripcion , sum(te.fldNRepeticioneS * ts.fldNRepeticiones)
+from tbl_ejercicios te
+    join tbl_series ts on (ts.id = te.fkSerie) join tbl_series ts2 on (ts2.id = ts.fkPadre)
+   WHERE ts2.fkBloque = """+str(bloque)+""" group by ts.fkPadre; """)
+    res = db.execute(sql)
+    adherencia = 0
+    for row in res:
+        sql = text("""
+        SELECT count(*)
+            from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
+            join tbl_series ts on (ts.id = te.fkSerie)
+            where ts.fkPadre=""" + str(row[0]) + """ and tre.fkTipoDato = 2;""")
+        total = db.execute(sql)
+        for t in total:
+            adherencia = (t[0] * 100) / row[2]
+        entrada = ResumenEstadistico(
+            tipo=4,
+            nombre=row[1],
+            adherencia=adherencia,
+            completo=0,
+            id=row[0],
+        )
+        response.append(entrada)
+    return response
 
 
 @router.get("/", response_model=List[schemas.Serie])
@@ -179,7 +218,8 @@ def clonar(
                         fldNRepeticiones=obj.fldNRepeticiones,
                         fldNDescanso=obj.fldNDescanso,
                         fldNOrden=obj.fldNOrden,
-                        fkCreador=obj.fkCreador)
+                        fkCreador=obj.fkCreador,
+                        fkPadre=obj.id)
         db.add(new)
         db.commit()
         db.refresh(new)

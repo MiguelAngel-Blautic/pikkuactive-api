@@ -15,3 +15,4 @@ class tbl_ejercicios(Base):
     fkModelo = Column(Integer, nullable=True)
     fkCreador = Column(Integer)
     fldSToken = Column(String)
+    fkPadre = Column(Integer)

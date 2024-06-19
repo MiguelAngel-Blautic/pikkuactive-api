@@ -3,6 +3,7 @@ from typing import Any, List
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
@@ -11,7 +12,7 @@ from app.api.api_v1.endpoints import resultados
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_bloques, tbl_series, tbl_ejercicios, tbl_entrenamientos
 from app.models.tbl_resultados import tbl_registro_ejercicios, tbl_resultados
-from app.schemas import RegistroEjercicioDB, EjercicioTipos
+from app.schemas import RegistroEjercicioDB, EjercicioTipos, ResumenEstadistico
 from app.schemas.ejercicio import Resultado
 
 router = APIRouter()
@@ -130,6 +131,43 @@ def read_ejercicios_by_id(
         id=ejercicio.id
     )
     return res
+
+
+@router.post("/list", response_model=List[schemas.ResumenEstadistico])
+def read_ejercicios_by_id_serie(
+        serie: int,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    response = []
+    sql = text("""
+        SELECT te.fkPadre, ts2.fldSDescripcion , sum(te.fldNRepeticioneS * ts.fldNRepeticiones)
+from tbl_ejercicios te join tbl_series ts on (ts.id = te.fkSerie)
+    join tbl_ejercicios te2 on (te2.id = te.fkPadre)
+   WHERE te2.fkSerie = """+str(serie)+""" group by te.fkPadre; """)
+    res = db.execute(sql)
+    adherencia = 0
+    for row in res:
+        sql = text("""
+        SELECT count(*)
+            from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
+            where te.fkPadre=""" + str(row[0]) + """ and tre.fkTipoDato = 2;""")
+        total = db.execute(sql)
+        for t in total:
+            adherencia = (t[0] * 100) / row[2]
+        entrada = ResumenEstadistico(
+            tipo=5,
+            nombre=row[1],
+            adherencia=adherencia,
+            completo=0,
+            id=row[0],
+        )
+        response.append(entrada)
+    return response
+
 
 def read_valores_ejercicios(
     *,
@@ -274,7 +312,8 @@ def clonar(
                             fldNOrden=e.fldNOrden,
                             fkModelo=e.fkModelo,
                             fkCreador=e.fkCreador,
-                            fldSToken=e.fldSToken)
+                            fldSToken=e.fldSToken,
+                            fkPadre=e.id)
         db.add(new)
         db.commit()
         db.refresh(new)

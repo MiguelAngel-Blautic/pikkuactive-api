@@ -10,3 +10,4 @@ class tbl_series(Base):
     fldNDescanso = Column(Integer)
     fldNOrden = Column(Integer)
     fkCreador = Column(Integer)
+    fkPadre = Column(Integer)
