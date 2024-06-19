@@ -41,7 +41,7 @@ def read_planes_by_id_user(
     from tbl_ejercicios te
     join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
     join tbl_planes tp on (tp.id = ten.fkPlan) where ten.fldDDia is not null and tp.fkCliente = """ + str(
-        user_id) + """ group by tp.id, tp.fldSNombre order by lastDay desc; """)
+        user) + """ group by tp.id, tp.fldSNombre order by lastDay desc; """)
     res = db.execute(sql)
     adherencia = 0
     actual = datetime.now()
