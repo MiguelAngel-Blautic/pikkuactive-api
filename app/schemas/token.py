@@ -13,3 +13,11 @@ class Token(BaseModel):
 
 class TokenPayload(BaseModel):
     sub: Optional[int] = None
+
+
+class ResumenEstadistico(BaseModel):
+    tipo: int
+    nombre: str
+    adherencia: int
+    completo: int
+    id: int

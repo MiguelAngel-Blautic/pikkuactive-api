@@ -1,5 +1,5 @@
 from .user import User, UserCreate, UserUpdate, UserDetails
-from .token import Token, TokenPayload
+from .token import Token, TokenPayload, ResumenEstadistico
 from .plan import Plan, PlanCreate, PlanUpdate
 from .resultados import RegistroEjercicio, RegistroEjercicioDB, TipoDato, Resultado, ResultadoBD
 from .ejercicio import Ejercicio, EjercicioCreate, EjercicioUpdate, EjercicioTipos
