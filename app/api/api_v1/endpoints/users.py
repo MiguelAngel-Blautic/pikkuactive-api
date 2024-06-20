@@ -233,7 +233,10 @@ def read_user_by_id_list(
             if row[2] <= actual.date() <= row[3]:
                 diaAct = actual.date() - row[2]
                 dias = row[3] - row[2]
-                completado = (100 * diaAct.days) / dias.days
+                if dias.days > 0:
+                    completado = (100 * diaAct.days) / dias.days
+                else:
+                    completado = (100 * diaAct.days)
                 sql = text("""
                 SELECT count(*)
                     from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
@@ -243,14 +246,26 @@ def read_user_by_id_list(
                 total = db.execute(sql)
                 for t in total:
                     adherencia = (t[0] * 100) / row[1]
-        response.append(UserDetails(fldSEmail=user.fldSEmail,
-                           id=user.id,
-                           fkRol=user.fkRol,
-                           idPlataforma=user.idPlataforma,
-                           fldSDireccion=user.fldSDireccion,
-                           fldSTelefono=user.fldSTelefono,
-                           fldSImagen=user.fldSImagen,
-                           fldSFullName=user.fldSFullName,
-                           adherencia=adherencia,
-                           completado=completado))
+        if(res.rowcount>0):
+            response.append(UserDetails(fldSEmail=user.fldSEmail,
+                               id=user.id,
+                               fkRol=user.fkRol,
+                               idPlataforma=user.idPlataforma,
+                               fldSDireccion=user.fldSDireccion,
+                               fldSTelefono=user.fldSTelefono,
+                               fldSImagen=user.fldSImagen,
+                               fldSFullName=user.fldSFullName,
+                               adherencia=adherencia,
+                               completado=completado))
+        else:
+            response.append(UserDetails(fldSEmail=user.fldSEmail,
+                                        id=user.id,
+                                        fkRol=user.fkRol,
+                                        idPlataforma=user.idPlataforma,
+                                        fldSDireccion=user.fldSDireccion,
+                                        fldSTelefono=user.fldSTelefono,
+                                        fldSImagen=user.fldSImagen,
+                                        fldSFullName=user.fldSFullName,
+                                        adherencia=0,
+                                        completado=0))
     return response

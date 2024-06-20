@@ -144,8 +144,8 @@ def read_ejercicios_by_id_serie(
     """
     response = []
     sql = text("""
-        SELECT te.fkPadre, ts2.fldSDescripcion , sum(te.fldNRepeticioneS * ts.fldNRepeticiones)
-from tbl_ejercicios te join tbl_series ts on (ts.id = te.fkSerie)
+        SELECT te.fkPadre, te2.id , sum(te.fldNRepeticioneS)
+from tbl_ejercicios te
     join tbl_ejercicios te2 on (te2.id = te.fkPadre)
    WHERE te2.fkSerie = """+str(serie)+""" group by te.fkPadre; """)
     res = db.execute(sql)
