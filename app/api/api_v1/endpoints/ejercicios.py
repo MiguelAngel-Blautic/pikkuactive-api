@@ -169,6 +169,50 @@ from tbl_ejercicios te
     return response
 
 
+@router.post("/dates")
+def read_resultados_by_id_ejercicio(
+        ejercicio: int,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    response = []
+    sensors = []
+    results = []
+    sql = text("""
+        select date(tr.fldDTime), tr.fldDTime, ttd.fldFNombre, tr.fldFValor
+FROM tbl_resultados tr 
+	join tbl_registro_ejercicios tre on (tr.fkRegistro = tre.id)
+	join tbl_ejercicios te on (tre.fkEjercicio = te.id)
+	join tbl_tipo_datos ttd on (ttd.id = tre.fkTipoDato)
+WHERE ttd.id = 2 and te.fkPadre = """+str(ejercicio)+"""
+order by date(tr.fldDTime), ttd.fldFNombre, tr.fldDTime, tr.fldFValor; """)
+    res = db.execute(sql)
+    sens = ""
+    date = ""
+    for row in res:
+        if sens == "":
+            sens = row[2]
+            date = row[0]
+        if date != row[0]:
+            sensors.append({"sensor": sens, "results": results})
+            response.append({"time": date, "results": sensors})
+            sensors = []
+            results = []
+            sens = row[2]
+            date = row[0]
+        if sens != row[2]:
+            sensors.append({"sensor": sens, "results": results})
+            results = []
+            sens = row[2]
+        results.append({"valor": row[3], "time": row[1]})
+    sensors.append({"sensor": sens, "results": results})
+    response.append({"time": date, "results": sensors})
+    return response
+
+
 def read_valores_ejercicios(
     *,
     db: Session = Depends(deps.get_db),
