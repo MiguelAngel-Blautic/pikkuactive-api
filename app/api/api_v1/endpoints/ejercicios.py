@@ -187,7 +187,7 @@ FROM tbl_resultados tr
 	join tbl_registro_ejercicios tre on (tr.fkRegistro = tre.id)
 	join tbl_ejercicios te on (tre.fkEjercicio = te.id)
 	join tbl_tipo_datos ttd on (ttd.id = tre.fkTipoDato)
-WHERE ttd.id = 2 and te.fkPadre = """+str(ejercicio)+"""
+WHERE te.fkPadre = """+str(ejercicio)+"""
 order by date(tr.fldDTime), ttd.fldFNombre, tr.fldDTime, tr.fldFValor; """)
     res = db.execute(sql)
     sens = ""
