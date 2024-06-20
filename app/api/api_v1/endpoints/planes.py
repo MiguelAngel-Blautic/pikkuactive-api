@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, List
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -25,6 +25,33 @@ def read_planes_by_user_plataforma(
     user = read_user_by_id_plataforma(user_id=user_id, db=db, current_user=current_user)
     return read_planes_by_user(user_id=user.id, db=db, current_user=current_user)
 
+
+@router.get("/dias")
+def read_planes_by_dia(
+        year: int,
+        month: int,
+        user: Optional[int] = None,
+        plan: Optional[int] = None,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
+) -> Any:
+    result = []
+    if plan:
+        sql = text("""
+            select distinct day(te.fldDDia)
+            from tbl_entrenamientos te
+            where te.fkPlan = """+str(plan)+""" and te.fldDDia is not null and year(te.fldDDia) = """+str(year)+""" and MONTH(te.fldDDia) = """+str(month)+""";
+        """)
+    else:
+        sql = text("""
+            select distinct day(te.fldDDia)
+            from tbl_entrenamientos te join tbl_planes tp on (tp.id = te.fkPlan)
+            where tp.fkCliente = """ + str(user) + """ and te.fldDDia is not null and year(te.fldDDia) = """ + str(year) + """ and MONTH(te.fldDDia) = """ + str(month) + """;
+        """)
+    res = db.execute(sql)
+    for row in res:
+        result.append(row[0])
+    return result
 
 @router.post("/list", response_model=List[schemas.ResumenEstadistico])
 def read_planes_by_id_user(
