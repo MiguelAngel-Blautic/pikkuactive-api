@@ -229,7 +229,7 @@ def read_user_by_id_list(
         join tbl_planes tp on (tp.id = ten.fkPlan) where ten.fldDDia is not null and tp.fkCliente = """ + str(
             user.id) + """ group by tp.id; """)
         res = db.execute(sql)
-        adherencia = 0
+        adherencia = -1
         completado = 0
         actual = datetime.now()
         for row in res:
@@ -240,16 +240,16 @@ def read_user_by_id_list(
                     completado = (100 * diaAct.days) / dias.days
                 else:
                     completado = (100 * diaAct.days)
-                sql = text("""
+                sql1 = text("""
                 SELECT count(*)
                     from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
                     join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
                     join tbl_planes tp on (tp.id = ten.fkPlan) where tp.id=""" + str(
                     row[0]) + """ and tre.fkTipoDato = 2; """)
-                total = db.execute(sql)
+                total = db.execute(sql1)
                 for t in total:
                     adherencia = (t[0] * 100) / row[1]
-        if(res.rowcount>0):
+        if adherencia >= 0:
             response.append(UserDetails(fldSEmail=user.fldSEmail,
                                id=user.id,
                                fkRol=user.fkRol,
@@ -269,6 +269,6 @@ def read_user_by_id_list(
                                         fldSTelefono=user.fldSTelefono,
                                         fldSImagen=user.fldSImagen,
                                         fldSFullName=user.fldSFullName,
-                                        adherencia=0,
-                                        completado=0))
+                                        adherencia=-1,
+                                        completado=-1))
     return response
