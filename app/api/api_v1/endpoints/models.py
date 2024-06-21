@@ -544,7 +544,7 @@ def read_model_open(
                 versions=versions[::-1],
                 dispositivos=dispositivos,
                 imagen=img,
-                video=vid,
+                video=m.fldSVideo,
                 tuyo=False,
                 fldBRegresivo=m.fldBRegresivo,
                 fldFMinValor=m.fldFMinValor,
