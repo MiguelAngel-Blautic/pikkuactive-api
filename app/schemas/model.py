@@ -35,6 +35,7 @@ class ModelBase(BaseModel):
     fldFPrecio: Optional[float] = 0
     fkImagen: Optional[int] = None
     fkVideo: Optional[int] = None
+    fldSVideo: Optional[str] = None
     fkTipo: Optional[int] = 1
     fldBRegresivo: Optional[int] = 0
     fldFMinValor: Optional[float] = 0.0

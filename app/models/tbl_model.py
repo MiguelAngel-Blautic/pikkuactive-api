@@ -33,6 +33,7 @@ class tbl_model(Base):
     fldDTimeCreateTime = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
     fkImagen = Column(Integer)
     fkVideo = Column(Integer)
+    fldSVideo = Column(String)
     fldSStatus = Column(Enum(TrainingStatus))
     fldNProgress = Column(Integer)
     fldBPublico = Column(Integer)
