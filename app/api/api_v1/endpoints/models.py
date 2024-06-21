@@ -117,7 +117,8 @@ def read_models(
                          fldFMinValor=m.fldFMinValor,
                          fldFMaxValor=m.fldFMaxValor,
                          fldSNomValor=m.fldSNomValor,
-                         fldSToken=m.fldSToken))
+                         fldSToken=m.fldSToken,
+                         video=m.fldSVideo))
     return res[::-1]
 
 
