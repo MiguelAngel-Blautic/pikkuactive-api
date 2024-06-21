@@ -439,7 +439,7 @@ def read_model(
                 versions=versions[::-1],
                 dispositivos=dispositivos,
                 imagen=img,
-                video=vid,
+                video=m.fldSVideo,
                 tuyo=(m.fkOwner == current_user.id),
                 fldBRegresivo=m.fldBRegresivo,
                 fldFMinValor=m.fldFMinValor,
