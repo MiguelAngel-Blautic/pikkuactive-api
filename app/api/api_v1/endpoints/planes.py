@@ -5,6 +5,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
 from sqlalchemy import text
+import numpy as np
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
@@ -62,6 +63,8 @@ def read_planes_by_id_user(
     """
     Get a specific user by id.
     """
+    adherencias = []
+    completos = []
     response = [None]
     sql = text("""
         SELECT tp.id, tp.fldSNombre, sum(te.fldNRepeticioneS * ts.fldNRepeticiones), min(ten.fldDDia), max(ten.fldDDia) as lastDay
@@ -96,10 +99,16 @@ def read_planes_by_id_user(
             id=row[0],
         )
         response.append(entrada)
-        if response[0] is None:
-            response[0] = entrada
         if row[3] <= actual.date() <= row[4]:
-            response[0] = entrada
+            adherencias.append(entrada.adherencia)
+            completos.append(entrada.completo)
+    response[0] = ResumenEstadistico(
+            tipo=1,
+            nombre="Planes actuales",
+            adherencia=np.mean(adherencias),
+            completo=np.mean(completos),
+            id=0,
+        )
     return response
 
 

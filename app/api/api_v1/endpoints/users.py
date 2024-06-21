@@ -6,7 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
+import numpy as np
 from app import crud, models, schemas
 from app.api import deps
 from app.core.config import settings
@@ -128,17 +128,17 @@ def read_user_by_id_plataforma(
     join tbl_planes tp on (tp.id = ten.fkPlan) where ten.fldDDia is not null and tp.fkCliente = """ + str(
         user.id) + """ group by tp.id; """)
     res = db.execute(sql)
-    adherencia = 0
-    completado = 0
+    adherencia = []
+    completado = []
     actual = datetime.now()
     for row in res:
         if row[2] <= actual.date() <= row[3]:
             diaAct = actual.date() - row[2]
             dias = row[3] - row[2]
             if dias.days > 0:
-                completado = (100 * diaAct.days) / dias.days
+                completado.append((100 * diaAct.days) / dias.days)
             else:
-                completado = (100 * diaAct.days)
+                completado.append((100 * diaAct.days))
             sql = text("""
             SELECT count(*)
                 from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
@@ -147,7 +147,7 @@ def read_user_by_id_plataforma(
                 row[0]) + """ and tre.fkTipoDato = 2; """)
             total = db.execute(sql)
             for t in total:
-                adherencia = (t[0] * 100) / row[1]
+                adherencia.append((t[0] * 100) / row[1])
     return UserDetails(fldSEmail=user.fldSEmail,
                        id=user.id,
                        fkRol=user.fkRol,
@@ -156,8 +156,8 @@ def read_user_by_id_plataforma(
                        fldSTelefono=user.fldSTelefono,
                        fldSImagen=user.fldSImagen,
                        fldSFullName=user.fldSFullName,
-                       adherencia=adherencia,
-                       completado=completado)
+                       adherencia=np.mean(adherencia),
+                       completado=np.mean(completado))
 
 
 @router.get("/{user_id}", response_model=schemas.UserDetails)
