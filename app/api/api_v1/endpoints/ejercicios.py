@@ -170,6 +170,54 @@ from tbl_ejercicios te
     return response
 
 
+@router.post("/date/list")
+def read_ejercicios_by_day(
+        plan: int,
+        fecha: datetime,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    response = []
+    sensors = []
+    results = []
+    sql = text("""
+            select te.fkModelo, tr.fldDTime, ttd.fldFNombre, tr.fldFValor
+    FROM tbl_resultados tr 
+    	join tbl_registro_ejercicios tre on (tr.fkRegistro = tre.id)
+    	join tbl_ejercicios te on (tre.fkEjercicio = te.id)
+	    join tbl_series ts on (ts.id = te.fkSerie)
+	    join tbl_bloques tb on (tb.id = ts.fkBloque)
+	    join tbl_entrenamientos te2 on (te2.id = tb.fkEntrenamiento)
+    	join tbl_tipo_datos ttd on (ttd.id = tre.fkTipoDato)
+    WHERE te2.fkPlan = """+str(plan)+""" and date(te2.fldDDia) = date('"""+str(fecha)+"""') 
+    order by te.fkModelo, ttd.fldFNombre, tr.fldDTime, tr.fldFValor; """)
+    res = db.execute(sql)
+    sens = ""
+    date = ""
+    for row in res:
+        if sens == "":
+            sens = row[2]
+            date = row[0]
+        if date != row[0]:
+            sensors.append({"sensor": sens, "results": results})
+            response.append({"time": date, "results": sensors})
+            sensors = []
+            results = []
+            sens = row[2]
+            date = row[0]
+        if sens != row[2]:
+            sensors.append({"sensor": sens, "results": results})
+            results = []
+            sens = row[2]
+        results.append({"valor": row[3], "time": row[1]})
+    sensors.append({"sensor": sens, "results": results})
+    response.append({"time": date, "results": sensors})
+    return response
+
+
 @router.post("/dates")
 def read_resultados_by_id_ejercicio(
         ejercicio: int,
@@ -236,7 +284,7 @@ FROM tbl_resultados tr
 	join tbl_bloques tb on (tb.id = ts.fkBloque)
 	join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
 	join tbl_tipo_datos ttd on (ttd.id = tre.fkTipoDato)
-WHERE ten.fkPlan = """+str(plan)+""" and day(tr.fldDTime) = day('"""+str(fecha.date())+"""')
+WHERE ten.fkPlan = """+str(plan)+""" and date(tr.fldDTime) = date('"""+str(fecha.date())+"""')
 order by date(tr.fldDTime), ttd.fldFNombre, tr.fldDTime, tr.fldFValor;""")
     res = db.execute(sql)
     sens = ""
