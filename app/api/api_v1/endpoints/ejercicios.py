@@ -213,8 +213,9 @@ def read_ejercicios_by_day(
             results = []
             sens = row[2]
         results.append({"valor": row[3], "time": row[1]})
-    sensors.append({"sensor": sens, "results": results})
-    response.append({"time": date, "results": sensors})
+    if sens != "":
+        sensors.append({"sensor": sens, "results": results})
+        response.append({"time": date, "results": sensors})
     return response
 
 
