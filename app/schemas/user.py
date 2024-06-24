@@ -33,5 +33,5 @@ class User(UserBase):
 
 
 class UserDetails(User):
-    adherencia: int
-    completado: int
+    adherencia: float
+    completado: float
