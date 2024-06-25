@@ -250,9 +250,80 @@ def read_models_marketplace(
     """
     Retrieve models.
     """
-    return crud.model.get_multi_market(
+    models =  crud.model.get_multi_market(
         db=db, owner_id=current_user.id, skip=skip, limit=limit
-    )[::-1]
+    )
+    res = []
+    for m in models:
+        versions = []
+        cant = 0
+        for v in m.versions:
+            capturas = db.query(tbl_history).filter(tbl_history.fkOwner == v.id).all()
+
+            versions.append(Version(id=v.id,
+                                    fkOwner=v.fkOwner,
+                                    fldDTimeCreateTime=v.fldDTimeCreateTime,
+                                    fldFAccuracy=v.fldFAccuracy,
+                                    fldNEpoch=v.fldNEpoch,
+                                    fldFLoss=v.fldFLoss,
+                                    fldSOptimizer=v.fldSOptimizer,
+                                    fldFLearningRate=v.fldFLearningRate,
+                                    capturesCount=len(capturas) - cant))
+            cant = len(capturas)
+        dispositivos = []
+        devices = m.devices
+        crearDevices = len(devices) < 1
+        posicion = -1
+        nDevices = 0
+        if crearDevices:
+            devices = []
+        for d in m.dispositivos:
+            dispositivos.append(DeviceSensor(
+                id=d.id,
+                fkPosicion=d.fkPosicion,
+                fkSensor=d.fkSensor,
+                fkOwner=d.fkOwner))
+            if crearDevices and d.fkPosicion != posicion:
+                posicion = d.fkPosicion
+                nDevices += 1
+                if d.fkSensor <= 6:
+                    nsensores = 6
+                else:
+                    nsensores = 17
+                pos = db.query(tbl_position).get(d.fkPosicion)
+                devices.append(Device(id=d.id,
+                                      fldNNumberDevice=nDevices,
+                                      fkPosition=posicion,
+                                      fkOwner=d.fkOwner,
+                                      position=Position(fldSName=pos.fldSName, fldSDescription=pos.fldSDescription,
+                                                        id=pos.id),
+                                      fldNSensores=nsensores
+                                      ))
+
+        res.append(Model(id=m.id,
+                         fldSName=m.fldSName,
+                         fldSDescription=m.fldSDescription,
+                         fldNDuration=m.fldNDuration,
+                         fldBPublico=m.fldBPublico,
+                         fkCategoria=m.fkCategoria,
+                         fldFPrecio=m.fldFPrecio,
+                         fkTipo=m.fkTipo,
+                         fkOwner=m.fkOwner,
+                         fldDTimeCreateTime=m.fldDTimeCreateTime,
+                         fldSStatus=m.fldSStatus,
+                         fldNProgress=m.fldNProgress,
+                         movements=m.movements,
+                         devices=devices,
+                         versions=versions[::-1],
+                         dispositivos=dispositivos,
+                         tuyo=(m.fkOwner == current_user.id),
+                         fldBRegresivo=m.fldBRegresivo,
+                         fldFMinValor=m.fldFMinValor,
+                         fldFMaxValor=m.fldFMaxValor,
+                         fldSNomValor=m.fldSNomValor,
+                         fldSToken=m.fldSToken))
+    return res[::-1]
+
 
 
 @router.get("/adquiridos/", response_model=List[schemas.Model])
