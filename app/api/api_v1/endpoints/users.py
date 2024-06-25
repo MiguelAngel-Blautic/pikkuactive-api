@@ -9,9 +9,12 @@ from sqlalchemy.orm import Session
 import numpy as np
 from app import crud, models, schemas
 from app.api import deps
+from app.api.deps import reusable_oauth2
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena
 from app.schemas.user import UserDetails
+from app.core import security
+from jose import jwt
 
 router = APIRouter()
 
@@ -33,16 +36,24 @@ def read_users(
 
 @router.get("/comprobar")
 def check_user(
+        token: str = Depends(reusable_oauth2),
         db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     """
     Retrieve users.
     """
-    if current_user.idPlataforma == None:
-        return 0
+    payload = jwt.decode(
+        token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+    )
+    token_data = schemas.TokenPayload(**payload)
+    user = db.query(tbl_user).filter(tbl_user.idPlataforma == token_data.sub).first()
+    if user:
+        if current_user.idPlataforma == None:
+            return 0
+        else:
+            return current_user.idPlataforma
     else:
-        return current_user.idPlataforma
+        return 0
 
 
 @router.post("/", response_model=schemas.User)
