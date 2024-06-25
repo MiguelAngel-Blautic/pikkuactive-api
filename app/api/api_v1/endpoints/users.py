@@ -48,10 +48,10 @@ def check_user(
     token_data = schemas.TokenPayload(**payload)
     user = db.query(tbl_user).filter(tbl_user.idPlataforma == token_data.sub).first()
     if user:
-        if current_user.idPlataforma == None:
+        if user.idPlataforma == None:
             return 0
         else:
-            return current_user.idPlataforma
+            return user.idPlataforma
     else:
         return 0
 
