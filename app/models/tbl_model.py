@@ -34,7 +34,7 @@ class tbl_model(Base):
     fkImagen = Column(Integer)
     fkVideo = Column(Integer)
     fldSVideo = Column(String)
-    fldSImagen = Column(String)
+    fldSImage = Column(String)
     fldSStatus = Column(Enum(TrainingStatus))
     fldNProgress = Column(Integer)
     fldBPublico = Column(Integer)
