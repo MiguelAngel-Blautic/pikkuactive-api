@@ -432,7 +432,7 @@ def read_model(
         raise HTTPException(status_code=404, detail="Model not found")
     if not (crud.user.is_superuser(current_user) or (m.fkOwner == current_user.id) or (m.fldBPublico == 1)):
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    return read_model_datas(m=m, db=db)
+    return read_model_datas(m=m, db=db, user=current_user.id)
 
 
 @router.put("/sensorimage/")
@@ -473,12 +473,13 @@ def read_model_open(
         raise HTTPException(status_code=404, detail="Model not found")
     if not (m.fldSToken == token):
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    return read_model_datas(m=m, db=db)
+    return read_model_datas(m=m, db=db, user=0)
 
 
 def read_model_datas(
         *,
         m: tbl_model,
+        user: int,
         db: Session
 ) -> Any:
     versions = []
@@ -559,7 +560,7 @@ def read_model_datas(
                 dispositivos=dispositivos,
                 imagen=m.fldSImage,
                 video=m.fldSVideo,
-                tuyo=False,
+                tuyo=(m.fkOwner == user),
                 fldBRegresivo=m.fldBRegresivo,
                 fldFMinValor=m.fldFMinValor,
                 fldFMaxValor=m.fldFMaxValor,
