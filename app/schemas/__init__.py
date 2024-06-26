@@ -9,3 +9,4 @@ from .capture import Capture, CaptureCreate, CaptureInDB, CaptureUpdate
 from .mpu import Mpu, MpuCreate, MpuInDB, MpuUpdate
 from .grupo import Grupo, GrupoCreate, GrupoInDB, GrupoUpdate
 from .version import Version, VersionCreate, VersionInDB, VersionUpdate
+from .imageDevice import ImageDevice

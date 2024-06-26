@@ -10,7 +10,7 @@ from app.api import deps
 from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, \
     datos_estadistica, tbl_user, tbl_dispositivo_sensor, tbl_tipo_sensor, tbl_position, tbl_image_device
 from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history, tbl_imagenes
-from app.schemas import MovementCreate, Version, Position
+from app.schemas import MovementCreate, Version, Position, ImageDevice
 from app.schemas.capture import CaptureResumen
 from app.schemas.device import DeviceSensor, Device, DeviceCreate, DeviceSensorCreate
 from app.schemas.model import ModelStadistics, ModelStadisticsSensor, Model, ModelCreate
@@ -250,7 +250,7 @@ def read_models_marketplace(
     """
     Retrieve models.
     """
-    models =  crud.model.get_multi_market(
+    models = crud.model.get_multi_market(
         db=db, owner_id=current_user.id, skip=skip, limit=limit
     )
     res = []
@@ -323,7 +323,6 @@ def read_models_marketplace(
                          fldSNomValor=m.fldSNomValor,
                          fldSToken=m.fldSToken))
     return res[::-1]
-
 
 
 @router.get("/adquiridos/", response_model=List[schemas.Model])
@@ -436,6 +435,29 @@ def read_model(
     return read_model_datas(m=m, db=db)
 
 
+@router.put("/sensorimage/")
+def addImageModel(
+        *,
+        imageDevice: ImageDevice,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    m = crud.model.get(db=db, id=imageDevice.fkModel)
+    if not m:
+        raise HTTPException(status_code=404, detail="Model not found")
+    if not (crud.user.is_superuser(current_user) or (m.fkOwner == current_user.id) or (m.fldBPublico == 1)):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    imagenes = db.query(tbl_image_device).filter(tbl_image_device.fkModel == m.id).filter(
+        tbl_image_device.fkPosition == imageDevice.fkPosition).all()
+    for i in imagenes:
+        db.delete(i)
+        db.commit()
+    image = tbl_image_device(fkModel=m.id, fkPosition=imageDevice.fkPosition, fldSImage=imageDevice.fldSImage)
+    db.add(image)
+    db.commit()
+    return 1
+
+
 @router.get("/open/{id}", response_model=schemas.Model)
 def read_model_open(
         *,
@@ -495,7 +517,8 @@ def read_model_datas(
             else:
                 nsensores = 17
             pos = db.query(tbl_position).get(d.fkPosicion)
-            img = db.query(tbl_image_device).filter(tbl_image_device.fkModel == m.id).filter(tbl_image_device.fkPosition == pos.id).first()
+            img = db.query(tbl_image_device).filter(tbl_image_device.fkModel == m.id).filter(
+                tbl_image_device.fkPosition == pos.id).first()
             imagen = None
             if img:
                 imagen = img.fldSImage
