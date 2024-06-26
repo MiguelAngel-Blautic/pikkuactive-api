@@ -442,17 +442,12 @@ def addImageModel(
         db: Session = Depends(deps.get_db),
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
-    m = crud.model.get(db=db, id=imageDevice.fkModel)
-    if not m:
-        raise HTTPException(status_code=404, detail="Model not found")
-    if not (crud.user.is_superuser(current_user) or (m.fkOwner == current_user.id) or (m.fldBPublico == 1)):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
-    imagenes = db.query(tbl_image_device).filter(tbl_image_device.fkModel == m.id).filter(
+    imagenes = db.query(tbl_image_device).filter(tbl_image_device.fkModel == imageDevice.fkModel).filter(
         tbl_image_device.fkPosition == imageDevice.fkPosition).all()
     for i in imagenes:
         db.delete(i)
         db.commit()
-    image = tbl_image_device(fkModel=m.id, fkPosition=imageDevice.fkPosition, fldSImage=imageDevice.fldSImage)
+    image = tbl_image_device(fkModel=imageDevice.fkModel, fkPosition=imageDevice.fkPosition, fldSImage=imageDevice.fldSImage)
     db.add(image)
     db.commit()
     return 1
