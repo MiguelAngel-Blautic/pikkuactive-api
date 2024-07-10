@@ -13,7 +13,7 @@ from app.api import deps
 from app.api.api_v1.endpoints.users import read_user_by_id_plataforma
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes
-from app.schemas import ResumenEstadistico
+from app.schemas import ResumenEstadistico, EntrenamientoDetalle, PlanDetalle, EjercicioDetalle
 
 router = APIRouter()
 
@@ -60,48 +60,52 @@ def read_planes_by_id_user(
         current_user: models.tbl_user = Depends(deps.get_current_user),
         db: Session = Depends(deps.get_db),
 ) -> Any:
+    planes = db.query(tbl_planes).filter(tbl_planes.fkCreador == current_user.id).filter(tbl_planes.fkCliente == user).all()
     """
     Get a specific user by id.
     """
     adherencias = []
     completos = []
     response = [None]
-    sql = text("""
-        SELECT tp.id, tp.fldSNombre, sum(te.fldNRepeticioneS * ts.fldNRepeticiones), min(ten.fldDDia), max(ten.fldDDia) as lastDay
-    from tbl_ejercicios te
-    join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
-    join tbl_planes tp on (tp.id = ten.fkPlan) where ten.fldDDia is not null and tp.fkCliente = """ + str(
-        user) + """ group by tp.id, tp.fldSNombre order by lastDay desc; """)
-    res = db.execute(sql)
-    adherencia = 0
-    actual = datetime.now()
-    for row in res:
-        diaAct = actual.date() - row[3]
-        dias = row[4] - row[3]
-        if dias.days <= 0:
-            completado = (100 * diaAct.days)
-        else:
-            completado = (100 * diaAct.days) / dias.days
+    for p in planes:
         sql = text("""
-        SELECT count(*)
-            from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
-            join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
-            join tbl_planes tp on (tp.id = ten.fkPlan) where tp.id=""" + str(
-            row[0]) + """ and tre.fkTipoDato = 2; """)
-        total = db.execute(sql)
-        for t in total:
-            adherencia = (t[0] * 100) / row[2]
+            SELECT tp.id, tp.fldSNombre, sum(te.fldNRepeticioneS * ts.fldNRepeticiones), min(ten.fldDDia), max(ten.fldDDia) as lastDay
+        from tbl_ejercicios te
+        join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
+        join tbl_planes tp on (tp.id = ten.fkPlan) where ten.fldDDia is not null and tp.id = """ + str(
+            p.id) + """ group by tp.id, tp.fldSNombre order by lastDay desc; """)
+        res = db.execute(sql)
+        adherencia = 0
+        actual = datetime.now()
         entrada = ResumenEstadistico(
             tipo=1,
-            nombre=row[1],
-            adherencia=adherencia,
-            completo=min(completado, 100),
-            id=row[0],
+            nombre=p.fldSNombre,
+            adherencia=0,
+            completo=0,
+            id=p.id,
         )
+        for row in res:
+            diaAct = actual.date() - row[3]
+            dias = row[4] - row[3]
+            if dias.days <= 0:
+                completado = (100 * diaAct.days)
+            else:
+                completado = (100 * diaAct.days) / dias.days
+            sql = text("""
+            SELECT count(*)
+                from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
+                join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
+                join tbl_planes tp on (tp.id = ten.fkPlan) where tp.id=""" + str(
+                row[0]) + """ and tre.fkTipoDato = 2; """)
+            total = db.execute(sql)
+            for t in total:
+                adherencia = (t[0] * 100) / row[2]
+            entrada.adherencia = adherencia
+            entrada.completo = min(completado, 100)
+            if row[3] <= actual.date() <= row[4]:
+                adherencias.append(entrada.adherencia)
+                completos.append(entrada.completo)
         response.append(entrada)
-        if row[3] <= actual.date() <= row[4]:
-            adherencias.append(entrada.adherencia)
-            completos.append(entrada.completo)
     response[0] = ResumenEstadistico(
             tipo=1,
             nombre="Planes actuales",
@@ -132,6 +136,113 @@ def read_planes_by_id(
     if not plan:
         raise HTTPException(status_code=404, detail="The plan doesn't exist")
     return plan
+
+
+@router.get("/detalles/{id}", response_model=schemas.PlanDetalle)
+def read_planes_detalles_by_id(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    plan = db.query(tbl_planes).filter(tbl_planes.fkCreador == current_user.id).filter(tbl_planes.id == id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="The plan doesn't exist")
+
+    # CALCULO DE LOS ENTRENAMIENTOS
+    entrenamientos = []
+    adherenciaTot = 0
+    progresoTot = 0
+    sql = text("""
+            SELECT ten.fkPadre, ten2.fldSNombre, sum(te.fldNRepeticioneS * ts.fldNRepeticiones), min(ten.fldDDia), max(ten.fldDDia) as lastDay
+    from tbl_ejercicios te
+        join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento) join tbl_entrenamientos ten2 on (ten2.id = ten.fkPadre)
+       WHERE ten.fldDDia is not null and ten.fkPlan = """ + str(
+        plan.id) + """ group by ten.fkPadre order by lastDay desc; """)
+    res = db.execute(sql)
+    adherencia = 0
+    actual = datetime.now()
+    numTotal = 0
+    for row in res:
+        numTotal += 1
+        diaAct = actual.date() - row[3]
+        dias = row[4] - row[3]
+        if dias.days <= 0:
+            completado = (100 * diaAct.days)
+        else:
+            completado = (100 * diaAct.days) / dias.days
+        completado = min(completado, 100.0)
+        sql = text("""
+            SELECT count(*)
+                from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
+                join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
+                where ten.fkPadre=""" + str(row[0]) + """ and tre.fkTipoDato = 2;""")
+        total = db.execute(sql)
+        for t in total:
+            adherencia = (((t[0] * 100) / float(row[2]))/completado)*100
+        sql = text("""
+            SELECT distinct ten.fldDDia
+            from tbl_entrenamientos ten
+            WHERE ten.fldDDia is not null and ten.fkPadre = """ + str(row[0]) +""" order by ten.fldDDia desc""")
+        diasList = []
+        dias = db.execute(sql)
+        for d in dias:
+            diasList.append(d[0])
+        entrada = EntrenamientoDetalle(
+            nombre=row[1],
+            adherencia=adherencia,
+            progreso=completado,
+            id=row[0],
+            fechas=diasList
+        )
+        adherenciaTot += adherencia
+        progresoTot += completado
+        entrenamientos.append(entrada)
+    if numTotal > 0:
+        progresoTot /= numTotal
+        adherenciaTot /= numTotal
+    else:
+        progresoTot = 0
+        adherenciaTot = 0
+    # CALCULO DE LOS EJERCICIOS
+    ejercicios = []
+    sql = text("""
+            SELECT te.fkPadre, te2.id , sum(te.fldNRepeticioneS * ts.fldNRepeticiones)
+    from tbl_ejercicios te
+        join tbl_ejercicios te2 on (te2.id = te.fkPadre)
+        join tbl_series ts on (ts.id = te2.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
+       WHERE ten.fkPlan = """ + str(plan.id) + """ group by te.fkPadre; """)
+    res = db.execute(sql)
+    adherencia = 0
+    for row in res:
+        sql = text("""
+            SELECT count(*)
+                from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
+                where te.fkPadre=""" + str(row[0]) + """ and tre.fkTipoDato = 2;""")
+        total = db.execute(sql)
+        for t in total:
+            adherencia = (t[0] * 100) / row[2]
+        entrada = EjercicioDetalle(
+            nombre=row[1],
+            adherencia=(float(adherencia)*100)/progresoTot,
+            id=row[0],
+        )
+        ejercicios.append(entrada)
+    listaDias = [d for ent in entrenamientos for d in ent.fechas]
+    if len(listaDias) < 1:
+        inicio = None
+        fin = None
+    else:
+        inicio = min(listaDias)
+        fin = max(listaDias)
+    return PlanDetalle(
+        nombre = plan.fldSNombre,
+        id = plan.id,
+        inicio = inicio,
+        fin = fin,
+        adherencia = adherenciaTot,
+        progreso = progresoTot,
+        entrenamientos = entrenamientos,
+        ejercicios = ejercicios)
 
 
 @router.post("/platform/", response_model=schemas.Plan)

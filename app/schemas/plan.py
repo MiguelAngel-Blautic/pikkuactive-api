@@ -1,4 +1,5 @@
-from typing import Optional
+from datetime import datetime, date
+from typing import Optional, List
 
 from pydantic import BaseModel, EmailStr
 
@@ -23,3 +24,27 @@ class Plan(PlanBase):
     id: int
     class Config:
         orm_mode = True
+
+
+class EntrenamientoDetalle(BaseModel):
+    nombre: str
+    id: int
+    adherencia: float
+    progreso: float
+    fechas: List[date]
+
+
+class EjercicioDetalle(BaseModel):
+    nombre: str
+    id: int
+    adherencia: float
+
+class PlanDetalle(BaseModel):
+    nombre: str
+    id: int
+    inicio: Optional[date]
+    fin: Optional[date]
+    adherencia: float
+    progreso: float
+    entrenamientos: List[EntrenamientoDetalle]
+    ejercicios: List[EjercicioDetalle]
