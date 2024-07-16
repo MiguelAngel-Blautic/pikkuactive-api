@@ -3,6 +3,7 @@ from typing import Any, List
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
@@ -22,6 +23,38 @@ def read_tipos_dato(
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     return db.query(tbl_tipo_datos).all()
+
+
+@router.get("/ejercicioGeneral/")
+def read_datos_ejercicio_plan(
+        plan: int,
+        modelo: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    sql = text("""
+                SELECT ttd.fldFNombre, tr.fldDTime, tr.fldFValor
+                    from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) 
+                    join tbl_tipo_datos ttd on (ttd.id = tre.fkTipoDato)
+                    join tbl_ejercicios te on (te.id = tre.fkEjercicio) join tbl_series ts on (ts.id = te.fkSerie)
+                    join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
+                    where te.fkModelo=""" + str(modelo) + """ and ten.fkPlan=""" + str(plan) + """
+                    order by ttd.fldFNombre, tr.fldDTime, tr.fldFValor;""")
+    resultados = db.execute(sql)
+    lastNombre = ""
+    listAux = []
+    respuesta = []
+    for res in resultados:
+        if res[0] == "":
+            lastNombre = res[0]
+        if res[0] != lastNombre:
+            respuesta.append({"nombre": lastNombre, "datos": listAux})
+            lastNombre = res[0]
+            listAux = []
+        listAux.append({"date": res[1], "valor": res[2]})
+    respuesta.append({"nombre": lastNombre, "datos": listAux})
+    return respuesta
+
 
 @router.put("/tipodato/")
 def add_tipodato(

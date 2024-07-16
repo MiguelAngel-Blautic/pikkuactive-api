@@ -178,7 +178,10 @@ def read_planes_detalles_by_id(
                 where ten.fkPadre=""" + str(row[0]) + """ and tre.fkTipoDato = 2;""")
         total = db.execute(sql)
         for t in total:
-            adherencia = (((t[0] * 100) / float(row[2]))/completado)*100
+            if completado == 0:
+                adherencia = 0
+            else:
+                adherencia = (((t[0] * 100) / float(row[2]))/completado)*100
         sql = text("""
             SELECT distinct ten.fldDDia
             from tbl_entrenamientos ten
@@ -203,30 +206,34 @@ def read_planes_detalles_by_id(
     else:
         progresoTot = 0
         adherenciaTot = 0
+
     # CALCULO DE LOS EJERCICIOS
     ejercicios = []
     sql = text("""
-            SELECT te.fkPadre, te2.id , sum(te.fldNRepeticioneS * ts.fldNRepeticiones)
+            SELECT te.fkModelo, te.fldSToken, te2.id , sum(te.fldNRepeticioneS * ts.fldNRepeticiones)
     from tbl_ejercicios te
         join tbl_ejercicios te2 on (te2.id = te.fkPadre)
         join tbl_series ts on (ts.id = te2.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
-       WHERE ten.fkPlan = """ + str(plan.id) + """ group by te.fkPadre; """)
+       WHERE ten.fkPlan = """ + str(plan.id) + """ group by te.fkModelo, te.fldSToken, te2.id; """)
     res = db.execute(sql)
     adherencia = 0
     for row in res:
-        sql = text("""
-            SELECT count(*)
-                from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
-                where te.fkPadre=""" + str(row[0]) + """ and tre.fkTipoDato = 2;""")
-        total = db.execute(sql)
-        for t in total:
-            adherencia = (t[0] * 100) / row[2]
-        entrada = EjercicioDetalle(
-            nombre=row[1],
-            adherencia=(float(adherencia)*100)/progresoTot,
-            id=row[0],
-        )
-        ejercicios.append(entrada)
+        if row[0] != None:
+            sql = text("""
+                SELECT count(*)
+                    from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) 
+                    join tbl_ejercicios te on (te.id = tre.fkEjercicio) join tbl_series ts on (ts.id = te.fkSerie)
+                    join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
+                    where te.fkModelo=""" + str(row[0]) + """ and ten.fkPlan=""" + str(plan.id) + """ and tre.fkTipoDato = 2;""")
+            total = db.execute(sql)
+            for t in total:
+                adherencia = (t[0] * 100) / row[3]
+            entrada = EjercicioDetalle(
+                nombre=row[1],
+                adherencia=(float(adherencia)*100)/progresoTot,
+                id=row[0],
+            )
+            ejercicios.append(entrada)
     listaDias = [d for ent in entrenamientos for d in ent.fechas]
     if len(listaDias) < 1:
         inicio = None
