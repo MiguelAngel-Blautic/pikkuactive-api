@@ -210,11 +210,11 @@ def read_planes_detalles_by_id(
     # CALCULO DE LOS EJERCICIOS
     ejercicios = []
     sql = text("""
-            SELECT te.fkModelo, te.fldSToken, te2.id , sum(te.fldNRepeticioneS * ts.fldNRepeticiones)
+            SELECT te.fkModelo, te.fldSToken, sum(te.fldNRepeticioneS * ts.fldNRepeticiones)
     from tbl_ejercicios te
         join tbl_ejercicios te2 on (te2.id = te.fkPadre)
         join tbl_series ts on (ts.id = te2.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
-       WHERE ten.fkPlan = """ + str(plan.id) + """ group by te.fkModelo, te.fldSToken, te2.id; """)
+       WHERE ten.fkPlan = """ + str(plan.id) + """ group by te.fkModelo, te.fldSToken; """)
     res = db.execute(sql)
     adherencia = 0
     for row in res:
@@ -227,7 +227,7 @@ def read_planes_detalles_by_id(
                     where te.fkModelo=""" + str(row[0]) + """ and ten.fkPlan=""" + str(plan.id) + """ and tre.fkTipoDato = 2;""")
             total = db.execute(sql)
             for t in total:
-                adherencia = (t[0] * 100) / row[3]
+                adherencia = (t[0] * 100) / row[2]
             entrada = EjercicioDetalle(
                 nombre=row[1],
                 adherencia=(float(adherencia)*100)/progresoTot,
