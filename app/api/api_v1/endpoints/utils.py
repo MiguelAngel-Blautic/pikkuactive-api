@@ -61,8 +61,8 @@ def training_model(
     """
     # Check that the model belongs to the user or if it is superuser
     model: tbl_model = read_model(db=db, id=id_model, current_user=current_user)
-    if model.fldSStatus == TrainingStatus.training_started:
-        raise HTTPException(status_code=404, detail="Training task already exists")
+    # if model.fldSStatus == TrainingStatus.training_started:
+    #     raise HTTPException(status_code=404, detail="Training task already exists")
     background_tasks.add_task(training_task, id_model)
     return {"msg": "ok"}
 
