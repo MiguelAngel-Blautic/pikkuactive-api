@@ -195,8 +195,8 @@ def create_entrenamiento(
     db.refresh(newEntrenamiento)
     for adicional in entrenamiento_in.dispositivos:
         dato = tbl_dato_adicional_plan(
-            fldNPosicion=adicional.fldNPosicion,
-            fldNTipoDato=adicional.fldNPosicion,
+            fldNPosicion=adicional[0],
+            fldNTipoDato=adicional[1],
             fkEntrenamiento=newEntrenamiento.id
         )
         db.add(dato)
