@@ -106,11 +106,19 @@ def read_planes_by_id_user(
                 adherencias.append(entrada.adherencia)
                 completos.append(entrada.completo)
         response.append(entrada)
+    if adherencias != []:
+        adherencia = np.mean(adherencias)
+    else:
+        adherencia = 0
+    if completos != []:
+        completo = np.mean(completos)
+    else:
+        completo = 0
     response[0] = ResumenEstadistico(
             tipo=1,
             nombre="Planes actuales",
-            adherencia=np.mean(adherencias),
-            completo=np.mean(completos),
+            adherencia=round(adherencia),
+            completo=round(completo),
             id=0,
         )
     return response
