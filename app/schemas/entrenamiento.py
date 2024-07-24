@@ -13,10 +13,12 @@ class EntrenamientoBase(BaseModel):
 
 # Properties to receive via API on creation
 class EntrenamientoCreate(EntrenamientoBase):
+    dispositivos: List[List[int]]
     pass
 
 
 class EntrenamientoUpdate(EntrenamientoBase):
+    dispositivos: List[List[int]]
     fldDDia: Optional[date] = None
 
 
@@ -32,3 +34,4 @@ class Entrenamiento(EntrenamientoBase):
 
 class EntrenamientoCompleto(Entrenamiento):
     bloques: List[Bloquecompleto]
+    dispositivos: List[List[int]]  # Par de posicion, idDato

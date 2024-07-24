@@ -14,7 +14,8 @@ from app.api.api_v1.endpoints.bloques import read_bloques_by_id, read_valores_bl
 from app.api.api_v1.endpoints.ejercicios import read_ejercicios_by_id
 from app.api.api_v1.endpoints.series import read_series_by_id
 from app.core.config import settings
-from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos, tbl_bloques, tbl_series, tbl_ejercicios
+from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos, tbl_bloques, tbl_series, tbl_ejercicios, \
+    tbl_dato_adicional_plan
 from app.schemas import ResumenEstadistico
 from app.schemas.ejercicio import Resultado
 
@@ -121,6 +122,11 @@ def read_entrenamiento_detail(
         bloq.series = listaSeries
         listaBloques.append(bloq)
     entrenamiento.bloques = listaBloques
+    listaSensores = []
+    sensoresAdicionales = db.query(tbl_dato_adicional_plan).filter(tbl_dato_adicional_plan.fkEntrenamiento == entrenamiento.id).all()
+    for adicional in sensoresAdicionales:
+        listaSensores.append([adicional.fldNPosicion, adicional.fldNTipoDato])
+    entrenamiento.dispositivos = listaSensores
     return entrenamiento
 
 
@@ -187,6 +193,14 @@ def create_entrenamiento(
     db.add(newEntrenamiento)
     db.commit()
     db.refresh(newEntrenamiento)
+    for adicional in entrenamiento_in.dispositivos:
+        dato = tbl_dato_adicional_plan(
+            fldNPosicion=adicional.fldNPosicion,
+            fldNTipoDato=adicional.fldNPosicion,
+            fkEntrenamiento=newEntrenamiento.id
+        )
+        db.add(dato)
+        db.commit()
     return newEntrenamiento
 
 
@@ -214,6 +228,16 @@ def asignar_entrenamiento_plan(
     db.add(newEntrenamiento)
     db.commit()
     db.refresh(newEntrenamiento)
+    adicionales = db.query(tbl_dato_adicional_plan).filter(
+        tbl_dato_adicional_plan.fkEntrenamiento == entrenamiento.id).all()
+    for adicional in adicionales:
+        dato = tbl_dato_adicional_plan(
+            fldNPosicion=adicional.fldNPosicion,
+            fldNTipoDato=adicional.fldNPosicion,
+            fkEntrenamiento=newEntrenamiento.id
+        )
+        db.add(dato)
+        db.commit()
     bloques.clonar(old_entrenamiento=entrenamiento.id, new_entrenamiento=newEntrenamiento.id, db=db)
     return newEntrenamiento
 
@@ -247,6 +271,15 @@ def asignar_entrenamiento_sesion(
     db.add(newEntrenamiento)
     db.commit()
     db.refresh(newEntrenamiento)
+    adicionales = db.query(tbl_dato_adicional_plan).filter(tbl_dato_adicional_plan.fkEntrenamiento == entrenamiento.id).all()
+    for adicional in adicionales:
+        dato = tbl_dato_adicional_plan(
+            fldNPosicion = adicional.fldNPosicion,
+            fldNTipoDato = adicional.fldNPosicion,
+            fkEntrenamiento = newEntrenamiento.id
+        )
+        db.add(dato)
+        db.commit()
     bloques.clonar(old_entrenamiento=entrenamiento.id, new_entrenamiento=newEntrenamiento.id, db=db)
     return newEntrenamiento
 
@@ -269,6 +302,19 @@ def update_entrenamiento(
     entrenamiento.fldDDia = entrenamiento_in.fldDDia
     db.commit()
     db.refresh(entrenamiento)
+    adicionales = db.query(tbl_dato_adicional_plan).filter(
+        tbl_dato_adicional_plan.fkEntrenamiento == entrenamiento.id).all()
+    for adicional in adicionales:
+        db.delete(adicional)
+        db.commit()
+    for adicional in entrenamiento_in.dispositivos:
+        dato = tbl_dato_adicional_plan(
+            fldNPosicion=adicional[0],
+            fldNTipoDato=adicional[1],
+            fkEntrenamiento=entrenamiento.id
+        )
+        db.add(dato)
+        db.commit()
     return entrenamiento
 
 

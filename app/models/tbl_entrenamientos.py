@@ -8,3 +8,10 @@ class tbl_entrenamientos(Base):
     fkPlan = Column(Integer, nullable=True)
     fldSNombre = Column(String, nullable=True)
     fkPadre = Column(Integer, nullable=True)
+
+
+class tbl_dato_adicional_plan(Base):
+    id = Column(Integer, primary_key=True, index=True)
+    fldNPosicion = Column(Integer, nullable=False)
+    fldNTipoDato = Column(Integer, nullable=False)
+    fkEntrenamiento = Column(Integer, nullable=False)

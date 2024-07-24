@@ -167,7 +167,7 @@ def read_planes_detalles_by_id(
         diaAct = actual.date() - row[3]
         dias = row[4] - row[3]
         if dias.days <= 0:
-            completado = (100 * diaAct.days)
+            completado = 0
         else:
             completado = (100 * diaAct.days) / dias.days
         completado = min(completado, 100.0)
@@ -230,7 +230,7 @@ def read_planes_detalles_by_id(
                 adherencia = (t[0] * 100) / row[2]
             entrada = EjercicioDetalle(
                 nombre=row[1],
-                adherencia=(float(adherencia)*100)/progresoTot,
+                adherencia=(float(adherencia))/progresoTot,
                 id=row[0],
             )
             ejercicios.append(entrada)
