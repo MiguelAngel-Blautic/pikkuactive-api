@@ -67,7 +67,9 @@ def read_bloques_by_id_detalle(
             id=bloque.id,
             adherencia=round(mean(adherencias)),
             items=series,
-            tipo=3
+            tipo=3,
+            completo=0,
+            nombre=""
         ))
     return res
 

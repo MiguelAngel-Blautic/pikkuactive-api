@@ -59,7 +59,9 @@ def read_series_by_id_detalle(
             id=serie.id,
             adherencia=round(mean(adherencias)),
             items=ejercicios,
-            tipo=4
+            tipo=4,
+            completo=0,
+            nombre=""
         ))
     return res
 

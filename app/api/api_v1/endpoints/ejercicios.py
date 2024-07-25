@@ -116,7 +116,9 @@ def read_ejercicios_by_id_serie_detalle(
             id=ejercicio.id,
             adherencia=adherencia,
             items=[],
-            tipo=5
+            tipo=5,
+            completo=0,
+            nombre=""
         ))
     return res
 

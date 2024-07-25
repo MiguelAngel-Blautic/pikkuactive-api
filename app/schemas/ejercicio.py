@@ -53,6 +53,8 @@ class EjercicioDetalles(BaseModel):
     fkModelo: Optional[int]
     fldSToken: Optional[str]
     items: List['EjercicioDetalles']
+    completo: int
+    nombre: str
 
 
 EjercicioDetalles.update_forward_refs()

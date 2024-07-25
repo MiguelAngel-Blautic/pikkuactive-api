@@ -126,7 +126,9 @@ def read_entrenamientos_by_id_detalle(
             id=entrenamiento.id,
             adherencia=round(mean(adherencias)),
             items=bloques,
-            tipo=2
+            tipo=2,
+            completo=0,
+            nombre=""
         ))
     return res
 
