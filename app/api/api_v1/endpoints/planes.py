@@ -203,7 +203,9 @@ def read_planes_by_id_detalle(
             id=plan.id,
             adherencia=round(mean(adherencias)),
             items=entrenamientos,
-            tipo=1
+            tipo=1,
+            completo=0,
+            nombre=plan.fldSNombre
         ))
     return res
 
