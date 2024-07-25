@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from statistics import mean
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -10,14 +11,14 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints import planes, bloques
-from app.api.api_v1.endpoints.bloques import read_bloques_by_id, read_valores_bloques
+from app.api.api_v1.endpoints.bloques import read_bloques_by_id, read_valores_bloques, read_bloques_by_id_detalle
 from app.api.api_v1.endpoints.ejercicios import read_ejercicios_by_id
 from app.api.api_v1.endpoints.series import read_series_by_id
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos, tbl_bloques, tbl_series, tbl_ejercicios, \
     tbl_dato_adicional_plan
 from app.schemas import ResumenEstadistico
-from app.schemas.ejercicio import Resultado
+from app.schemas.ejercicio import Resultado, EjercicioDetalles
 
 router = APIRouter()
 
@@ -94,6 +95,39 @@ def read_valores_entrenamiento(
             bloques = read_valores_bloques(db=db, entrene=s.id)
             adh = sum(b.adherencia for b in bloques) / len(bloques)
             res.append(Resultado(id=s.id, nombre=s.fldSNombre, adherencia=adh, completo=100))
+    return res
+
+
+@router.get("/detail/calendar/")
+def read_entrenamientos_by_id_detalle(
+        id: int,
+        dia: datetime,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = []
+    entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPlan == id).filter(tbl_entrenamientos.fldDDia == dia).all()
+    for entrenamiento in entrenamientos:
+        if not entrenamiento:
+            raise HTTPException(status_code=404, detail="The entrenamiento doesn't exist")
+        adherencias = []
+        bloques = read_bloques_by_id_detalle(entrenamiento.id, db)
+        for bloque in bloques:
+            adherencias.append(bloque.adherencia)
+        res.append(EjercicioDetalles(
+            fldNOrden=0,
+            fldNDescanso=0,
+            fldNRepeticiones=0,
+            fldNDuracion=0,
+            fldNDuracionEfectiva=0,
+            fldFVelocidad=0,
+            fkModelo=0,
+            fldSToken="",
+            id=entrenamiento.id,
+            adherencia=round(mean(adherencias)),
+            items=bloques,
+            tipo=2
+        ))
     return res
 
 

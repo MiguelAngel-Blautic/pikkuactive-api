@@ -27,15 +27,35 @@ class EjercicioCreate(EjercicioBase):
 class EjercicioUpdate(EjercicioBase):
     pass
 
+
 class Ejercicio(EjercicioBase):
     fkSerie: int
     fldNOrden: int
     id: int
+
     class Config:
         orm_mode = True
 
+
 class EjercicioTipos(Ejercicio):
     tipodatos: List[RegistroEjercicioDB]
+
+
+class EjercicioDetalles(BaseModel):
+    tipo: int
+    adherencia: int
+    fldNOrden: int
+    id: int
+    fldNDescanso: int
+    fldNRepeticiones: Optional[int]
+    fldNDuracion: Optional[int]
+    fldFVelocidad: Optional[float]
+    fkModelo: Optional[int]
+    fldSToken: Optional[str]
+    items: List['EjercicioDetalles']
+
+
+EjercicioDetalles.update_forward_refs()
 
 
 class Resultado(BaseModel):

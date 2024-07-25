@@ -1,4 +1,5 @@
 from datetime import datetime
+from statistics import mean
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -10,11 +11,11 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints import entrenamientos, series
-from app.api.api_v1.endpoints.series import read_valores_series
+from app.api.api_v1.endpoints.series import read_valores_series, read_series_by_id_detalle
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_bloques, tbl_entrenamientos
 from app.schemas import ResumenEstadistico
-from app.schemas.ejercicio import Resultado
+from app.schemas.ejercicio import Resultado, EjercicioDetalles
 
 router = APIRouter()
 
@@ -39,6 +40,36 @@ def read_bloques_by_entrenamiento(
     else:
         bloques = db.query(tbl_bloques).filter(tbl_bloques.fkCreador == current_user.id).filter(tbl_bloques.fkEntrenamiento == entrenamiento_id).all()
     return bloques
+
+
+def read_bloques_by_id_detalle(
+        id: int,
+        db: Session = Depends(deps.get_db)
+) -> Any:
+    res = []
+    bloques = db.query(tbl_bloques).filter(tbl_bloques.fkEntrenamiento == id).all()
+    for bloque in bloques:
+        if not bloque:
+            raise HTTPException(status_code=404, detail="The bloque doesn't exist")
+        adherencias = []
+        series = read_series_by_id_detalle(bloque.id, db)
+        for serie in series:
+            adherencias.append(serie.adherencia)
+        res.append(EjercicioDetalles(
+            fldNOrden=bloque.fldNOrden,
+            fldNDescanso=bloque.fldNDescanso,
+            fldNRepeticiones=0,
+            fldNDuracion=0,
+            fldNDuracionEfectiva=0,
+            fldFVelocidad=0,
+            fkModelo=0,
+            fldSToken="",
+            id=bloque.id,
+            adherencia=round(mean(adherencias)),
+            items=series,
+            tipo=3
+        ))
+    return res
 
 
 @router.post("/list", response_model=List[schemas.ResumenEstadistico])

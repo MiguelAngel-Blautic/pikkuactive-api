@@ -14,7 +14,7 @@ from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_bloques, tbl_series, tbl_ejercicios, tbl_entrenamientos
 from app.models.tbl_resultados import tbl_registro_ejercicios, tbl_resultados
 from app.schemas import RegistroEjercicioDB, EjercicioTipos, ResumenEstadistico
-from app.schemas.ejercicio import Resultado
+from app.schemas.ejercicio import Resultado, EjercicioDetalles
 
 router = APIRouter()
 
@@ -90,6 +90,35 @@ def read_ejercicios_by_idDB(
             raise HTTPException(status_code=401, detail="Not enought privileges")
     return ejercicio
 
+def read_ejercicios_by_id_serie_detalle(
+    id: int,
+    db: Session = Depends(deps.get_db)
+) -> Any:
+    res = []
+    ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == id).all()
+    for ejercicio in ejercicios:
+        if not ejercicio:
+            raise HTTPException(status_code=404, detail="The exercise doesn't exist")
+        registroRep = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == ejercicio.id).filter(tbl_registro_ejercicios.fkTipoDato == 2).first()
+        adherencia = 0
+        if registroRep and ejercicio.fldNRepeticiones:
+            results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroRep.id).all()
+            adherencia = len(results) / ejercicio.fldNRepeticiones
+        res.append(EjercicioDetalles(
+            fldNOrden=ejercicio.fldNOrden,
+            fldNDescanso=ejercicio.fldNDescanso,
+            fldNRepeticiones=ejercicio.fldNRepeticiones,
+            fldNDuracion=ejercicio.fldNDuracion,
+            fldFVelocidad=ejercicio.fldFVelocidad,
+            fldFUmbral=ejercicio.fldFUmbral,
+            fkModelo=ejercicio.fkModelo,
+            fldSToken=ejercicio.fldSToken,
+            id=ejercicio.id,
+            adherencia=adherencia,
+            items=[],
+            tipo=5
+        ))
+    return res
 
 @router.get("/{id}", response_model=schemas.EjercicioTipos)
 def read_ejercicios_by_id(

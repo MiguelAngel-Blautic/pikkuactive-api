@@ -1,4 +1,5 @@
 from datetime import datetime
+from statistics import mean
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -10,10 +11,12 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
+from app.api.api_v1.endpoints.entrenamientos import read_entrenamientos_by_id_detalle
 from app.api.api_v1.endpoints.users import read_user_by_id_plataforma
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes
 from app.schemas import ResumenEstadistico, EntrenamientoDetalle, PlanDetalle, EjercicioDetalle
+from app.schemas.ejercicio import EjercicioDetalles
 
 router = APIRouter()
 
@@ -132,6 +135,41 @@ def read_planes_by_user(
 ) -> Any:
     planes = db.query(tbl_planes).filter(tbl_planes.fkCreador == current_user.id).filter(tbl_planes.fkCliente == user_id).all()
     return planes
+
+
+@router.get("/detail/calendar/")
+def read_planes_by_id_detalle(
+        id: int,
+        date: datetime,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = []
+    planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == id).all()
+    for plan in planes:
+        if not plan:
+            raise HTTPException(status_code=404, detail="The plan doesn't exist")
+        adherencias = []
+        entrenamientos = read_entrenamientos_by_id_detalle(plan.id, date, db, current_user)
+        for entrenamiento in entrenamientos:
+            adherencias.append(entrenamiento.adherencia)
+        if len(adherencias) < 1:
+            adherencias = [0]
+        res.append(EjercicioDetalles(
+            fldNOrden=0,
+            fldNDescanso=0,
+            fldNRepeticiones=0,
+            fldNDuracion=0,
+            fldNDuracionEfectiva=0,
+            fldFVelocidad=0,
+            fkModelo=0,
+            fldSToken="",
+            id=plan.id,
+            adherencia=round(mean(adherencias)),
+            items=entrenamientos,
+            tipo=1
+        ))
+    return res
 
 
 @router.get("/{id}", response_model=schemas.Plan)

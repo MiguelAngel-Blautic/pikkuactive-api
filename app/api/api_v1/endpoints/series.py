@@ -1,3 +1,4 @@
+from statistics import mean
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -9,11 +10,11 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints import ejercicios
-from app.api.api_v1.endpoints.ejercicios import read_valores_ejercicios
+from app.api.api_v1.endpoints.ejercicios import read_valores_ejercicios, read_ejercicios_by_id_serie_detalle
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_bloques, tbl_series, tbl_entrenamientos
 from app.schemas import ResumenEstadistico
-from app.schemas.ejercicio import Resultado
+from app.schemas.ejercicio import Resultado, EjercicioDetalles
 
 router = APIRouter()
 
@@ -31,6 +32,36 @@ def read_valores_series(
         res.append(Resultado(id=s.id, nombre=s.fldSDescripcion, adherencia=adh, completo=100))
     return res
 
+
+def read_series_by_id_detalle(
+        id: int,
+        db: Session = Depends(deps.get_db)
+) -> Any:
+    res = []
+    series = db.query(tbl_series).filter(tbl_series.fkBloque == id).all()
+    for serie in series:
+        if not serie:
+            raise HTTPException(status_code=404, detail="The serie doesn't exist")
+        adherencias = []
+        ejercicios = read_ejercicios_by_id_serie_detalle(serie.id, db)
+        for ejer in ejercicios:
+            ejer.adherencia = ejer.adherencia / serie.fldNRepeticiones
+            adherencias.append(ejer.adherencia)
+        res.append(EjercicioDetalles(
+            fldNOrden=serie.fldNOrden,
+            fldNDescanso=serie.fldNDescanso,
+            fldNRepeticiones=serie.fldNRepeticiones,
+            fldNDuracion=0,
+            fldNDuracionEfectiva=0,
+            fldFVelocidad=0,
+            fkModelo=0,
+            fldSToken="",
+            id=serie.id,
+            adherencia=round(mean(adherencias)),
+            items=ejercicios,
+            tipo=4
+        ))
+    return res
 
 @router.post("/list", response_model=List[schemas.ResumenEstadistico])
 def read_series_by_id_bloque(
