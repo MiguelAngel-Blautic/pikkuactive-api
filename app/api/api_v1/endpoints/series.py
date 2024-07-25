@@ -61,7 +61,7 @@ def read_series_by_id_detalle(
             items=ejercicios,
             tipo=4,
             completo=0,
-            nombre=""
+            nombre=serie.fldSDescripcion
         ))
     return res
 

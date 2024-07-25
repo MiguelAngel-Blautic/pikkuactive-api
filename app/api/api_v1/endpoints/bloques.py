@@ -69,7 +69,7 @@ def read_bloques_by_id_detalle(
             items=series,
             tipo=3,
             completo=0,
-            nombre=""
+            nombre=bloque.fldSDescripcion
         ))
     return res
 
