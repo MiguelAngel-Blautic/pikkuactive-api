@@ -137,6 +137,40 @@ def read_planes_by_user(
     return planes
 
 
+@router.get("/detail/user/")
+def read_planes_by_id_detalle_user(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = []
+    planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == id).all()
+    for plan in planes:
+        if not plan:
+            raise HTTPException(status_code=404, detail="The plan doesn't exist")
+        adherencias = []
+        entrenamientos = read_entrenamientos_by_id_detalle(plan.id, None, db, current_user)
+        for entrenamiento in entrenamientos:
+            adherencias.append(entrenamiento.adherencia)
+        if len(adherencias) < 1:
+            adherencias = [0]
+        res.append(EjercicioDetalles(
+            fldNOrden=0,
+            fldNDescanso=0,
+            fldNRepeticiones=0,
+            fldNDuracion=0,
+            fldNDuracionEfectiva=0,
+            fldFVelocidad=0,
+            fkModelo=0,
+            fldSToken="",
+            id=plan.id,
+            adherencia=round(mean(adherencias)),
+            items=entrenamientos,
+            tipo=1
+        ))
+    return res
+
+
 @router.get("/detail/calendar/")
 def read_planes_by_id_detalle(
         id: int,

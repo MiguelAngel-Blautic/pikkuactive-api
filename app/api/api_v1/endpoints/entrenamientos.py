@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from statistics import mean
-from typing import Any, List
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -101,7 +101,7 @@ def read_valores_entrenamiento(
 @router.get("/detail/calendar/")
 def read_entrenamientos_by_id_detalle(
         id: int,
-        dia: datetime,
+        dia: Optional[datetime] = None,
         db: Session = Depends(deps.get_db),
         current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
