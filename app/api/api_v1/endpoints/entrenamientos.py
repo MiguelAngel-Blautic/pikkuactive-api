@@ -128,7 +128,7 @@ def read_entrenamientos_by_id_detalle(
             items=bloques,
             tipo=2,
             completo=0,
-            nombre=""
+            nombre=entrenamiento.fldSNombre
         ))
     return res
 
