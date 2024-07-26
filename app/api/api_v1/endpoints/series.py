@@ -47,6 +47,8 @@ def read_series_by_id_detalle(
         for ejer in ejercicios:
             ejer.adherencia = ejer.adherencia / serie.fldNRepeticiones
             adherencias.append(ejer.adherencia)
+        if len(adherencias) < 1:
+            adherencias = [0]
         res.append(EjercicioDetalles(
             fldNOrden=serie.fldNOrden,
             fldNDescanso=serie.fldNDescanso,
