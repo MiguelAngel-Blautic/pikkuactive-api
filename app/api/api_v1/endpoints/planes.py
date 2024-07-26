@@ -312,9 +312,13 @@ def read_planes_detalles_by_id(
             total = db.execute(sql)
             for t in total:
                 adherencia = (t[0] * 100) / row[2]
+            if progresoTot > 0:
+                adherencia = (float(adherencia))/progresoTot
+            else:
+                adherencia = 0
             entrada = EjercicioDetalle(
                 nombre=row[1],
-                adherencia=(float(adherencia))/progresoTot,
+                adherencia=adherencia,
                 id=row[0],
             )
             ejercicios.append(entrada)
