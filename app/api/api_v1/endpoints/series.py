@@ -45,7 +45,10 @@ def read_series_by_id_detalle(
         adherencias = []
         ejercicios = read_ejercicios_by_id_serie_detalle(serie.id, db)
         for ejer in ejercicios:
-            ejer.adherencia = ejer.adherencia / serie.fldNRepeticiones
+            if serie.fldNRepeticiones > 1:
+                ejer.adherencia = ejer.adherencia / serie.fldNRepeticiones
+            else:
+                ejer.adherencia = 0
             adherencias.append(ejer.adherencia)
         if len(adherencias) < 1:
             adherencias = [0]
