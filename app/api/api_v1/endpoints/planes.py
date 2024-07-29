@@ -311,7 +311,10 @@ def read_planes_detalles_by_id(
                     where te.fkModelo=""" + str(row[0]) + """ and ten.fkPlan=""" + str(plan.id) + """ and tre.fkTipoDato = 2;""")
             total = db.execute(sql)
             for t in total:
-                adherencia = (t[0] * 100) / row[2]
+                if(row[2] == 0):
+                    adherencia = 0
+                else:
+                    adherencia = (t[0] * 100) / row[2]
             if progresoTot > 0:
                 adherencia = (float(adherencia))/progresoTot
             else:
