@@ -9,6 +9,7 @@ from app.schemas import RegistroEjercicio, RegistroEjercicioDB
 class EjercicioBase(BaseModel):
     fldNDescanso: int
     fldNRepeticiones: Optional[int]
+    fldNDistancia: Optional[int]
     fldNDuracion: Optional[int]
     fldNDuracionEfectiva: Optional[int]
     fldFVelocidad: Optional[float]
@@ -49,6 +50,7 @@ class EjercicioDetalles(BaseModel):
     fldNDescanso: int
     fldNRepeticiones: Optional[int]
     fldNDuracion: Optional[int]
+    fldNDistancia: Optional[int]
     fldFVelocidad: Optional[float]
     fkModelo: Optional[int]
     fldSToken: Optional[str]

@@ -61,6 +61,7 @@ def read_ejercicios_by_serie(
             fldFUmbral=e.fldFUmbral,
             fkModelo=e.fkModelo,
             fldSToken=e.fldSToken,
+            fldNDistancia=e.fldNDistancia,
             id=e.id
         ))
         tipodatos = []
@@ -115,6 +116,7 @@ def read_ejercicios_by_id_serie_detalle(
             fldSToken=ejercicio.fldSToken,
             id=ejercicio.id,
             adherencia=adherencia,
+            fldNDistancia=ejercicio.fldNDistancia,
             items=[],
             tipo=5,
             completo=0,
@@ -160,6 +162,7 @@ def read_ejercicios_by_id(
         fldFUmbral=ejercicio.fldFUmbral,
         fkModelo=ejercicio.fkModelo,
         fldSToken=ejercicio.fldSToken,
+        fldNDistancia=ejercicio.fldNDistancia,
         id=ejercicio.id
     )
     return res
@@ -380,6 +383,7 @@ def create_ejercicio(
                         fldFVelocidad=ejercicio_in.fldFVelocidad,
                         fldFUmbral=ejercicio_in.fldFUmbral,
                         fkModelo=ejercicio_in.fkModelo,
+                        fldNDistancia=ejercicio_in.fldNDistancia,
                         fldSToken=ejercicio_in.fldSToken)
     db.add(newEjercicio)
     db.commit()
@@ -418,6 +422,7 @@ def update_ejercicio(
     ejercicio.fldFUmbral = ejercicio_in.fldFUmbral
     ejercicio.fkModelo = ejercicio_in.fkModelo
     ejercicio.fldSToken = ejercicio_in.fldSToken
+    ejercicio.fldNDistancia = ejercicio_in.fldNDistancia
     db.commit()
     db.refresh(ejercicio)
     return ejercicio
@@ -484,6 +489,7 @@ def clonar(
                             fldFUmbral=e.fldFUmbral,
                             fldNOrden=e.fldNOrden,
                             fkModelo=e.fkModelo,
+                            fldNDistancia=e.fldNDistancia,
                             fkCreador=e.fkCreador,
                             fldSToken=e.fldSToken,
                             fkPadre=e.id)
