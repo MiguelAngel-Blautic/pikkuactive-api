@@ -55,6 +55,8 @@ def read_bloques_by_id_detalle(
         series = read_series_by_id_detalle(bloque.id, db)
         for serie in series:
             adherencias.append(serie.adherencia)
+        if len(adherencias) < 1:
+            adherencias.append(0)
         res.append(EjercicioDetalles(
             fldNOrden=bloque.fldNOrden,
             fldNDescanso=bloque.fldNDescanso,
