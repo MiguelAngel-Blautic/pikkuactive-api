@@ -114,6 +114,8 @@ def read_entrenamientos_by_id_detalle(
         bloques = read_bloques_by_id_detalle(entrenamiento.id, db)
         for bloque in bloques:
             adherencias.append(bloque.adherencia)
+        if len(adherencias) < 1:
+            adherencias = [0]
         res.append(EjercicioDetalles(
             fldNOrden=0,
             fldNDescanso=0,
