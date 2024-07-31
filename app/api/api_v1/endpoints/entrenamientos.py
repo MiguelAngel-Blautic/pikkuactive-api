@@ -46,6 +46,7 @@ def read_entrenamientos(
             id = ent.id,
             fldSNombre = ent.fldSNombre
         ))
+    return res
 
 
 @router.post("/list", response_model=List[schemas.ResumenEstadistico])
