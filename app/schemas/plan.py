@@ -36,7 +36,7 @@ class EntrenamientoDetalle(BaseModel):
 
 class EjercicioDetalle(BaseModel):
     nombre: str
-    id: int
+    id: Optional[int]
     adherencia: float
 
 class PlanDetalle(BaseModel):
