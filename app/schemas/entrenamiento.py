@@ -31,6 +31,9 @@ class Entrenamiento(EntrenamientoBase):
     class Config:
         orm_mode = True
 
+class EntrenamientoAvance(Entrenamiento):
+    avance: int = 0
+
 
 class EntrenamientoCompleto(Entrenamiento):
     bloques: List[Bloquecompleto]

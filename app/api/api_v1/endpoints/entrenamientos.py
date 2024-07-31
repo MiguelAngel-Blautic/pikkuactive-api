@@ -19,23 +19,33 @@ from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos, tb
     tbl_dato_adicional_plan
 from app.schemas import ResumenEstadistico
 from app.schemas.ejercicio import Resultado, EjercicioDetalles
+from app.schemas.entrenamiento import EntrenamientoAvance
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.Entrenamiento])
+@router.get("/", response_model=List[schemas.EntrenamientoAvance])
 def read_entrenamientos(
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     if current_user.fkRol == 1:
         entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkCreador == current_user.id).filter(tbl_entrenamientos.fkPlan == None).all()
-        return entrenamientos
     else:
         planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == current_user.id).all()
         entrenamientos = db.query(tbl_entrenamientos).filter(
             tbl_entrenamientos.fkPlan.in_([p.id for p in planes])).all()
-        return entrenamientos
+    res = []
+    for ent in entrenamientos:
+        res.append(EntrenamientoAvance(
+            avance = 0,
+            fkPlan = ent.fkPlan,
+            fkPadre = ent.fkPadre,
+            fkCreador = ent.fkCreador,
+            fldDDia = ent.fldDDia,
+            id = ent.id,
+            fldSNombre = ent.fldSNombre
+        ))
 
 
 @router.post("/list", response_model=List[schemas.ResumenEstadistico])

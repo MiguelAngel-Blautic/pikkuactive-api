@@ -5,4 +5,4 @@ from .resultados import RegistroEjercicio, RegistroEjercicioDB, TipoDato, Result
 from .ejercicio import Ejercicio, EjercicioCreate, EjercicioUpdate, EjercicioTipos
 from .serie import Serie, SerieCreate, SerieUpdate, Seriecompleta
 from .bloque import Bloque, BloqueCreate, BloqueUpdate, Bloquecompleto
-from .entrenamiento import Entrenamiento, EntrenamientoCreate, EntrenamientoUpdate, EntrenamientoCompleto
+from .entrenamiento import Entrenamiento, EntrenamientoCreate, EntrenamientoUpdate, EntrenamientoCompleto, EntrenamientoAvance
