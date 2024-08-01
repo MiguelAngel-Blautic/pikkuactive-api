@@ -11,7 +11,7 @@ from app import crud, models, schemas
 from app.api import deps
 from app.api.deps import reusable_oauth2
 from app.core.config import settings
-from app.models import tbl_user, tbl_entrena, tbl_ejercicios, tbl_series, tbl_entrenamientos, tbl_bloques, tbl_planes
+from app.models import tbl_user, tbl_entrena, tbl_ejercicios
 from app.schemas.user import UserDetails
 from app.core import security
 from jose import jwt
@@ -233,11 +233,6 @@ def read_user_by_id_list(
         user = db.query(tbl_user).filter(tbl_user.idPlataforma == user_id).first()
         if not user:
             continue
-        ejercicios_tot = (db.query(tbl_ejercicios.fldNRepeticiones, tbl_series.fldNRepeticiones, tbl_entrenamientos.fldDDia).
-                          join(tbl_bloques, tbl_series.fkBloque == tbl_bloques.id).join(tbl_planes, tbl_planes.id == tbl_entrenamientos.fkPlan).
-                          filter(tbl_ejercicios.fkSerie == tbl_series.id).
-                          filter(tbl_bloques.fkEntrenamiento == tbl_entrenamientos.id).
-                          filter(tbl_planes.fkCliente == user.id).filter(tbl_entrenamientos.fldDDia is not None).all())
         response.append(UserDetails(fldSEmail=user.fldSEmail,
                            id=user.id,
                            fkRol=user.fkRol,
