@@ -246,9 +246,13 @@ def read_planes_detalles_by_id(
         dias = db.query(tbl_entrenamientos.fldDDia).filter(tbl_entrenamientos.fkPadre == entDb.id).distinct()
         dias = [d.fldDDia for d in dias]
         listaDias = listaDias + dias
+        if mean(completos) > 0:
+            adh1 = mean(adherencias) / mean(completos)
+        else:
+            adh1 = 0
         entrenamientos.append(EntrenamientoDetalle(
             nombre=entDb.fldSNombre,
-            adherencia=mean(adherencias),
+            adherencia=adh1,
             progreso=mean(completos),
             id=entDb.id,
             fechas=dias
