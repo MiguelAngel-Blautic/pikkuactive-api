@@ -232,10 +232,11 @@ def read_planes_detalles_by_id(
     entrenamientos = []
     entrenamientosDb = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPlan == id).filter(
         tbl_entrenamientos.fldDDia == None).all()
+    results = read_entrenamientos_by_id_detalle(id, None, db, current_user)
     for entDb in entrenamientosDb:
-        results = read_entrenamientos_by_id_detalle(entDb.id, None, db, current_user)
-        adherencias = [r.adherencia for r in results]
-        completos = [r.completo for r in results]
+        resultsFilter = [r for r in results if r.id == entDb.id]
+        adherencias = [r.adherencia for r in resultsFilter]
+        completos = [r.completo for r in resultsFilter]
         if len(adherencias) < 1:
             adherencias = [0]
         if len(completos) < 1:
