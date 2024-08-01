@@ -12,7 +12,6 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints.entrenamientos import read_entrenamientos_by_id_detalle
-from app.api.api_v1.endpoints.users import read_user_by_id_plataforma
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos, tbl_ejercicios, tbl_series, tbl_bloques
 from app.schemas import ResumenEstadistico, EntrenamientoDetalle, PlanDetalle, EjercicioDetalle
@@ -282,7 +281,7 @@ def create_plan_plataforma(
     """
     Create new plan
     """
-    user = read_user_by_id_plataforma(user_id=plan_in.fkCliente, db=db, current_user=current_user)
+    user = db.query(tbl_user).filter(tbl_user.idPlataforma == plan_in.fkCliente).first()
     plan_in.fkCliente = user.id
     return create_plan(db=db, plan_in=plan_in, current_user=current_user)
 
