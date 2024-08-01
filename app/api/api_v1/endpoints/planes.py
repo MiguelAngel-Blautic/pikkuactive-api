@@ -149,11 +149,15 @@ def read_planes_by_id_detalle_user(
         if not plan:
             raise HTTPException(status_code=404, detail="The plan doesn't exist")
         adherencias = []
+        completos = []
         entrenamientos = read_entrenamientos_by_id_detalle(plan.id, None, db, current_user)
         for entrenamiento in entrenamientos:
             adherencias.append(entrenamiento.adherencia)
+            completos.append(entrenamiento.completo)
         if len(adherencias) < 1:
             adherencias = [0]
+        if len(completos) < 1:
+            completos = [0]
         res.append(EjercicioDetalles(
             fldNOrden=0,
             fldNDescanso=0,
@@ -164,10 +168,10 @@ def read_planes_by_id_detalle_user(
             fkModelo=0,
             fldSToken="",
             id=plan.id,
-            adherencia=round(mean(adherencias)),
+            adherencia=mean(adherencias),
             items=entrenamientos,
             tipo=1,
-            completo=0,
+            completo=mean(completos),
             nombre=plan.fldSNombre
         ))
     return res
@@ -186,11 +190,15 @@ def read_planes_by_id_detalle(
         if not plan:
             raise HTTPException(status_code=404, detail="The plan doesn't exist")
         adherencias = []
+        completos = []
         entrenamientos = read_entrenamientos_by_id_detalle(plan.id, date, db, current_user)
         for entrenamiento in entrenamientos:
             adherencias.append(entrenamiento.adherencia)
+            completos.append(entrenamiento.completo)
         if len(adherencias) < 1:
             adherencias = [0]
+        if len(completos) < 1:
+            completos = [0]
         res.append(EjercicioDetalles(
             fldNOrden=0,
             fldNDescanso=0,
@@ -204,7 +212,7 @@ def read_planes_by_id_detalle(
             adherencia=round(mean(adherencias)),
             items=entrenamientos,
             tipo=1,
-            completo=0,
+            completo=round(mean(completos)),
             nombre=plan.fldSNombre
         ))
     return res

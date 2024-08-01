@@ -93,19 +93,32 @@ from tbl_ejercicios te
     return response
 
 
+@router.post("/detalles_2/")
 def read_valores_entrenamiento(
     *,
     db: Session = Depends(deps.get_db),
     plan: int,
 ) -> Any:
     res = []
-    entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPadre is None).filter(tbl_entrenamientos.fkPlan == plan).all()
+    entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fldDDia == None).filter(tbl_entrenamientos.fkPlan == plan).all()
     for e in entrenamientos:
+        adhs = []
         subentrenes = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPadre == e.id).all()
         for s in subentrenes:
             bloques = read_valores_bloques(db=db, entrene=s.id)
-            adh = sum(b.adherencia for b in bloques) / len(bloques)
-            res.append(Resultado(id=s.id, nombre=s.fldSNombre, adherencia=adh, completo=100))
+            adhs.append(sum(b.adherencia for b in bloques) / len(bloques))
+        if(len(subentrenes) > 0):
+            primero = min([s.fldDDia for s in subentrenes])
+            ultimo = max([s.fldDDia for s in subentrenes])
+            if (ultimo - primero).days > 0:
+                duracion = (datetime.today().date() - primero).days / max(1, (ultimo-primero).days)
+            else:
+                duracion = 0
+        else:
+            duracion = 0
+        if len(adhs) < 1:
+            adhs = [0]
+        res.append(Resultado(id=s.id, nombre=s.fldSNombre, adherencia=mean(adhs), completo=duracion))
     return res
 
 
@@ -122,11 +135,22 @@ def read_entrenamientos_by_id_detalle(
         if not entrenamiento:
             raise HTTPException(status_code=404, detail="The entrenamiento doesn't exist")
         adherencias = []
-        bloques = read_bloques_by_id_detalle(entrenamiento.id, db)
+        if dia == None:
+            generico = 1
+        else:
+            generico = 0
+        bloques = read_bloques_by_id_detalle(entrenamiento.id, generico, db)
         for bloque in bloques:
             adherencias.append(bloque.adherencia)
         if len(adherencias) < 1:
             adherencias = [0]
+        if entrenamiento.fldDDia != None:
+            if entrenamiento.fldDDia < datetime.today():
+                completo = 1
+            else:
+                completo = 0
+        else:
+            completo = 0
         res.append(EjercicioDetalles(
             fldNOrden=0,
             fldNDescanso=0,
@@ -137,10 +161,10 @@ def read_entrenamientos_by_id_detalle(
             fkModelo=0,
             fldSToken="",
             id=entrenamiento.id,
-            adherencia=round(mean(adherencias)),
+            adherencia=mean(adherencias),
             items=bloques,
             tipo=2,
-            completo=0,
+            completo=completo,
             nombre=entrenamiento.fldSNombre
         ))
     return res

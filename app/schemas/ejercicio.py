@@ -65,5 +65,5 @@ EjercicioDetalles.update_forward_refs()
 class Resultado(BaseModel):
     nombre: str
     adherencia: int
-    completo: int
+    completo: float
     id: int

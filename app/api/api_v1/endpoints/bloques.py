@@ -44,6 +44,7 @@ def read_bloques_by_entrenamiento(
 
 def read_bloques_by_id_detalle(
         id: int,
+        generico: int,
         db: Session = Depends(deps.get_db)
 ) -> Any:
     res = []
@@ -52,7 +53,7 @@ def read_bloques_by_id_detalle(
         if not bloque:
             raise HTTPException(status_code=404, detail="The bloque doesn't exist")
         adherencias = []
-        series = read_series_by_id_detalle(bloque.id, db)
+        series = read_series_by_id_detalle(bloque.id, generico, db)
         for serie in series:
             adherencias.append(serie.adherencia)
         if len(adherencias) < 1:
@@ -67,7 +68,7 @@ def read_bloques_by_id_detalle(
             fkModelo=0,
             fldSToken="",
             id=bloque.id,
-            adherencia=round(mean(adherencias)),
+            adherencia=mean(adherencias),
             items=series,
             tipo=3,
             completo=0,

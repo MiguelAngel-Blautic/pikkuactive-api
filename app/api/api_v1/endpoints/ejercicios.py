@@ -1,4 +1,5 @@
 from datetime import datetime
+from statistics import mean
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -93,18 +94,32 @@ def read_ejercicios_by_idDB(
 
 def read_ejercicios_by_id_serie_detalle(
     id: int,
+    generico: int,
     db: Session = Depends(deps.get_db)
 ) -> Any:
     res = []
     ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == id).all()
     for ejercicio in ejercicios:
-        if not ejercicio:
-            raise HTTPException(status_code=404, detail="The exercise doesn't exist")
-        registroRep = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == ejercicio.id).filter(tbl_registro_ejercicios.fkTipoDato == 2).first()
-        adherencia = 0
-        if registroRep and ejercicio.fldNRepeticiones:
-            results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroRep.id).all()
-            adherencia = len(results) / ejercicio.fldNRepeticiones
+        if generico == 0:
+            registroRep = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == ejercicio.id).filter(tbl_registro_ejercicios.fkTipoDato == 2).first()
+            adherencia = 0
+            if registroRep and ejercicio.fldNRepeticiones:
+                results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroRep.id).all()
+                adherencia = len(results) / ejercicio.fldNRepeticiones
+        else:
+            ejerciciosConcretos = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkPadre == ejercicio.id).all()
+            adherencias = []
+            for ec in ejerciciosConcretos:
+                registroRep = db.query(tbl_registro_ejercicios).filter(
+                    tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
+                    tbl_registro_ejercicios.fkTipoDato == 2).first()
+                if registroRep and ec.fldNRepeticiones:
+                    results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroRep.id).all()
+                    adherencias.append(len(results) / ejercicio.fldNRepeticiones)
+            if len(adherencias) >= 1:
+                adherencia = mean(adherencias)
+            else:
+                adherencia = 0
         res.append(EjercicioDetalles(
             fldNOrden=ejercicio.fldNOrden,
             fldNDescanso=ejercicio.fldNDescanso,
@@ -356,7 +371,7 @@ def read_valores_ejercicios(
         if e.fldNRepeticiones is not None:
             dato = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == e.id).filter(tbl_registro_ejercicios.fkTipoDato == 2).first()
             datos = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == dato.id).all()
-            adherencia = (len(datos)*100) / e.fldNRepeticiones
+            adherencia = len(datos) / e.fldNRepeticiones
             res.append(Resultado(id=e.id, adherencia=adherencia, completo=100, nombre=""))
         # res.append(Resultado(id=e.id, nombre=e.fld))
     return res

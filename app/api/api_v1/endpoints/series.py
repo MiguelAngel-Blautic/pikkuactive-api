@@ -28,13 +28,14 @@ def read_valores_series(
     res = []
     for s in series:
         ejercicios = read_valores_ejercicios(db=db, serie=s.id)
-        adh = sum(e.adherencia for e in ejercicios) / len(ejercicios)
+        adh = (sum(e.adherencia for e in ejercicios) / len(ejercicios)) / s.fldNRepeticiones
         res.append(Resultado(id=s.id, nombre=s.fldSDescripcion, adherencia=adh, completo=100))
     return res
 
 
 def read_series_by_id_detalle(
         id: int,
+        generico: int,
         db: Session = Depends(deps.get_db)
 ) -> Any:
     res = []
@@ -43,9 +44,9 @@ def read_series_by_id_detalle(
         if not serie:
             raise HTTPException(status_code=404, detail="The serie doesn't exist")
         adherencias = []
-        ejercicios = read_ejercicios_by_id_serie_detalle(serie.id, db)
+        ejercicios = read_ejercicios_by_id_serie_detalle(serie.id, generico, db)
         for ejer in ejercicios:
-            if serie.fldNRepeticiones > 1:
+            if serie.fldNRepeticiones >= 1:
                 ejer.adherencia = ejer.adherencia / serie.fldNRepeticiones
             else:
                 ejer.adherencia = 0
@@ -62,7 +63,7 @@ def read_series_by_id_detalle(
             fkModelo=0,
             fldSToken="",
             id=serie.id,
-            adherencia=round(mean(adherencias)),
+            adherencia=mean(adherencias),
             items=ejercicios,
             tipo=4,
             completo=0,
