@@ -241,6 +241,6 @@ def read_user_by_id_list(
                            fldSTelefono=user.fldSTelefono,
                            fldSImagen=user.fldSImagen,
                            fldSFullName=user.fldSFullName,
-                           adherencia=0,
-                           completado=0))
+                           adherencia=0.25,
+                           completado=0.75))
     return response
