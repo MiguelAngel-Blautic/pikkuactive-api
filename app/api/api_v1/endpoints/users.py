@@ -1,4 +1,5 @@
 from datetime import datetime
+from statistics import mean
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -9,9 +10,10 @@ from sqlalchemy.orm import Session
 import numpy as np
 from app import crud, models, schemas
 from app.api import deps
+from app.api.api_v1.endpoints.planes import read_planes_by_id_detalle_user
 from app.api.deps import reusable_oauth2
 from app.core.config import settings
-from app.models import tbl_user, tbl_entrena, tbl_ejercicios
+from app.models import tbl_user, tbl_entrena, tbl_ejercicios, tbl_planes
 from app.schemas.user import UserDetails
 from app.core import security
 from jose import jwt
@@ -233,6 +235,19 @@ def read_user_by_id_list(
         user = db.query(tbl_user).filter(tbl_user.idPlataforma == user_id).first()
         if not user:
             continue
+        planes = read_planes_by_id_detalle_user(user.id, db, current_user)
+        completos = []
+        adherencias = []
+        for p in planes:
+            if p.completado > 0:
+                completos.append(p.completado)
+                adherencias.append(p.adherencia)
+        if len(completos) >= 1:
+            completo = mean(completos)
+            adherencia = mean(adherencias)
+        else:
+            completo = 0
+            adherencia = 0
         response.append(UserDetails(fldSEmail=user.fldSEmail,
                            id=user.id,
                            fkRol=user.fkRol,
@@ -241,6 +256,6 @@ def read_user_by_id_list(
                            fldSTelefono=user.fldSTelefono,
                            fldSImagen=user.fldSImagen,
                            fldSFullName=user.fldSFullName,
-                           adherencia=0.25,
-                           completado=0.75))
+                           adherencia=adherencia,
+                           completado=completo))
     return response
