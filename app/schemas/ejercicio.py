@@ -44,7 +44,7 @@ class EjercicioTipos(Ejercicio):
 
 class EjercicioDetalles(BaseModel):
     tipo: int
-    adherencia: int
+    adherencia: float
     fldNOrden: int
     id: int
     fldNDescanso: int
@@ -55,7 +55,7 @@ class EjercicioDetalles(BaseModel):
     fkModelo: Optional[int]
     fldSToken: Optional[str]
     items: List['EjercicioDetalles']
-    completo: int
+    completo: float
     nombre: str
 
 

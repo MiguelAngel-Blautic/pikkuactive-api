@@ -150,7 +150,12 @@ def read_entrenamientos_by_id_detalle(
             else:
                 completo = 0
         else:
-            completo = 0
+            hijos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPadre == entrenamiento.id).all()
+            completos = [1 if h.fldDDia < datetime.today().date() else 0 for h in hijos]
+            if len(completos) >= 1:
+                completo = mean(completos)
+            else:
+                completo = 0
         res.append(EjercicioDetalles(
             fldNOrden=0,
             fldNDescanso=0,
