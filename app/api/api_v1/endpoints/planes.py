@@ -233,13 +233,20 @@ def read_planes_detalles_by_id(
     entrenamientosDb = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPlan == id).filter(
         tbl_entrenamientos.fldDDia == None).all()
     for entDb in entrenamientosDb:
+        results = read_entrenamientos_by_id_detalle(entDb.id, None, db, current_user)
+        adherencias = [r.adherencia for r in results]
+        completos = [r.completo for r in results]
+        if len(adherencias) < 1:
+            adherencias = [0]
+        if len(completos) < 1:
+            completos = [0]
         dias = db.query(tbl_entrenamientos.fldDDia).filter(tbl_entrenamientos.fkPadre == entDb.id).distinct()
         dias = [d.fldDDia for d in dias]
         listaDias = listaDias + dias
         entrenamientos.append(EntrenamientoDetalle(
             nombre=entDb.fldSNombre,
-            adherencia=0,
-            progreso=0,
+            adherencia=mean(adherencias),
+            progreso=mean(completos),
             id=entDb.id,
             fechas=dias
         ))
