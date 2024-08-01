@@ -239,8 +239,8 @@ def read_user_by_id_list(
         completos = []
         adherencias = []
         for p in planes:
-            if p.completado > 0:
-                completos.append(p.completado)
+            if p.completo > 0:
+                completos.append(p.completo)
                 adherencias.append(p.adherencia)
         if len(completos) >= 1:
             completo = mean(completos)
