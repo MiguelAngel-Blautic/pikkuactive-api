@@ -143,6 +143,24 @@ def read_planes_by_id_detalle_user(
         db: Session = Depends(deps.get_db),
         current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
+    return read_planes_by_id_calendar_detail(id, None, db, current_user)
+
+
+@router.get("/detail/calendar/")
+def read_planes_by_id_detalle(
+        id: int,
+        date: datetime,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    return read_planes_by_id_calendar_detail(id, date, db, current_user)
+
+def read_planes_by_id_calendar_detail(
+        id: int,
+        date: Optional[datetime] = None,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
     res = []
     planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == id).all()
     for plan in planes:
@@ -150,7 +168,7 @@ def read_planes_by_id_detalle_user(
             raise HTTPException(status_code=404, detail="The plan doesn't exist")
         adherencias = []
         completos = []
-        entrenamientos = read_entrenamientos_by_id_detalle(plan.id, None, db, current_user)
+        entrenamientos = read_entrenamientos_by_id_detalle(plan.id, date, db, current_user)
         for entrenamiento in entrenamientos:
             adherencias.append(entrenamiento.adherencia)
             completos.append(entrenamiento.completo)
@@ -184,47 +202,6 @@ def read_planes_by_id_detalle_user(
             items=entrenamientos,
             tipo=1,
             completo=completo,
-            nombre=plan.fldSNombre
-        ))
-    return res
-
-
-@router.get("/detail/calendar/")
-def read_planes_by_id_detalle(
-        id: int,
-        date: datetime,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
-) -> Any:
-    res = []
-    planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == id).all()
-    for plan in planes:
-        if not plan:
-            raise HTTPException(status_code=404, detail="The plan doesn't exist")
-        adherencias = []
-        completos = []
-        entrenamientos = read_entrenamientos_by_id_detalle(plan.id, date, db, current_user)
-        for entrenamiento in entrenamientos:
-            adherencias.append(entrenamiento.adherencia)
-            completos.append(entrenamiento.completo)
-        if len(adherencias) < 1:
-            adherencias = [0]
-        if len(completos) < 1:
-            completos = [0]
-        res.append(EjercicioDetalles(
-            fldNOrden=0,
-            fldNDescanso=0,
-            fldNRepeticiones=0,
-            fldNDuracion=0,
-            fldNDuracionEfectiva=0,
-            fldFVelocidad=0,
-            fkModelo=0,
-            fldSToken="",
-            id=plan.id,
-            adherencia=round(mean(adherencias)),
-            items=entrenamientos,
-            tipo=1,
-            completo=round(mean(completos)),
             nombre=plan.fldSNombre
         ))
     return res
