@@ -276,12 +276,16 @@ def read_planes_detalles_by_id(
     if len(completosTot) < 1:
         completosTot = [0]
         adherenciaTot = [0]
+    if mean(completosTot) > 0:
+        adh = mean(adherenciaTot) / mean(completosTot)
+    else:
+        adh = 0
     return PlanDetalle(
         nombre = plan.fldSNombre,
         id = plan.id,
         inicio = inicio,
         fin = fin,
-        adherencia = mean(adherenciaTot),
+        adherencia = adh,
         progreso = mean(completosTot),
         entrenamientos = entrenamientos,
         ejercicios = ejercicios)
