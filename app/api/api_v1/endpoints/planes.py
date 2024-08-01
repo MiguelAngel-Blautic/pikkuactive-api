@@ -158,6 +158,18 @@ def read_planes_by_id_detalle_user(
             adherencias = [0]
         if len(completos) < 1:
             completos = [0]
+        completo = mean(completos)
+        adherencia = mean(adherencias)
+        if completo > 0:
+            adherencia /= completo
+            for ent in entrenamientos:
+                ent.adherencia /= completo
+                for bloq in ent.items:
+                    bloq.adherencia /= completo
+                    for ser in bloq.items:
+                        ser.adherencia /= completo
+                        for ejer in ser.items:
+                            ejer.adherencia /= completo
         res.append(EjercicioDetalles(
             fldNOrden=0,
             fldNDescanso=0,
@@ -168,10 +180,10 @@ def read_planes_by_id_detalle_user(
             fkModelo=0,
             fldSToken="",
             id=plan.id,
-            adherencia=mean(adherencias),
+            adherencia=adherencia,
             items=entrenamientos,
             tipo=1,
-            completo=mean(completos),
+            completo=completo,
             nombre=plan.fldSNombre
         ))
     return res
