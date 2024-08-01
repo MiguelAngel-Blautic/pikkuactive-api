@@ -145,7 +145,7 @@ def read_entrenamientos_by_id_detalle(
         if len(adherencias) < 1:
             adherencias = [0]
         if entrenamiento.fldDDia != None:
-            if entrenamiento.fldDDia < datetime.today():
+            if entrenamiento.fldDDia < datetime.today().date():
                 completo = 1
             else:
                 completo = 0
