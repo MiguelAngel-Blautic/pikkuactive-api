@@ -224,6 +224,8 @@ def read_planes_detalles_by_id(
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
+    completosTot = []
+    adherenciaTot = []
     plan = db.query(tbl_planes).filter(tbl_planes.fkCreador == current_user.id).filter(tbl_planes.id == id).first()
     if not plan:
         raise HTTPException(status_code=404, detail="The plan doesn't exist")
@@ -251,6 +253,9 @@ def read_planes_detalles_by_id(
             id=entDb.id,
             fechas=dias
         ))
+        if 0 < mean(completos) < 1:
+            completosTot.append(mean(completos))
+            adherenciaTot.append(mean(adherencias))
     ejercicios = []
     ejerciciosDb = (db.query(tbl_ejercicios.fkModelo, tbl_ejercicios.fldSToken).join(tbl_series, tbl_ejercicios.fkSerie == tbl_series.id).
                     join(tbl_bloques, tbl_series.fkBloque == tbl_bloques.id).
@@ -268,13 +273,16 @@ def read_planes_detalles_by_id(
     else:
         inicio = min(listaDias)
         fin = max(listaDias)
+    if len(completosTot) < 1:
+        completosTot = [0]
+        adherenciaTot = [0]
     return PlanDetalle(
         nombre = plan.fldSNombre,
         id = plan.id,
         inicio = inicio,
         fin = fin,
-        adherencia = 0,
-        progreso = 0,
+        adherencia = mean(adherenciaTot),
+        progreso = mean(completosTot),
         entrenamientos = entrenamientos,
         ejercicios = ejercicios)
 
