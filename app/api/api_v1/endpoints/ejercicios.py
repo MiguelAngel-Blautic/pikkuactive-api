@@ -202,7 +202,7 @@ from tbl_ejercicios te
     adherencia = 0
     for row in res:
         sql = text("""
-        SELECT count(*)
+        SELECT sum(tr.fldFValor)
             from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
             where te.fkPadre=""" + str(row[0]) + """ and tre.fkTipoDato = 2;""")
         total = db.execute(sql)
