@@ -50,6 +50,8 @@ def read_ejercicios_by_serie(
         tipos = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == e.id).all()
         for t in tipos:
             tipodatos.append(RegistroEjercicioDB(fkEjercicio=t.fkEjercicio, id=t.id, fkTipoDato=t.fkTipoDato))
+        if e.fkModelo == 0:
+            e.fkModelo = None
         res.append(EjercicioTipos(
             tipodatos=tipodatos,
             fkSerie=e.fkSerie,
