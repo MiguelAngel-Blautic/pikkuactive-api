@@ -201,7 +201,7 @@ def read_user_by_id(
             dias = row[3] - row[2]
             completado = (100 * diaAct.days) / dias.days
             sql = text("""
-            SELECT count(*)
+            SELECT sum(tr.fldFValor)
                 from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
                 join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
                 join tbl_planes tp on (tp.id = ten.fkPlan) where tp.id=""" + str(

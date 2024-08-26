@@ -115,7 +115,7 @@ def read_ejercicios_by_id_serie_detalle(
                     tbl_registro_ejercicios.fkTipoDato == 2).first()
                 if registroRep and ec.fldNRepeticiones:
                     results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroRep.id).all()
-                    adherencias.append(len(results) / ejercicio.fldNRepeticiones)
+                    adherencias.append(sum(r.fldFValor for r in results) / ejercicio.fldNRepeticiones)
             if len(adherencias) >= 1:
                 adherencia = mean(adherencias)
             else:
