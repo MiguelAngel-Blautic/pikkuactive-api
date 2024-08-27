@@ -573,7 +573,7 @@ def read_model_datas(
                     fldDTimeCreateTime=m.fldDTimeCreateTime,
                     fldSStatus=m.fldSStatus,
                     fldNProgress=m.fldNProgress,
-                    movements=[],
+                    movements=m.movements,
                     devices=devices,
                     versions=[],
                     dispositivos=dispositivos,
