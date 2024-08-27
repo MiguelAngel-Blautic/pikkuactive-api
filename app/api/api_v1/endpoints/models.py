@@ -25,6 +25,7 @@ def read_models(
         skip: int = 0,
         limit: int = 100,
         isDevices: int = 1,
+        complete: int = 1,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -38,87 +39,126 @@ def read_models(
         )
     res = []
     for m in model:
-        versions = []
-        cant = 0
-        for v in m.versions:
-            capturas = db.query(tbl_history).filter(tbl_history.fkOwner == v.id).all()
-
-            versions.append(Version(id=v.id,
-                                    fkOwner=v.fkOwner,
-                                    fldDTimeCreateTime=v.fldDTimeCreateTime,
-                                    fldFAccuracy=v.fldFAccuracy,
-                                    fldNEpoch=v.fldNEpoch,
-                                    fldFLoss=v.fldFLoss,
-                                    fldSOptimizer=v.fldSOptimizer,
-                                    fldFLearningRate=v.fldFLearningRate,
-                                    capturesCount=len(capturas) - cant))
-            cant = len(capturas)
-        dispositivos = []
-        devices = m.devices
-        crearDevices = True
-        posicion = -1
-        nDevices = 0
-        if crearDevices:
-            devices = []
-        for d in m.dispositivos:
-            dispositivos.append(DeviceSensor(
-                id=d.id,
-                fkPosicion=d.fkPosicion,
-                fkSensor=d.fkSensor,
-                fkOwner=d.fkOwner))
-            if crearDevices and d.fkPosicion != posicion:
-                posicion = d.fkPosicion
-                nDevices += 1
-                if d.fkSensor <= 6:
-                    nsensores = 6
-                else:
-                    nsensores = 17
-                pos = db.query(tbl_position).get(d.fkPosicion)
-                devices.append(Device(id=d.id,
-                                      fldNNumberDevice=nDevices,
-                                      fkPosition=posicion,
-                                      fkOwner=d.fkOwner,
-                                      position=Position(fldSName=pos.fldSName, fldSDescription=pos.fldSDescription,
-                                                        id=pos.id),
-                                      fldNSensores=nsensores
-                                      ))
-        if isDevices != 1:
-            devices = [d for d in devices if d.fkPosition != 0]
-        res.append(Model(id=m.id,
-                         fldSName=m.fldSName,
-                         fldSDescription=m.fldSDescription,
-                         fldNDuration=m.fldNDuration,
-                         fldBPublico=m.fldBPublico,
-                         fkCategoria=m.fkCategoria,
-                         fldFPrecio=m.fldFPrecio,
-                         fkTipo=m.fkTipo,
-                         fkOwner=m.fkOwner,
-                         fldDTimeCreateTime=m.fldDTimeCreateTime,
-                         fldSStatus=m.fldSStatus,
-                         fldNProgress=m.fldNProgress,
-                         movements=[Movement(fldSLabel=mm.fldSLabel,
-                                             fldSDescription=mm.fldSDescription,
-                                             id=mm.id,
-                                             fkOwner=mm.fkOwner,
-                                             fldDTimeCreateTime=mm.fldDTimeCreateTime) for mm in m.movements],
-                         devices=[Device(id=d.id,
-                                         fldNNumberDevice=d.fldNNumberDevice,
-                                         fkPosition=d.fkPosition,
-                                         fkOwner=d.fkOwner,
-                                         position=Position(fldSName=d.position.fldSName,
-                                                           fldSDescription=d.position.fldSDescription,
-                                                           id=d.position.id),
-                                         fldNSensores=d.fldNSensores
-                                         ) for d in devices],
-                         versions=versions,
-                         dispositivos=dispositivos,
-                         tuyo=(m.fkOwner == current_user.id),
-                         fldBRegresivo=m.fldBRegresivo,
-                         fldFMinValor=m.fldFMinValor,
-                         fldFMaxValor=m.fldFMaxValor,
-                         fldSNomValor=m.fldSNomValor,
-                         fldSToken=m.fldSToken))
+        res.append(read_model_datas(m=m, user=current_user.id, db=db, complete=complete))
+        # versions = []
+        # cant = 0
+        # for v in m.versions:
+        #     capturas = db.query(tbl_history).filter(tbl_history.fkOwner == v.id).all()
+        #
+        #     versions.append(Version(id=v.id,
+        #                             fkOwner=v.fkOwner,
+        #                             fldDTimeCreateTime=v.fldDTimeCreateTime,
+        #                             fldFAccuracy=v.fldFAccuracy,
+        #                             fldNEpoch=v.fldNEpoch,
+        #                             fldFLoss=v.fldFLoss,
+        #                             fldSOptimizer=v.fldSOptimizer,
+        #                             fldFLearningRate=v.fldFLearningRate,
+        #                             capturesCount=len(capturas) - cant))
+        #     cant = len(capturas)
+        # dispositivos = []
+        # devices = m.devices
+        # crearDevices = True
+        # posicion = -1
+        # nDevices = 0
+        # if crearDevices:
+        #     devices = []
+        # for d in m.dispositivos:
+        #     dispositivos.append(DeviceSensor(
+        #         id=d.id,
+        #         fkPosicion=d.fkPosicion,
+        #         fkSensor=d.fkSensor,
+        #         fkOwner=d.fkOwner))
+        #     if crearDevices and d.fkPosicion != posicion:
+        #         posicion = d.fkPosicion
+        #         nDevices += 1
+        #         if d.fkSensor <= 6:
+        #             nsensores = 6
+        #         else:
+        #             nsensores = 17
+        #         pos = db.query(tbl_position).get(d.fkPosicion)
+        #         devices.append(Device(id=d.id,
+        #                               fldNNumberDevice=nDevices,
+        #                               fkPosition=posicion,
+        #                               fkOwner=d.fkOwner,
+        #                               position=Position(fldSName=pos.fldSName, fldSDescription=pos.fldSDescription,
+        #                                                 id=pos.id),
+        #                               fldNSensores=nsensores
+        #                               ))
+        # if isDevices != 1:
+        #     devices = [d for d in devices if d.fkPosition != 0]
+        # res.append(Model(id=m.id,
+        #                  fldSName=m.fldSName,
+        #                  fldSDescription=m.fldSDescription,
+        #                  fldNDuration=m.fldNDuration,
+        #                  fldBPublico=m.fldBPublico,
+        #                  fkCategoria=m.fkCategoria,
+        #                  fldFPrecio=m.fldFPrecio,
+        #                  fkTipo=m.fkTipo,
+        #                  fkOwner=m.fkOwner,
+        #                  fldDTimeCreateTime=m.fldDTimeCreateTime,
+        #                  fldSStatus=m.fldSStatus,
+        #                  fldNProgress=m.fldNProgress,
+        #                  movements=[Movement(fldSLabel=mm.fldSLabel,
+        #                                      fldSDescription=mm.fldSDescription,
+        #                                      id=mm.id,
+        #                                      fkOwner=mm.fkOwner,
+        #                                      fldDTimeCreateTime=mm.fldDTimeCreateTime) for mm in m.movements],
+        #                  devices=[Device(id=d.id,
+        #                                  fldNNumberDevice=d.fldNNumberDevice,
+        #                                  fkPosition=d.fkPosition,
+        #                                  fkOwner=d.fkOwner,
+        #                                  position=Position(fldSName=d.position.fldSName,
+        #                                                    fldSDescription=d.position.fldSDescription,
+        #                                                    id=d.position.id),
+        #                                  fldNSensores=d.fldNSensores
+        #                                  ) for d in devices],
+        #                  versions=versions,
+        #                  dispositivos=dispositivos,
+        #                  tuyo=(m.fkOwner == current_user.id),
+        #                  fldBRegresivo=m.fldBRegresivo,
+        #                  fldFMinValor=m.fldFMinValor,
+        #                  fldFMaxValor=m.fldFMaxValor,
+        #                  fldSNomValor=m.fldSNomValor,
+        #                  fldSToken=m.fldSToken))
     return res[::-1]
+
+
+@router.get("/{id}", response_model=schemas.Model)
+def read_model(
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        complete: int = 1,
+        current_user: models.tbl_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get model by ID.
+    """
+    m = crud.model.get(db=db, id=id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Model not found")
+    if not (crud.user.is_superuser(current_user) or (m.fkOwner == current_user.id) or (m.fldBPublico == 1)):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    return read_model_datas(m=m, db=db, user=current_user.id, complete=complete)
+
+
+@router.get("/open/{id}", response_model=schemas.Model)
+def read_model_open(
+        *,
+        db: Session = Depends(deps.get_db),
+        id: int,
+        complete: int = 1,
+        token: str
+) -> Any:
+    """
+    Get model by ID.
+    """
+    m = crud.model.get(db=db, id=id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Model not found")
+    if not (m.fldSToken == token):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    return read_model_datas(m=m, db=db, user=0, complete=complete)
 
 
 @router.get("/clone/{id}")
@@ -417,22 +457,6 @@ def delete_model(
     return 1
 
 
-@router.get("/{id}", response_model=schemas.Model)
-def read_model(
-        *,
-        db: Session = Depends(deps.get_db),
-        id: int,
-        current_user: models.tbl_user = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Get model by ID.
-    """
-    m = crud.model.get(db=db, id=id)
-    if not m:
-        raise HTTPException(status_code=404, detail="Model not found")
-    if not (crud.user.is_superuser(current_user) or (m.fkOwner == current_user.id) or (m.fldBPublico == 1)):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
-    return read_model_datas(m=m, db=db, user=current_user.id)
 
 
 @router.put("/sensorimage/")
@@ -453,45 +477,29 @@ def addImageModel(
     return 1
 
 
-@router.get("/open/{id}", response_model=schemas.Model)
-def read_model_open(
-        *,
-        db: Session = Depends(deps.get_db),
-        id: int,
-        token: str
-) -> Any:
-    """
-    Get model by ID.
-    """
-    m = crud.model.get(db=db, id=id)
-    if not m:
-        raise HTTPException(status_code=404, detail="Model not found")
-    if not (m.fldSToken == token):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
-    return read_model_datas(m=m, db=db, user=0)
-
-
 def read_model_datas(
         *,
         m: tbl_model,
         user: int,
-        db: Session
+        db: Session,
+        complete: int
 ) -> Any:
     versions = []
-    cant = 0
-    for v in m.versions:
-        capturas = db.query(tbl_history).filter(tbl_history.fkOwner == v.id).all()
+    if complete == 1:
+        cant = 0
+        for v in m.versions:
+            capturas = db.query(tbl_history).filter(tbl_history.fkOwner == v.id).all()
 
-        versions.append(Version(id=v.id,
-                                fkOwner=v.fkOwner,
-                                fldDTimeCreateTime=v.fldDTimeCreateTime,
-                                fldFAccuracy=v.fldFAccuracy,
-                                fldNEpoch=v.fldNEpoch,
-                                fldFLoss=v.fldFLoss,
-                                fldSOptimizer=v.fldSOptimizer,
-                                fldFLearningRate=v.fldFLearningRate,
-                                capturesCount=len(capturas) - cant))
-        cant = len(capturas)
+            versions.append(Version(id=v.id,
+                                    fkOwner=v.fkOwner,
+                                    fldDTimeCreateTime=v.fldDTimeCreateTime,
+                                    fldFAccuracy=v.fldFAccuracy,
+                                    fldNEpoch=v.fldNEpoch,
+                                    fldFLoss=v.fldFLoss,
+                                    fldSOptimizer=v.fldSOptimizer,
+                                    fldFLearningRate=v.fldFLearningRate,
+                                    capturesCount=len(capturas) - cant))
+            cant = len(capturas)
     dispositivos = []
     devices = m.devices
     crearDevices = True  # len(devices) < 1
@@ -527,40 +535,56 @@ def read_model_datas(
                                   fldNSensores=nsensores,
                                   imagen=imagen
                                   ))
-    img = None
-    if m.fkImagen is not None:
-        imagen = db.query(tbl_imagenes).get(m.fkImagen)
-        if imagen:
-            img = imagen.data
-    vid = None
-    if m.fkVideo is not None:
-        video = db.query(tbl_imagenes).get(m.fkVideo)
-        if video:
-            vid = video.data
-    mod = Model(id=m.id,
-                fldSName=m.fldSName,
-                fldSDescription=m.fldSDescription,
-                fldNDuration=m.fldNDuration,
-                fldBPublico=m.fldBPublico,
-                fkCategoria=m.fkCategoria,
-                fldFPrecio=m.fldFPrecio,
-                fkTipo=m.fkTipo,
-                fkOwner=m.fkOwner,
-                fldDTimeCreateTime=m.fldDTimeCreateTime,
-                fldSStatus=m.fldSStatus,
-                fldNProgress=m.fldNProgress,
-                movements=m.movements,
-                devices=devices,
-                versions=versions[::-1],
-                dispositivos=dispositivos,
-                imagen=m.fldSImage,
-                video=m.fldSVideo,
-                tuyo=(m.fkOwner == user),
-                fldBRegresivo=m.fldBRegresivo,
-                fldFMinValor=m.fldFMinValor,
-                fldFMaxValor=m.fldFMaxValor,
-                fldSNomValor=m.fldSNomValor,
-                fldSToken=m.fldSToken)
+    if complete == 1:
+        mod = Model(id=m.id,
+                    fldSName=m.fldSName,
+                    fldSDescription=m.fldSDescription,
+                    fldNDuration=m.fldNDuration,
+                    fldBPublico=m.fldBPublico,
+                    fkCategoria=m.fkCategoria,
+                    fldFPrecio=m.fldFPrecio,
+                    fkTipo=m.fkTipo,
+                    fkOwner=m.fkOwner,
+                    fldDTimeCreateTime=m.fldDTimeCreateTime,
+                    fldSStatus=m.fldSStatus,
+                    fldNProgress=m.fldNProgress,
+                    movements=m.movements,
+                    devices=devices,
+                    versions=versions[::-1],
+                    dispositivos=dispositivos,
+                    imagen=m.fldSImage,
+                    video=m.fldSVideo,
+                    tuyo=(m.fkOwner == user),
+                    fldBRegresivo=m.fldBRegresivo,
+                    fldFMinValor=m.fldFMinValor,
+                    fldFMaxValor=m.fldFMaxValor,
+                    fldSNomValor=m.fldSNomValor,
+                    fldSToken=m.fldSToken)
+    else:
+        mod = Model(id=m.id,
+                    fldSName=m.fldSName,
+                    fldSDescription=m.fldSDescription,
+                    fldNDuration=m.fldNDuration,
+                    fldBPublico=m.fldBPublico,
+                    fkCategoria=m.fkCategoria,
+                    fldFPrecio=m.fldFPrecio,
+                    fkTipo=m.fkTipo,
+                    fkOwner=m.fkOwner,
+                    fldDTimeCreateTime=m.fldDTimeCreateTime,
+                    fldSStatus=m.fldSStatus,
+                    fldNProgress=m.fldNProgress,
+                    movements=[],
+                    devices=devices,
+                    versions=[],
+                    dispositivos=dispositivos,
+                    imagen="",
+                    video="",
+                    tuyo=(m.fkOwner == user),
+                    fldBRegresivo=m.fldBRegresivo,
+                    fldFMinValor=0,
+                    fldFMaxValor=0,
+                    fldSNomValor=0,
+                    fldSToken=m.fldSToken)
     db.execute("""insert into tbl_consultas (fkModel) VALUES (""" + str(mod.id) + """)""")
     db.commit()
     return mod
