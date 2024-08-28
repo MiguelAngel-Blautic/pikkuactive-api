@@ -32,7 +32,7 @@ class Entrenamiento(EntrenamientoBase):
         orm_mode = True
 
 class EntrenamientoAvance(Entrenamiento):
-    avance: int = 0
+    avance: float = 0
 
 
 class EntrenamientoCompleto(Entrenamiento):

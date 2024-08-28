@@ -39,7 +39,7 @@ def read_entrenamientos(
     for ent in entrenamientos:
         avance = 0
         if ent.fldDDia is not None:
-            ent1 = read_entrenamientos_by_id_detalle(ent.id, ent.fldDDia, db=db, current_user=current_user)
+            ent1 = read_entrenamientos_by_id_detalle(ent.fkPlan, ent.fldDDia, db=db, current_user=current_user)
             adherencias = [e.adherencia for e in ent1]
             if len(adherencias) >= 1:
                 avance = mean(adherencias)
