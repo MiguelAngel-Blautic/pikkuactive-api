@@ -477,6 +477,26 @@ def addImageModel(
     return 1
 
 
+@router.get("/imagen/")
+def readVideoImagen(
+        *,
+        model: int,
+        video: int = 1,
+        imagen: int = 1,
+        db: Session = Depends(deps.get_db)
+) -> Any:
+    modelo = db.query(tbl_model).get(model)
+    if not modelo:
+        raise HTTPException(status_code=404, detail="Model not found")
+    vid = ""
+    img = ""
+    if imagen == 1:
+        img = modelo.fldSImage
+    if video == 1:
+        vid = modelo.fldSVideo
+    return {"imagen": img, "video": vid}
+
+
 def read_model_datas(
         *,
         m: tbl_model,
