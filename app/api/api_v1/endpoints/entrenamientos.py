@@ -34,11 +34,17 @@ def read_entrenamientos(
     else:
         planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == current_user.id).all()
         entrenamientos = db.query(tbl_entrenamientos).filter(
-            tbl_entrenamientos.fkPlan.in_([p.id for p in planes])).all()
+            tbl_entrenamientos.fkPlan.in_([p.id for p in planes])).filter(tbl_entrenamientos.fldDDia >= datetime(datetime.now().year, datetime.now().month, datetime.now().day)).all()
     res = []
     for ent in entrenamientos:
+        avance = 0
+        if ent.fldDDia is not None:
+            ent1 = read_entrenamientos_by_id_detalle(ent.id, ent.fldDDia, db=db, current_user=current_user)
+            adherencias = [e.adherencia for e in ent1]
+            if len(adherencias) >= 1:
+                avance = mean(adherencias)
         res.append(EntrenamientoAvance(
-            avance = 0,
+            avance = avance,
             fkPlan = ent.fkPlan,
             fkPadre = ent.fkPadre,
             fkCreador = ent.fkCreador,
