@@ -146,10 +146,13 @@ def read_entrenamientos_by_id_detalle(
         else:
             generico = 0
         bloques = read_bloques_by_id_detalle(entrenamiento.id, generico, db)
-        for bloque in bloques:
-            adherencias.append(bloque.adherencia)
-        if len(adherencias) < 1:
-            adherencias = [0]
+        duraciones = [b.duracion for b in bloques]
+        durTotal = sum(duraciones)
+        adherencia = 0
+        adherencias = [b.adherencia for b in bloques]
+        if len(adherencias) > 0 and durTotal > 0:
+            for i in range(len(adherencias)):
+                adherencia = adherencia + (adherencias[i] * duraciones[i] / durTotal)
         if entrenamiento.fldDDia != None:
             if entrenamiento.fldDDia < datetime.today().date():
                 completo = 1
@@ -172,7 +175,8 @@ def read_entrenamientos_by_id_detalle(
             fkModelo=0,
             fldSToken="",
             id=entrenamiento.id,
-            adherencia=mean(adherencias),
+            duracion = durTotal,
+            adherencia=adherencia,
             items=bloques,
             tipo=2,
             completo=completo,

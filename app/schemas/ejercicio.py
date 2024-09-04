@@ -47,6 +47,7 @@ class EjercicioDetalles(BaseModel):
     adherencia: float
     fldNOrden: int
     id: int
+    duracion: int
     fldNDescanso: int
     fldNRepeticiones: Optional[int]
     fldNDuracion: Optional[int]
@@ -57,6 +58,17 @@ class EjercicioDetalles(BaseModel):
     items: List['EjercicioDetalles']
     completo: float
     nombre: str
+    fldFHrMean: Optional[float] = None
+    fldFHrGoal: Optional[float] = None
+    fldFTechniqueMean: Optional[float] = None
+    fldFRhythmMean: Optional[float] = None
+    fldFRhythmGoal: Optional[float] = None
+    fldNRepeticionesGoal: Optional[float] = None
+    fldFLossPercMean: Optional[float] = None
+    fldFLossPercGoal: Optional[float] = None
+    fldFDistance: Optional[float] = None
+    fldFDistanceGoal: Optional[float] = None
+    fldNSeries: Optional[float] = None
 
 
 EjercicioDetalles.update_forward_refs()

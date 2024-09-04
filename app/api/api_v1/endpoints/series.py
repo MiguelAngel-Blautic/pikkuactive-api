@@ -45,14 +45,18 @@ def read_series_by_id_detalle(
             raise HTTPException(status_code=404, detail="The serie doesn't exist")
         adherencias = []
         ejercicios = read_ejercicios_by_id_serie_detalle(serie.id, generico, db)
+        duraciones = [e.duracion for e in ejercicios]
+        durTotal = sum(duraciones)
+        adherencia = 0
         for ejer in ejercicios:
             if serie.fldNRepeticiones >= 1:
                 ejer.adherencia = ejer.adherencia / serie.fldNRepeticiones
             else:
                 ejer.adherencia = 0
             adherencias.append(ejer.adherencia)
-        if len(adherencias) < 1:
-            adherencias = [0]
+        if len(adherencias) > 0 and durTotal > 0:
+            for i in range(len(adherencias)):
+                adherencia = adherencia + (adherencias[i] * duraciones[i] / durTotal)
         res.append(EjercicioDetalles(
             fldNOrden=serie.fldNOrden,
             fldNDescanso=serie.fldNDescanso,
@@ -63,7 +67,8 @@ def read_series_by_id_detalle(
             fkModelo=0,
             fldSToken="",
             id=serie.id,
-            adherencia=mean(adherencias),
+            duracion = durTotal,
+            adherencia=adherencia,
             items=ejercicios,
             tipo=4,
             completo=0,

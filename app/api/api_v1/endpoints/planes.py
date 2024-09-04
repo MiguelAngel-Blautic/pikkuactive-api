@@ -201,6 +201,7 @@ def read_planes_by_id_calendar_detail(
             items=entrenamientos,
             tipo=1,
             completo=completo,
+            duracion = 0,
             nombre=plan.fldSNombre
         ))
     return res

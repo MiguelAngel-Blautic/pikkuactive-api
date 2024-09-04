@@ -137,7 +137,10 @@ def read_ejercicios_by_id_serie_detalle(
             items=[],
             tipo=5,
             completo=0,
-            nombre=""
+            nombre="",
+            duracion=ejercicio.fldNDuracion,
+            fldFDistanceGoal=ejercicio.fldNDistancia,
+            fldFRhythmGoal=ejercicio.fldFVelocidad
         ))
     return res
 

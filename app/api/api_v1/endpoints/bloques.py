@@ -52,12 +52,14 @@ def read_bloques_by_id_detalle(
     for bloque in bloques:
         if not bloque:
             raise HTTPException(status_code=404, detail="The bloque doesn't exist")
-        adherencias = []
         series = read_series_by_id_detalle(bloque.id, generico, db)
-        for serie in series:
-            adherencias.append(serie.adherencia)
-        if len(adherencias) < 1:
-            adherencias.append(0)
+        adherencia = 0
+        duraciones = [s.duracion for s in series]
+        durTotal = sum(duraciones)
+        adherencias = [s.adherencia for s in series]
+        if len(adherencias) > 0 and durTotal > 0:
+            for i in range(len(adherencias)):
+                adherencia = adherencia + (adherencias[i] * duraciones[i] / durTotal)
         res.append(EjercicioDetalles(
             fldNOrden=bloque.fldNOrden,
             fldNDescanso=bloque.fldNDescanso,
@@ -68,7 +70,8 @@ def read_bloques_by_id_detalle(
             fkModelo=0,
             fldSToken="",
             id=bloque.id,
-            adherencia=mean(adherencias),
+            duracion = durTotal,
+            adherencia=adherencia,
             items=series,
             tipo=3,
             completo=0,
