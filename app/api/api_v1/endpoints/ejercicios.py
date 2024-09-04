@@ -110,7 +110,10 @@ def read_ejercicios_by_id_serie_detalle(
             adherencia = 0
             if registroRep and ejercicio.fldNRepeticiones:
                 results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroRep.id).all()
-                adherencia = sum([r.fldFValor for r in results]) / ejercicio.fldNRepeticiones
+                if len(results) > 0 :
+                    adherencia = sum([r.fldFValor for r in results]) / ejercicio.fldNRepeticiones
+                else:
+                    adherencia = 0
         else:
             ejerciciosConcretos = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkPadre == ejercicio.id).all()
             adherencias = []
@@ -122,27 +125,35 @@ def read_ejercicios_by_id_serie_detalle(
                 if registroRep:
                     results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroRep.id).all()
                     if ec.fldNRepeticiones:
-                        adhPartial = sum([r.fldFValor for r in results]) / ejercicio.fldNRepeticiones
+                        if len(results) > 0:
+                            adhPartial = sum([r.fldFValor for r in results]) / ejercicio.fldNRepeticiones
+                        else:
+                            adherencia = 0
                 registroDist = db.query(tbl_registro_ejercicios).filter(
                     tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
                     tbl_registro_ejercicios.fkTipoDato == 9).first()
                 if registroDist:
                     results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroDist.id).all()
-                    distancia = max([r.fldFValor for r in results])
+                    if len(results) > 0:
+                        distancia = max([r.fldFValor for r in results])
                     if ec.fldNDistancia:
-                        adhPartial = distancia / ejercicio.fldNDistancia
+                        if ec.fldNDistancia > 0:
+                            if distancia:
+                                adhPartial = distancia / ejercicio.fldNDistancia
                 registroRitm = db.query(tbl_registro_ejercicios).filter(
                     tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
                     tbl_registro_ejercicios.fkTipoDato == 8).first()
                 if registroRitm:
                     results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroRitm.id).all()
-                    ritmo = mean([r.fldFValor for r in results])
+                    if len(results) > 0:
+                        ritmo = mean([r.fldFValor for r in results])
                 registroHr = db.query(tbl_registro_ejercicios).filter(
                     tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
                     tbl_registro_ejercicios.fkTipoDato == 3).first()
                 if registroHr:
                     results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroHr.id).all()
-                    hr = mean([r.fldFValor for r in results])
+                    if len(results) > 0:
+                        hr = mean([r.fldFValor for r in results])
                 adherencias.append(adhPartial)
             if len(adherencias) >= 1:
                 adherencia = mean(adherencias)
