@@ -128,7 +128,7 @@ def read_ejercicios_by_id_serie_detalle(
                         if len(results) > 0:
                             adhPartial = sum([r.fldFValor for r in results]) / ejercicio.fldNRepeticiones
                         else:
-                            adherencia = 0
+                            adhPartial = 0
                 registroDist = db.query(tbl_registro_ejercicios).filter(
                     tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
                     tbl_registro_ejercicios.fkTipoDato == 9).first()
