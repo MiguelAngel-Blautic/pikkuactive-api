@@ -325,23 +325,23 @@ def calcular(
         *,
         db: Session = Depends(deps.get_db)
 ) -> Any:
-    ids_movements = [1723]
+    ids_movements = [1793]
     captures = db.query(tbl_capture).filter(models.tbl_capture.fkOwner.in_(ids_movements)).all()
     res = []
     captura = 0
-    model = tf.keras.models.load_model("/home/miguelangel/PycharmProjects/pikkuactive-api/static/mulR_d657b24c-0e01-11ef-a7f3-0da8a20e2380.h5")
+    model = tf.keras.models.load_model("/home/miguelangel/PycharmProjects/pikkuactive-api/static/ASentadilla.h5")
     for cap in captures:
         captura += 1
         print(captura)
         datos = []
-        for i in range(40):
+        for i in range(20):
             datos.append([])
         for dato in cap.datos:
             datos[dato.fldNSample].append(dato.fldFValor)
         datas = np.array(datos)
-        datas = datas.reshape(1, 40, 6, 1)
+        datas = datas.reshape(1, 20, 36, 1)
         output = model.predict(datas)
-        res.append([output[0][0], output[0][1], output[0][2], cap.id])
+        res.append([output[0][0], output[0][1], cap.id])
     print(res)
 
 
