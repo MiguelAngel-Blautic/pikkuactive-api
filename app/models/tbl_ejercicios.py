@@ -17,3 +17,5 @@ class tbl_ejercicios(Base):
     fkCreador = Column(Integer)
     fldSToken = Column(String)
     fkPadre = Column(Integer)
+    fldNErp = Column(Integer, nullable=True)
+    fldNPeso = Column(Integer, nullable=True)

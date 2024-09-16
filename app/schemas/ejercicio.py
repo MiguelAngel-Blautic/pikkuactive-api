@@ -11,6 +11,8 @@ class EjercicioBase(BaseModel):
     fldNRepeticiones: Optional[int]
     fldNDistancia: Optional[int]
     fldNDuracion: Optional[int]
+    fldNErp: Optional[int]
+    fldNPeso: Optional[int]
     fldNDuracionEfectiva: Optional[int]
     fldFVelocidad: Optional[float]
     fldFUmbral: Optional[float]
@@ -40,6 +42,7 @@ class Ejercicio(EjercicioBase):
 
 class EjercicioTipos(Ejercicio):
     tipodatos: List[RegistroEjercicioDB]
+    finalizado: int = 0
 
 
 class EjercicioDetalles(BaseModel):

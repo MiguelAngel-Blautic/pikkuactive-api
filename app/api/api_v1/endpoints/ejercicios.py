@@ -65,7 +65,9 @@ def read_ejercicios_by_serie(
             fkModelo=e.fkModelo,
             fldSToken=e.fldSToken,
             fldNDistancia=e.fldNDistancia,
-            id=e.id
+            id=e.id,
+            fldNErp=e.fldNErp,
+            fldNPeso=e.fldNPeso
         ))
         tipodatos = []
     return res
@@ -173,7 +175,9 @@ def read_ejercicios_by_id_serie_detalle(
             fldFRhythmGoal=ejercicio.fldFVelocidad,
             fldFRhythmMean=ritmo,
             fldFDistance=distancia,
-            fldFHrMean=hr
+            fldFHrMean=hr,
+            fldNErp=ejercicio.fldNErp,
+            fldNPeso=ejercicio.fldNPeso
             # fldFHrGoal=ejercicio.
         ))
     return res
@@ -202,8 +206,11 @@ def read_ejercicios_by_id(
             raise HTTPException(status_code=401, detail="Not enought privileges")
     tipodatos = []
     tipos = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == ejercicio.id).all()
+    repeticiones = 0
     for t in tipos:
         tipodatos.append(RegistroEjercicioDB(fkEjercicio=t.fkEjercicio, id=t.id, fkTipoDato=t.fkTipoDato))
+        if t.fkTipoDato == 0:
+            repeticiones = len(db.query(tbl_resultados).filter(tbl_resultados.id == t.id).all())
     res = EjercicioTipos(
         tipodatos=tipodatos,
         fkSerie=ejercicio.fkSerie,
@@ -217,7 +224,10 @@ def read_ejercicios_by_id(
         fkModelo=ejercicio.fkModelo,
         fldSToken=ejercicio.fldSToken,
         fldNDistancia=ejercicio.fldNDistancia,
-        id=ejercicio.id
+        id=ejercicio.id,
+        finalizado=repeticiones,
+        fldNErp=ejercicio.fldNErp,
+        fldNPeso=ejercicio.fldNPeso
     )
     return res
 
@@ -438,7 +448,9 @@ def create_ejercicio(
                         fldFUmbral=ejercicio_in.fldFUmbral,
                         fkModelo=ejercicio_in.fkModelo,
                         fldNDistancia=ejercicio_in.fldNDistancia,
-                        fldSToken=ejercicio_in.fldSToken)
+                        fldSToken=ejercicio_in.fldSToken,
+                        fldNErp=ejercicio_in.fldNErp,
+                        fldNPeso=ejercicio_in.fldNPeso)
     db.add(newEjercicio)
     db.commit()
     db.refresh(newEjercicio)
@@ -546,7 +558,9 @@ def clonar(
                             fldNDistancia=e.fldNDistancia,
                             fkCreador=e.fkCreador,
                             fldSToken=e.fldSToken,
-                            fkPadre=e.id)
+                            fkPadre=e.id,
+                            fldNErp=e.fldNErp,
+                            fldNPeso=e.fldNPeso)
         db.add(new)
         db.commit()
         db.refresh(new)
