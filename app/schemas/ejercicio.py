@@ -35,13 +35,13 @@ class Ejercicio(EjercicioBase):
     fkSerie: int
     fldNOrden: int
     id: int
+    tipodatos: List[RegistroEjercicioDB] = []
 
     class Config:
         orm_mode = True
 
 
 class EjercicioTipos(Ejercicio):
-    tipodatos: List[RegistroEjercicioDB]
     finalizado: int = 0
 
 
