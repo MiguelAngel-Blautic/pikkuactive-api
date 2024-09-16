@@ -12,13 +12,63 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
 from app.api.api_v1.endpoints.entrenamientos import read_entrenamientos_by_id_detalle
-from app.api.api_v1.endpoints.users import read_user_by_id_plataforma
 from app.core.config import settings
 from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_entrenamientos, tbl_ejercicios, tbl_series, tbl_bloques
-from app.schemas import ResumenEstadistico, EntrenamientoDetalle, PlanDetalle, EjercicioDetalle
+from app.schemas import ResumenEstadistico, EntrenamientoDetalle, PlanDetalle, EjercicioDetalle, UserDetails
 from app.schemas.ejercicio import EjercicioDetalles
 
 router = APIRouter()
+
+
+def read_user_by_id_plataforma(
+        user_id: int,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    user = db.query(tbl_user).filter(tbl_user.idPlataforma == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="The user doesn't exist")
+    sql = text("""
+        SELECT tp.id, sum(te.fldNRepeticioneS * ts.fldNRepeticiones), min(ten.fldDDia), max(ten.fldDDia)
+    from tbl_ejercicios te
+    join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
+    join tbl_planes tp on (tp.id = ten.fkPlan) where ten.fldDDia is not null and tp.fkCliente = """ + str(
+        user.id) + """ group by tp.id; """)
+    res = db.execute(sql)
+    adherencia = []
+    completado = []
+    actual = datetime.now()
+    for row in res:
+        if row[2] <= actual.date() <= row[3]:
+            diaAct = actual.date() - row[2]
+            dias = row[3] - row[2]
+            if dias.days > 0:
+                completado.append((100 * diaAct.days) / dias.days)
+            else:
+                completado.append((100 * diaAct.days))
+            sql = text("""
+            SELECT count(*)
+                from tbl_resultados tr join tbl_registro_ejercicios tre on (tre.id = tr.fkRegistro) join tbl_ejercicios te on (te.id = tre.fkEjercicio)
+                join tbl_series ts on (ts.id = te.fkSerie) join tbl_bloques tb on (tb.id = ts.fkBloque) join tbl_entrenamientos ten on (ten.id = tb.fkEntrenamiento)
+                join tbl_planes tp on (tp.id = ten.fkPlan) where tp.id=""" + str(
+                row[0]) + """ and tre.fkTipoDato = 2; """)
+            total = db.execute(sql)
+            for t in total:
+                adherencia.append((t[0] * 100) / row[1])
+    return UserDetails(fldSEmail=user.fldSEmail,
+                       id=user.id,
+                       fkRol=user.fkRol,
+                       idPlataforma=user.idPlataforma,
+                       fldSDireccion=user.fldSDireccion,
+                       fldSTelefono=user.fldSTelefono,
+                       fldSImagen=user.fldSImagen,
+                       fldSFullName=user.fldSFullName,
+                       adherencia=np.mean(adherencia),
+                       completado=np.mean(completado))
+
 
 @router.get("/platform/", response_model=List[schemas.Plan])
 def read_planes_by_user_plataforma(
