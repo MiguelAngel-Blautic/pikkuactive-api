@@ -210,7 +210,7 @@ def read_ejercicios_by_id(
     for t in tipos:
         tipodatos.append(RegistroEjercicioDB(fkEjercicio=t.fkEjercicio, id=t.id, fkTipoDato=t.fkTipoDato))
         if t.fkTipoDato == 0:
-            repeticiones = len(db.query(tbl_resultados).filter(tbl_resultados.id == t.id).all())
+            repeticiones = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == t.id).count()
     res = EjercicioTipos(
         tipodatos=tipodatos,
         fkSerie=ejercicio.fkSerie,
