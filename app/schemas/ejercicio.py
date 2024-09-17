@@ -36,6 +36,7 @@ class Ejercicio(EjercicioBase):
     fldNOrden: int
     id: int
     tipodatos: List[RegistroEjercicioDB] = []
+    finalizado: int = 0
 
     class Config:
         orm_mode = True
