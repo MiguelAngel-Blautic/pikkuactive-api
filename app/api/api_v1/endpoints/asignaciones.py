@@ -18,6 +18,7 @@ def entrenar(
         id: int,
         current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
+        db.close()
         return 0
 
 
@@ -29,6 +30,7 @@ def entrenar(
         usuario: int,
         current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
+        db.close()
         return 0
 
 
@@ -39,6 +41,7 @@ def entrenar(
         id: int,
         current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
+        db.close()
         return 0
 
 
@@ -49,4 +52,5 @@ def asignar(
         id: int,
         current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
+    db.close()
     return 0

@@ -33,6 +33,7 @@ def read_users(
     if current_user.fkRol == 1:
         idUsers = db.query(tbl_entrena).filter(tbl_entrena.fkProfesional == current_user.id).all()
         users = db.query(tbl_user).filter(tbl_user.id.in_([user.id for user in idUsers])).all()
+    db.close()
     return users
 
 
@@ -49,6 +50,7 @@ def check_user(
     )
     token_data = schemas.TokenPayload(**payload)
     user = db.query(tbl_user).filter(tbl_user.idPlataforma == token_data.sub).first()
+    db.close()
     if user:
         if user.idPlataforma == None:
             return 0
@@ -89,6 +91,7 @@ def create_user(
     db.add(newUser)
     db.commit()
     db.refresh(newUser)
+    db.close()
     return newUser
 
 
@@ -108,6 +111,7 @@ def update_user(
     current_user.fldSFullName = user_in.fldSFullName
     db.commit()
     db.refresh(current_user)
+    db.close()
     return current_user
 
 
@@ -119,6 +123,7 @@ def read_user_me(
     """
     Get current user.
     """
+    db.close()
     return current_user
 
 
@@ -161,7 +166,7 @@ def read_user_by_id_plataforma(
             total = db.execute(sql)
             for t in total:
                 adherencia.append((t[0] * 100) / row[1])
-    return UserDetails(fldSEmail=user.fldSEmail,
+    res = UserDetails(fldSEmail=user.fldSEmail,
                        id=user.id,
                        fkRol=user.fkRol,
                        idPlataforma=user.idPlataforma,
@@ -171,6 +176,8 @@ def read_user_by_id_plataforma(
                        fldSFullName=user.fldSFullName,
                        adherencia=np.mean(adherencia),
                        completado=np.mean(completado))
+    db.close()
+    return res
 
 
 @router.get("/{user_id}", response_model=schemas.UserDetails)
@@ -209,7 +216,7 @@ def read_user_by_id(
             total = db.execute(sql)
             for t in total:
                 adherencia = (t[0] * 100) / row[1]
-    return UserDetails(fldSEmail=user.fldSEmail,
+    res = UserDetails(fldSEmail=user.fldSEmail,
                        id=user.id,
                        fkRol=user.fkRol,
                        idPlataforma=user.idPlataforma,
@@ -219,6 +226,8 @@ def read_user_by_id(
                        fldSFullName=user.fldSFullName,
                        adherencia=adherencia,
                        completado=completado)
+    db.close()
+    return res
 
 
 @router.post("/list", response_model=List[schemas.UserDetails])
@@ -258,4 +267,5 @@ def read_user_by_id_list(
                            fldSFullName=user.fldSFullName,
                            adherencia=adherencia,
                            completado=completo))
+    db.close()
     return response

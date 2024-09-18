@@ -28,6 +28,7 @@ def login_access_token(
     if not verify_password(form_data.password, user.fldSHashedPassword):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    db.close()
     return {
         "access_token": security.create_access_token(
             user.id, expires_delta=access_token_expires, it_expire=False

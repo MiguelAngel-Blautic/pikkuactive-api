@@ -52,6 +52,7 @@ def read_entrenamientos(
             id = ent.id,
             fldSNombre = ent.fldSNombre
         ))
+    db.close()
     return res
 
 
@@ -96,6 +97,7 @@ from tbl_ejercicios te
             id=row[0],
         )
         response.append(entrada)
+    db.close()
     return response
 
 
@@ -125,10 +127,22 @@ def read_valores_entrenamiento(
         if len(adhs) < 1:
             adhs = [0]
         res.append(Resultado(id=s.id, nombre=s.fldSNombre, adherencia=mean(adhs), completo=duracion))
+    db.close()
     return res
 
 
 @router.get("/detail/calendar/")
+def read_entrenamientos_by_id_detalle_server(
+        id: int,
+        dia: Optional[datetime] = None,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_entrenamientos_by_id_detalle(id, dia, db, current_user)
+    db.close()
+    return res
+
+
 def read_entrenamientos_by_id_detalle(
         id: int,
         dia: Optional[datetime] = None,
@@ -215,6 +229,7 @@ def read_entrenamiento_detail(
     for adicional in sensoresAdicionales:
         listaSensores.append([adicional.fldNPosicion, adicional.fldNTipoDato])
     entrenamiento.dispositivos = listaSensores
+    db.close()
     return entrenamiento
 
 
@@ -228,13 +243,12 @@ def read_entrenamientos_by_dia(
     if current_user.fkRol == 1:
         entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fldDDia == dia).filter(
             tbl_entrenamientos.fkCreador == current_user.id).all()
-        return entrenamientos
     else:
         planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == current_user.id).all()
         entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fldDDia == dia).filter(
             tbl_entrenamientos.fkPlan.in_([p.id for p in planes])).all()
-        return entrenamientos
-
+    db.close()
+    return entrenamientos
 
 @router.get("/plan", response_model=List[schemas.Entrenamiento])
 def read_entrenamientos_by_plan(
@@ -243,14 +257,25 @@ def read_entrenamientos_by_plan(
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkCreador == current_user.id).filter(tbl_entrenamientos.fkPlan == plan_id).filter(tbl_entrenamientos.fldDDia == None).all()
+    db.close()
     return entrenamientos
 
 
 @router.get("/{id}", response_model=schemas.Entrenamiento)
-def read_entrenamiento_by_id(
+def read_entrenamiento_by_id_server(
     id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_entrenamiento_by_id(id, db, current_user)
+    db.close()
+    return res
+
+
+def read_entrenamiento_by_id(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     entrenamiento = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.id == id).first()
     if not entrenamiento:
@@ -289,6 +314,7 @@ def create_entrenamiento(
         )
         db.add(dato)
         db.commit()
+    db.commit()
     return newEntrenamiento
 
 
@@ -327,6 +353,7 @@ def asignar_entrenamiento_plan(
         db.add(dato)
         db.commit()
     bloques.clonar(old_entrenamiento=entrenamiento.id, new_entrenamiento=newEntrenamiento.id, db=db)
+    db.close()
     return newEntrenamiento
 
 
@@ -369,6 +396,7 @@ def asignar_entrenamiento_sesion(
         db.add(dato)
         db.commit()
     bloques.clonar(old_entrenamiento=entrenamiento.id, new_entrenamiento=newEntrenamiento.id, db=db)
+    db.close()
     return newEntrenamiento
 
 
@@ -403,6 +431,7 @@ def update_entrenamiento(
         )
         db.add(dato)
         db.commit()
+    db.close()
     return entrenamiento
 
 
@@ -420,4 +449,5 @@ def delete_entrenamiento(
         raise HTTPException(status_code=404, detail="The training doesn't exist")
     db.delete(entrenamiento)
     db.commit()
+    db.close()
     return

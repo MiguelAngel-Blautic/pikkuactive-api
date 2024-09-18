@@ -21,10 +21,20 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[EjercicioTipos])
-def read_ejercicios_by_serie(
+def read_ejercicios_by_serie_server(
     serie_id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_ejercicios_by_serie(serie_id=serie_id, db=db, current_user=current_user)
+    db.close()
+    return res
+
+
+def read_ejercicios_by_serie(
+        serie_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     if current_user.fkRol == 2:
         serie = db.query(tbl_series).get(serie_id)
@@ -183,10 +193,20 @@ def read_ejercicios_by_id_serie_detalle(
     return res
 
 @router.get("/{id}", response_model=schemas.EjercicioTipos)
-def read_ejercicios_by_id(
+def read_ejercicios_by_id_server(
     id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_ejercicios_by_id(id=id, db=db, current_user=current_user)
+    db.close()
+    return res
+
+
+def read_ejercicios_by_id(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     ejercicio = db.query(tbl_ejercicios).filter(tbl_ejercicios.id == id).first()
     if not ejercicio:
@@ -265,6 +285,7 @@ from tbl_ejercicios te
             id=row[0],
         )
         response.append(entrada)
+    db.close()
     return response
 
 
@@ -314,6 +335,7 @@ def read_ejercicios_by_day(
     if sens != "":
         sensors.append({"sensor": sens, "results": results})
         response.append({"time": date, "results": sensors})
+    db.close()
     return response
 
 
@@ -358,6 +380,7 @@ order by date(tr.fldDTime), ttd.fldFNombre, tr.fldDTime, tr.fldFValor; """)
         results.append({"valor": row[3], "time": row[1]})
     sensors.append({"sensor": sens, "results": results})
     response.append({"time": date, "results": sensors})
+    db.close()
     return response
 
 
@@ -406,6 +429,7 @@ order by date(tr.fldDTime), ttd.fldFNombre, tr.fldDTime, tr.fldFValor;""")
         results.append({"valor": row[3], "time": row[1]})
     sensors.append({"sensor": sens, "results": results})
     response.append({"time": date, "results": sensors})
+    db.close()
     return response
 
 
@@ -463,6 +487,7 @@ def create_ejercicio(
                                       fkEjercicio=newEjercicio.id)
         db.add(new)
         db.commit()
+    db.close()
     return newEjercicio
 
 
@@ -491,6 +516,7 @@ def update_ejercicio(
     ejercicio.fldNDistancia = ejercicio_in.fldNDistancia
     db.commit()
     db.refresh(ejercicio)
+    db.close()
     return ejercicio
 
 
@@ -507,15 +533,26 @@ def delete_ejericio(
     change_order(ejercicio.id, 0, current_user=current_user, db=db)
     db.delete(ejercicio)
     db.commit()
+    db.close()
     return
 
 
 @router.post("/orden", response_model=schemas.Ejercicio)
-def change_order(
+def change_order_server(
     ejercicio_id: int,
     new_posicion: int = 0,
     current_user: models.tbl_user = Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
+) -> Any:
+    res = change_order(ejercicio_id, new_posicion, current_user, db)
+    db.close()
+    return res
+
+def change_order(
+        ejercicio_id: int,
+        new_posicion: int = 0,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
 ) -> Any:
     """
     Cambia la posicion de una serie

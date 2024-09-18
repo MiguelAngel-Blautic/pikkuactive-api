@@ -21,6 +21,15 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[schemas.Bloque])
+def read_bloques_by_entrenamiento_conn(
+    entrenamiento_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    bloques = read_bloques_by_entrenamiento(entrenamiento_id=entrenamiento_id, db=db, current_user=current_user)
+    db.close()
+    return bloques
+
 def read_bloques_by_entrenamiento(
     entrenamiento_id: int,
     db: Session = Depends(deps.get_db),
@@ -114,6 +123,7 @@ from tbl_ejercicios te
             id=row[0],
         )
         response.append(entrada)
+    db.close()
     return response
 
 
@@ -132,10 +142,19 @@ def read_valores_bloques(
 
 
 @router.get("/{id}", response_model=schemas.Bloque)
-def read_bloques_by_id(
+def read_bloques_by_id_servidor(
     id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_bloques_by_id(id=id, db=db, current_user=current_user)
+    db.close()
+    return res
+
+def read_bloques_by_id(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     bloque = db.query(tbl_bloques).filter(tbl_bloques.id == id).first()
     if not bloque:
@@ -169,6 +188,7 @@ def create_bloque(
     db.add(newBloque)
     db.commit()
     db.refresh(newBloque)
+    db.close()
     return newBloque
 
 
@@ -190,6 +210,7 @@ def bloque_plan(
     bloque.fldNDescanso = bloque_in.fldNDescanso
     db.commit()
     db.refresh(bloque)
+    db.close()
     return bloque
 
 
@@ -206,15 +227,27 @@ def delete_bloque(
     change_order(bloque.id, 0, current_user=current_user, db=db)
     db.delete(bloque)
     db.commit()
+    db.close()
     return
 
 
 @router.post("/orden", response_model=schemas.Bloque)
-def change_order(
+def change_order_server(
     bloque_id: int,
     new_posicion: int = 0,
     current_user: models.tbl_user = Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
+) -> Any:
+    res = change_order(bloque_id=bloque_id, new_posicion=new_posicion, current_user=current_user, db=db)
+    db.close()
+    return res
+
+
+def change_order(
+        bloque_id: int,
+        new_posicion: int = 0,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
 ) -> Any:
     """
     Cambia la posicion de un bloque

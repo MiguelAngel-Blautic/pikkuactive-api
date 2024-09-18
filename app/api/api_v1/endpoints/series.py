@@ -110,14 +110,25 @@ from tbl_ejercicios te
             id=row[0],
         )
         response.append(entrada)
+    db.close()
     return response
 
 
 @router.get("/", response_model=List[schemas.Serie])
-def read_series_by_bloque(
+def read_series_by_bloque_server(
     bloque_id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_series_by_bloque(bloque_id, db, current_user)
+    db.close()
+    return res
+
+
+def read_series_by_bloque(
+        bloque_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     if current_user.fkRol == 2:
         bloque = db.query(tbl_bloques).get(bloque_id)
@@ -138,10 +149,20 @@ def read_series_by_bloque(
 
 
 @router.get("/{id}", response_model=schemas.Serie)
-def read_series_by_id(
+def read_series_by_id_server(
     id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_series_by_id(id, db, current_user)
+    db.close()
+    return res
+
+
+def read_series_by_id(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     serie = db.query(tbl_series).filter(tbl_series.id == id).first()
     if not serie:
@@ -179,6 +200,7 @@ def create_serie(
     db.add(newSerie)
     db.commit()
     db.refresh(newSerie)
+    db.close()
     return newSerie
 
 
@@ -201,6 +223,7 @@ def update_serie(
     serie.fldNRepeticiones = serie_in.fldNRepeticiones
     db.commit()
     db.refresh(serie)
+    db.close()
     return serie
 
 
@@ -217,15 +240,27 @@ def delete_serie(
     change_order(serie.id, 0, current_user=current_user, db=db)
     db.delete(serie)
     db.commit()
+    db.close()
     return
 
 
 @router.post("/orden", response_model=schemas.Serie)
-def change_order(
+def change_order_server(
     serie_id: int,
     new_posicion: int = 0,
     current_user: models.tbl_user = Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
+) -> Any:
+    res = change_order(serie_id, new_posicion, current_user, db)
+    db.close()
+    return res
+
+
+def change_order(
+        serie_id: int,
+        new_posicion: int = 0,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session = Depends(deps.get_db),
 ) -> Any:
     """
     Cambia la posicion de una serie

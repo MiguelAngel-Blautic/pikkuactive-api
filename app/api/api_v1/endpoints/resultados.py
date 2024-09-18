@@ -22,7 +22,9 @@ def read_tipos_dato(
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
-    return db.query(tbl_tipo_datos).all()
+    res = db.query(tbl_tipo_datos).all()
+    db.close()
+    return res
 
 
 @router.get("/ejercicioGeneral/")
@@ -53,6 +55,7 @@ def read_datos_ejercicio_plan(
             listAux = []
         listAux.append({"date": res[1], "valor": res[2]})
     respuesta.append({"nombre": lastNombre, "datos": listAux})
+    db.close()
     return respuesta
 
 
@@ -68,6 +71,7 @@ def add_tipodato(
     db.add(new)
     db.commit()
     db.refresh(new)
+    db.close()
     return new
 
 @router.put("/resultado/")
@@ -82,6 +86,7 @@ def add_dato(
     db.add(resDB)
     db.commit()
     db.refresh(resDB)
+    db.close()
     return resDB
 
 def clonar(

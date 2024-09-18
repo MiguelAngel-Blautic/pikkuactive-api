@@ -77,7 +77,9 @@ def read_planes_by_user_plataforma(
     current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     user = read_user_by_id_plataforma(user_id=user_id, db=db, current_user=current_user)
-    return read_planes_by_user(user_id=user.id, db=db, current_user=current_user)
+    res = read_planes_by_user(user_id=user.id, db=db, current_user=current_user)
+    db.close()
+    return res
 
 
 @router.get("/dias")
@@ -105,6 +107,7 @@ def read_planes_by_dia(
     res = db.execute(sql)
     for row in res:
         result.append(row[0])
+    db.close()
     return result
 
 @router.post("/list", response_model=List[schemas.ResumenEstadistico])
@@ -174,20 +177,41 @@ def read_planes_by_id_user(
             completo=round(completo),
             id=0,
         )
+    db.close()
     return response
 
 
 @router.get("/", response_model=List[schemas.Plan])
-def read_planes_by_user(
+def read_planes_by_user_server(
     user_id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_planes_by_user(user_id, db, current_user)
+    db.close()
+    return res
+
+
+def read_planes_by_user(
+        user_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     planes = db.query(tbl_planes).filter(tbl_planes.fkCreador == current_user.id).filter(tbl_planes.fkCliente == user_id).all()
     return planes
 
 
 @router.get("/detail/user/")
+def read_planes_by_id_detalle_user_server(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_planes_by_id_detalle_user(id, db, current_user)
+    db.close()
+    return res
+
+
 def read_planes_by_id_detalle_user(
         id: int,
         db: Session = Depends(deps.get_db),
@@ -203,7 +227,9 @@ def read_planes_by_id_detalle(
         db: Session = Depends(deps.get_db),
         current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
-    return read_planes_by_id_calendar_detail(id, date, db, current_user)
+    res = read_planes_by_id_calendar_detail(id, date, db, current_user)
+    db.close()
+    return res
 
 def read_planes_by_id_calendar_detail(
         id: int,
@@ -259,10 +285,20 @@ def read_planes_by_id_calendar_detail(
 
 
 @router.get("/{id}", response_model=schemas.Plan)
-def read_planes_by_id(
+def read_planes_by_id_server(
     id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_planes_by_id(id, db, current_user)
+    db.close()
+    return res
+
+
+def read_planes_by_id(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     plan = db.query(tbl_planes).filter(tbl_planes.fkCreador == current_user.id).filter(tbl_planes.id == id).first()
     if not plan:
@@ -336,7 +372,7 @@ def read_planes_detalles_by_id(
         adh = mean(adherenciaTot) / mean(completosTot)
     else:
         adh = 0
-    return PlanDetalle(
+    res = PlanDetalle(
         nombre = plan.fldSNombre,
         id = plan.id,
         inicio = inicio,
@@ -345,6 +381,8 @@ def read_planes_detalles_by_id(
         progreso = mean(completosTot),
         entrenamientos = entrenamientos,
         ejercicios = ejercicios)
+    db.close()
+    return res
 
 
 @router.post("/platform/", response_model=schemas.Plan)
@@ -359,15 +397,28 @@ def create_plan_plataforma(
     """
     user = db.query(tbl_user).filter(tbl_user.idPlataforma == plan_in.fkCliente).first()
     plan_in.fkCliente = user.id
-    return create_plan(db=db, plan_in=plan_in, current_user=current_user)
+    res = create_plan(db=db, plan_in=plan_in, current_user=current_user)
+    db.close()
+    return res
 
 
 @router.post("/", response_model=schemas.Plan)
-def create_plan(
+def create_plan_server(
     *,
     db: Session = Depends(deps.get_db),
     plan_in: schemas.PlanCreate,
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = create_plan(db=db, plan_in=plan_in, current_user=current_user)
+    db.close()
+    return res
+
+
+def create_plan(
+        *,
+        db: Session = Depends(deps.get_db),
+        plan_in: schemas.PlanCreate,
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     """
     Create new plan
@@ -398,6 +449,7 @@ def update_plan(
     plan.fldSNombre = plan_in.fldSNombre
     db.commit()
     db.refresh(plan)
+    db.close()
     return plan
 
 
@@ -413,4 +465,5 @@ def delete_plan(
     plan = read_planes_by_id(id=id, db=db, current_user=current_user)
     db.delete(plan)
     db.commit()
+    db.close()
     return
