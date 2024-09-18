@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[schemas.Bloque])
-def read_bloques_by_entrenamiento_conn(
+def read_bloques_by_entrenamiento_server(
     entrenamiento_id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
@@ -32,8 +32,8 @@ def read_bloques_by_entrenamiento_conn(
 
 def read_bloques_by_entrenamiento(
     entrenamiento_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: models.tbl_user = Depends(deps.get_current_user),
+    db: Session,
+    current_user: models.tbl_user,
 ) -> Any:
     if current_user.fkRol == 2:
         entrenamiento = db.query(tbl_entrenamientos).get(entrenamiento_id)
@@ -54,7 +54,7 @@ def read_bloques_by_entrenamiento(
 def read_bloques_by_id_detalle(
         id: int,
         generico: int,
-        db: Session = Depends(deps.get_db)
+        db: Session
 ) -> Any:
     res = []
     bloques = db.query(tbl_bloques).filter(tbl_bloques.fkEntrenamiento == id).all()
@@ -129,7 +129,7 @@ from tbl_ejercicios te
 
 def read_valores_bloques(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Session,
     entrene: int,
 ) -> Any:
     bloques = db.query(tbl_bloques).filter(tbl_bloques.fkEntrenamiento == entrene).all()
@@ -153,8 +153,8 @@ def read_bloques_by_id_servidor(
 
 def read_bloques_by_id(
         id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     bloque = db.query(tbl_bloques).filter(tbl_bloques.id == id).first()
     if not bloque:
@@ -245,9 +245,9 @@ def change_order_server(
 
 def change_order(
         bloque_id: int,
-        new_posicion: int = 0,
-        current_user: models.tbl_user = Depends(deps.get_current_user),
-        db: Session = Depends(deps.get_db),
+        new_posicion: int,
+        current_user: models.tbl_user,
+        db: Session,
 ) -> Any:
     """
     Cambia la posicion de un bloque
@@ -275,7 +275,7 @@ def change_order(
 def clonar(
     old_entrenamiento: int,
     new_entrenamiento: int,
-    db: Session = Depends(deps.get_db),
+    db: Session,
 ) -> Any:
     bloques = db.query(tbl_bloques).filter(tbl_bloques.fkEntrenamiento == old_entrenamiento).all()
     for obj in bloques:

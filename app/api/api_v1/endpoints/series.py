@@ -21,7 +21,7 @@ router = APIRouter()
 
 def read_valores_series(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Session,
     bloque: int,
 ) -> Any:
     series = db.query(tbl_series).filter(tbl_series.fkBloque == bloque).all()
@@ -36,7 +36,7 @@ def read_valores_series(
 def read_series_by_id_detalle(
         id: int,
         generico: int,
-        db: Session = Depends(deps.get_db)
+        db: Session
 ) -> Any:
     res = []
     series = db.query(tbl_series).filter(tbl_series.fkBloque == id).all()
@@ -127,8 +127,8 @@ def read_series_by_bloque_server(
 
 def read_series_by_bloque(
         bloque_id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     if current_user.fkRol == 2:
         bloque = db.query(tbl_bloques).get(bloque_id)
@@ -161,8 +161,8 @@ def read_series_by_id_server(
 
 def read_series_by_id(
         id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     serie = db.query(tbl_series).filter(tbl_series.id == id).first()
     if not serie:
@@ -258,9 +258,9 @@ def change_order_server(
 
 def change_order(
         serie_id: int,
-        new_posicion: int = 0,
-        current_user: models.tbl_user = Depends(deps.get_current_user),
-        db: Session = Depends(deps.get_db),
+        new_posicion: int,
+        current_user: models.tbl_user,
+        db: Session,
 ) -> Any:
     """
     Cambia la posicion de una serie
@@ -288,7 +288,7 @@ def change_order(
 def clonar(
     old_bloque: int,
     new_bloque: int,
-    db: Session = Depends(deps.get_db),
+    db: Session,
 ) -> Any:
     series = db.query(tbl_series).filter(tbl_series.fkBloque == old_bloque).all()
     for obj in series:

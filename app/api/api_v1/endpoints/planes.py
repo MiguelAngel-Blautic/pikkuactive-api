@@ -22,8 +22,8 @@ router = APIRouter()
 
 def read_user_by_id_plataforma(
         user_id: int,
-        current_user: models.tbl_user = Depends(deps.get_current_user),
-        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user,
+        db: Session,
 ) -> Any:
     """
     Get a specific user by id.
@@ -194,8 +194,8 @@ def read_planes_by_user_server(
 
 def read_planes_by_user(
         user_id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     planes = db.query(tbl_planes).filter(tbl_planes.fkCreador == current_user.id).filter(tbl_planes.fkCliente == user_id).all()
     return planes
@@ -214,8 +214,8 @@ def read_planes_by_id_detalle_user_server(
 
 def read_planes_by_id_detalle_user(
         id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     return read_planes_by_id_calendar_detail(id, None, db, current_user)
 
@@ -233,9 +233,9 @@ def read_planes_by_id_detalle(
 
 def read_planes_by_id_calendar_detail(
         id: int,
-        date: Optional[datetime] = None,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        date: Optional[datetime],
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     res = []
     planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == id).all()
@@ -297,8 +297,8 @@ def read_planes_by_id_server(
 
 def read_planes_by_id(
         id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     plan = db.query(tbl_planes).filter(tbl_planes.fkCreador == current_user.id).filter(tbl_planes.id == id).first()
     if not plan:
@@ -416,9 +416,9 @@ def create_plan_server(
 
 def create_plan(
         *,
-        db: Session = Depends(deps.get_db),
+        db: Session,
         plan_in: schemas.PlanCreate,
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        current_user: models.tbl_user,
 ) -> Any:
     """
     Create new plan

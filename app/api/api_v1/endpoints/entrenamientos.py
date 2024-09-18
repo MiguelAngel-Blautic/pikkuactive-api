@@ -145,9 +145,9 @@ def read_entrenamientos_by_id_detalle_server(
 
 def read_entrenamientos_by_id_detalle(
         id: int,
-        dia: Optional[datetime] = None,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        dia: Optional[datetime],
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     res = []
     entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPlan == id).filter(tbl_entrenamientos.fldDDia == dia).all()
@@ -274,8 +274,8 @@ def read_entrenamiento_by_id_server(
 
 def read_entrenamiento_by_id(
         id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     entrenamiento = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.id == id).first()
     if not entrenamiento:

@@ -33,8 +33,8 @@ def read_ejercicios_by_serie_server(
 
 def read_ejercicios_by_serie(
         serie_id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     if current_user.fkRol == 2:
         serie = db.query(tbl_series).get(serie_id)
@@ -85,8 +85,8 @@ def read_ejercicios_by_serie(
 
 def read_ejercicios_by_idDB(
     id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: models.tbl_user = Depends(deps.get_current_user),
+    db: Session,
+    current_user: models.tbl_user,
 ) -> Any:
     ejercicio = db.query(tbl_ejercicios).filter(tbl_ejercicios.id == id).first()
     if not ejercicio:
@@ -109,7 +109,7 @@ def read_ejercicios_by_idDB(
 def read_ejercicios_by_id_serie_detalle(
     id: int,
     generico: int,
-    db: Session = Depends(deps.get_db)
+    db: Session
 ) -> Any:
     res = []
     ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == id).all()
@@ -205,8 +205,8 @@ def read_ejercicios_by_id_server(
 
 def read_ejercicios_by_id(
         id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.tbl_user = Depends(deps.get_current_user),
+        db: Session,
+        current_user: models.tbl_user,
 ) -> Any:
     ejercicio = db.query(tbl_ejercicios).filter(tbl_ejercicios.id == id).first()
     if not ejercicio:
@@ -435,7 +435,7 @@ order by date(tr.fldDTime), ttd.fldFNombre, tr.fldDTime, tr.fldFValor;""")
 
 def read_valores_ejercicios(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Session,
     serie: int
 ) -> List[Resultado]:
     ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == serie).all()
@@ -550,9 +550,9 @@ def change_order_server(
 
 def change_order(
         ejercicio_id: int,
-        new_posicion: int = 0,
-        current_user: models.tbl_user = Depends(deps.get_current_user),
-        db: Session = Depends(deps.get_db),
+        new_posicion: int,
+        current_user: models.tbl_user,
+        db: Session,
 ) -> Any:
     """
     Cambia la posicion de una serie
@@ -579,7 +579,7 @@ def change_order(
 def clonar(
     old_serie: int,
     new_serie: int,
-    db: Session = Depends(deps.get_db),
+    db: Session,
 ) -> Any:
     ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == old_serie).all()
     for e in ejercicios:

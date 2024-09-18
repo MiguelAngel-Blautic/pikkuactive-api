@@ -92,7 +92,7 @@ def add_dato(
 def clonar(
     old_ejercicio: int,
     new_ejercicio: int,
-    db: Session = Depends(deps.get_db),
+    db: Session,
 ) -> Any:
     registros = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == old_ejercicio).all()
     for r in registros:
