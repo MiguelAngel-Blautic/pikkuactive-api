@@ -64,6 +64,7 @@ def training_model(
     # if model.fldSStatus == TrainingStatus.training_started:
     #     raise HTTPException(status_code=404, detail="Training task already exists")
     background_tasks.add_task(training_task, id_model)
+    db.close()
     return {"msg": "ok"}
 
 
@@ -74,6 +75,7 @@ def analizeDatos(*, model: int, datos: List[CaptureEntrada]) -> Any:
     if not model:
         return ["", "", ""]
     res = nn2.analizeDatos(datos, modelo, db)
+    db.close()
     return res
 
 
@@ -126,6 +128,7 @@ def entrena_estadistica(id_model: int, db: Session = Depends(deps.get_db)) -> An
             db.add(capturaUsada)
             db.commit()
             db.refresh(capturaUsada)
+    db.close()
 
 
 @router.post("/analize_stadistic/")
@@ -133,7 +136,7 @@ def analize_estadistica(mpus: MpuList, model: int, db: Session = Depends(deps.ge
     model = db.query(tbl_model).get(model)
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
-
+    db.close()
     return 1
 
 
@@ -152,6 +155,7 @@ def entrena(id_model: int) -> Any:
         return False
     df_mpu, accX, accY, accZ, gyrX, gyrY, gyrZ = nn2.data_adapter(model, captures_mpu)
     print(modelo(df_mpu, model.fldSName, accX, accY, accZ, gyrX, gyrY, gyrZ))
+    db.close()
 
 
 def training_task(id_model: int):
@@ -258,6 +262,7 @@ def leerNotificaciones(
                 add = False
         if add:
             res.append(m.fldSTexto)
+    db.close()
     return res
 
 
@@ -306,6 +311,7 @@ def get_datasheet(
         db.commit()
         num = num + 1
         print(str(num) + "/" + str(len(captures)))
+    db.close()
     return
 
 
@@ -318,6 +324,7 @@ def reiniciarModelTokens(
     for model in models:
         model.fldSToken = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
     db.commit()
+    db.close()
 
 
 @router.get("/datos")
@@ -343,8 +350,7 @@ def calcular(
         output = model.predict(datas)
         res.append([output[0][0], output[0][1], cap.id])
     print(res)
-
-
+    db.close()
 
 
 @router.post("/notification/", response_model=schemas.Msg, status_code=201)
@@ -424,7 +430,7 @@ def dashboard(inicio: datetime, fin: datetime, db: Session = Depends(deps.get_db
     modelos_tipo1 = len([model for model in modelos if model.fkTipo == 1])
     modelos_tipo2 = len([model for model in modelos if model.fkTipo == 2])
     sensores = len([model.dispositivos for model in modelos])
-    return {"creacion_modelos": Lcreacion_modelos,
+    res = {"creacion_modelos": Lcreacion_modelos,
             "creacion_usuarios": Lcreacion_usuarios,
             "usuarios": usuarios,
             "modelos_tipo": [{"tipo": "Movimiento", "valor": modelos_tipo1}, {"tipo": "Puntos", "valor": modelos_tipo2}],
@@ -432,3 +438,5 @@ def dashboard(inicio: datetime, fin: datetime, db: Session = Depends(deps.get_db
             "entrenamientos": len(versiones),
             "sensores_tipo": [{"tipo": "PIKKU/Ziven", "valor": modelos_tipo1}, {"tipo": "Cámara", "valor": modelos_tipo2}],
             "modelos": len(modelos)}
+    db.close()
+    return res

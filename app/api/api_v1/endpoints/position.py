@@ -18,4 +18,5 @@ def read_positions(
     Retrieve positions.
     """
     positions = crud.position.get_multi(db=db)
+    db.close()
     return positions

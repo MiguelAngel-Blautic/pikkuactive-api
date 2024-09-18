@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
-from app.api.api_v1.endpoints.models import read_models, read_model
 from app.models import tbl_movement, tbl_model, tbl_capture, tbl_dato
 from app.schemas import Capture
 from app.schemas.data import Data
@@ -35,6 +34,7 @@ def create_capture(
     # capture.mpu = []
 
     model = crud.model.setPending(db=db, model=movement.fkOwner)
+    db.close()
     return capture
 
 
@@ -53,6 +53,7 @@ def delete_capture(
         raise HTTPException(status_code=404, detail="Capture not found")
     db.delete(capture)
     db.commit()
+    db.close()
     return
 
 
@@ -85,6 +86,7 @@ def clone_capture(
                             fkCaptura=capture.id)
         db.add(dato_new)
         db.commit()
+    db.close()
 
 
 
@@ -118,6 +120,7 @@ def read_capture(
                   fldDTimeCreateTime=capture.fldDTimeCreateTime,
                   datos=res,
                   max_value=None)
+    db.close()
     return cap
 
 
@@ -144,6 +147,7 @@ def change_capture(
     capture.fkOwner = movement2.id
     db.commit()
     db.refresh(capture)
+    db.close()
     return capture
 
 
@@ -164,4 +168,5 @@ def change_label(
     capture.fkOwner = movement.id
     db.commit()
     db.refresh(capture)
+    db.close()
     return capture

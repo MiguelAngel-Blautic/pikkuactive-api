@@ -25,6 +25,7 @@ def update_user_me(
     Update own user.
     """
     user = crud.user.update(db, db_obj=current_user, obj_in=user_in)
+    db.close()
     return user
 
 
@@ -36,6 +37,7 @@ def read_user_me(
     """
     Get current user.
     """
+    db.close()
     return current_user
 
 
@@ -76,6 +78,7 @@ def get_users_generla(
                                 ultimaConsulta=conUltimo,
                                 ultimaCaptura=capUltimo,
                                 ultimoEntrenamiento=entUltimo))
+    db.close()
     return res
 
 @router.post("/open", response_model=schemas.User)
@@ -94,6 +97,7 @@ def create_user_open(
             detail="The user with this username already exists in the system.",
         )
     user = crud.user.create(db, obj_in=user_in)
+    db.close()
     return user
 
 
@@ -113,4 +117,5 @@ def complete_user(
             detail="The user with this username already exists in the system.",
         )
     user = crud.user.complete(db, obj_in=user_in)
+    db.close()
     return user

@@ -19,4 +19,5 @@ def read_grupos_negativos(
     Retrieve positions.
     """
     positions = crud.grupo.get_multi(db=db)
+    db.close()
     return positions
