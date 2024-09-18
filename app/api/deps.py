@@ -44,4 +44,5 @@ def get_current_user(
         user = db.query(tbl_user).filter(tbl_user.id == token_data.sub).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+    db.close()
     return user
