@@ -593,6 +593,7 @@ def read_model_stadistics_image(
     """
     Get model by ID.
     """
+
     model = crud.model.get(db=db, id=id)
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
