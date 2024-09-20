@@ -487,7 +487,7 @@ def create_ejercicio(
                                       fkEjercicio=newEjercicio.id)
         db.add(new)
         db.commit()
-    db.close()
+    # db.close()
     return newEjercicio
 
 
