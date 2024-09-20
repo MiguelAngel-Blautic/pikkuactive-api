@@ -472,7 +472,7 @@ def update_entrenamiento(
     if not entrenamiento:
         raise HTTPException(status_code=404, detail="The training doesn't exist")
     entrenamiento.fldSNombre = entrenamiento_in.fldSNombre
-    entrenamiento.fldDDia = entrenamiento_in.fldDDia
+    # entrenamiento.fldDDia = entrenamiento_in.fldDDia
     db.commit()
     db.refresh(entrenamiento)
     adicionales = db.query(tbl_dato_adicional_plan).filter(
