@@ -39,7 +39,7 @@ def read_entrenamientos(
     for ent in entrenamientos:
         avance = 0
         if ent.fldDDia is not None:
-            ent1 = read_entrenamientos_by_id_detalle(ent.fkPlan, ent.fldDDia, db=db, current_user=current_user)
+            ent1 = read_entrenamientos_by_id_ent_detalle(ent.id, ent.fldDDia, db=db, current_user=current_user)
             adherencias = [e.adherencia for e in ent1]
             if len(adherencias) >= 1:
                 avance = mean(adherencias)
@@ -197,6 +197,63 @@ def read_entrenamientos_by_id_detalle(
             nombre=entrenamiento.fldSNombre
         ))
     return res
+
+
+def read_entrenamientos_by_id_ent_detalle(
+        id: int,
+        dia: Optional[datetime],
+        db: Session,
+        current_user: models.tbl_user,
+) -> Any:
+    res = []
+    entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.id == id).all()
+    for entrenamiento in entrenamientos:
+        if not entrenamiento:
+            raise HTTPException(status_code=404, detail="The entrenamiento doesn't exist")
+        adherencias = []
+        if dia == None:
+            generico = 1
+        else:
+            generico = 0
+        bloques = read_bloques_by_id_detalle(entrenamiento.id, generico, db)
+        duraciones = [b.duracion for b in bloques]
+        durTotal = sum(duraciones)
+        adherencia = 0
+        adherencias = [b.adherencia for b in bloques]
+        if len(adherencias) > 0 and durTotal > 0:
+            for i in range(len(adherencias)):
+                adherencia = adherencia + (adherencias[i] * duraciones[i] / durTotal)
+        if entrenamiento.fldDDia != None:
+            if entrenamiento.fldDDia < datetime.today().date():
+                completo = 1
+            else:
+                completo = 0
+        else:
+            hijos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkPadre == entrenamiento.id).all()
+            completos = [1 if h.fldDDia < datetime.today().date() else 0 for h in hijos]
+            if len(completos) >= 1:
+                completo = mean(completos)
+            else:
+                completo = 0
+        res.append(EjercicioDetalles(
+            fldNOrden=0,
+            fldNDescanso=0,
+            fldNRepeticiones=0,
+            fldNDuracion=0,
+            fldNDuracionEfectiva=0,
+            fldFVelocidad=0,
+            fkModelo=0,
+            fldSToken="",
+            id=entrenamiento.id,
+            duracion = durTotal,
+            adherencia=adherencia,
+            items=bloques,
+            tipo=2,
+            completo=completo,
+            nombre=entrenamiento.fldSNombre
+        ))
+    return res
+
 
 
 @router.get("/detail/{id}", response_model=schemas.EntrenamientoCompleto)
