@@ -213,7 +213,6 @@ def read_models(
                          fldFMaxValor=m.fldFMaxValor,
                          fldSNomValor=m.fldSNomValor,
                          fldSToken=m.fldSToken))
-    db.close()
     return res[::-1]
 
 
@@ -299,7 +298,6 @@ def read_models_marketplace(
                          fldFMaxValor=m.fldFMaxValor,
                          fldSNomValor=m.fldSNomValor,
                          fldSToken=m.fldSToken))
-    db.close()
     return res[::-1]
 
 
@@ -314,7 +312,6 @@ def read_models_adquiridos(
     Retrieve models.
     """
     res = crud.model.get_multi_adquiridos(db=db, owner_id=current_user.id, skip=skip, limit=limit)[::-1]
-    db.close()
     return res
 
 
