@@ -51,7 +51,6 @@ firebase_admin.initialize_app(
 @router.post("/training/", response_model=schemas.Msg, status_code=201)
 def training_model(
         *,
-        db: Session = Depends(deps.get_db),
         id_model: int,
         current_user: models.tbl_user = Depends(deps.get_current_active_user),
         background_tasks: BackgroundTasks
@@ -60,11 +59,11 @@ def training_model(
     Get model by ID.
     """
     # Check that the model belongs to the user or if it is superuser
-    model: tbl_model = read_model(db=db, id=id_model, current_user=current_user)
+    # model: tbl_model = read_model(db=db, id=id_model, complete=1, current_user=current_user)
     # if model.fldSStatus == TrainingStatus.training_started:
     #     raise HTTPException(status_code=404, detail="Training task already exists")
+    # db.close()
     background_tasks.add_task(training_task, id_model)
-    db.close()
     return {"msg": "ok"}
 
 
@@ -128,7 +127,6 @@ def entrena_estadistica(id_model: int, db: Session = Depends(deps.get_db)) -> An
             db.add(capturaUsada)
             db.commit()
             db.refresh(capturaUsada)
-    db.close()
 
 
 @router.post("/analize_stadistic/")
