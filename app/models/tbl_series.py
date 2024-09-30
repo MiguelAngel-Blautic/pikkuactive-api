@@ -11,3 +11,4 @@ class tbl_series(Base):
     fldNOrden = Column(Integer)
     fkCreador = Column(Integer)
     fkPadre = Column(Integer)
+    fldBSimultanea = Column(Integer)

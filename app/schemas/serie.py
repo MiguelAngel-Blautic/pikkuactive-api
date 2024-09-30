@@ -10,6 +10,7 @@ class SerieBase(BaseModel):
     fldSDescripcion: str
     fldNDescanso: int
     fldNRepeticiones: int
+    fldBSimultanea: int
 
 
 # Properties to receive via API on creation
