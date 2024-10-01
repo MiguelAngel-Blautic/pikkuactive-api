@@ -457,7 +457,7 @@ def asignar_entrenamiento_sesion(
         db.add(dato)
         db.commit()
     bloques.clonar(old_entrenamiento=entrenamiento.id, new_entrenamiento=newEntrenamiento.id, db=db)
-    db.close()
+    # db.close()
     return newEntrenamiento
 
 
