@@ -226,6 +226,7 @@ def update_serie(
     serie.fldSDescripcion = serie_in.fldSDescripcion
     serie.fldNDescanso = serie_in.fldNDescanso
     serie.fldNRepeticiones = serie_in.fldNRepeticiones
+    serie.fldBSimultanea = serie_in.fldBSimultanea
     db.commit()
     db.refresh(serie)
     db.close()
