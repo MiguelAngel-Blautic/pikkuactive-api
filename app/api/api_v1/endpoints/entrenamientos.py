@@ -160,6 +160,13 @@ def read_entrenamientos_by_id_detalle(
         else:
             generico = 0
         bloques = read_bloques_by_id_detalle(entrenamiento.id, generico, db)
+        if entrenamiento.fldDDia < datetime.today().date():
+            for b in bloques:
+                b.isresults = 1
+                for s in b.items:
+                    s.isresults = 1
+                    for e in s.items:
+                        e.isresults = 1
         finalizado = max([b.isresults for b in bloques]+[0])
         duraciones = [b.duracion for b in bloques]
         durTotal = sum(duraciones)
