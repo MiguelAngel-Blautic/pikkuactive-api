@@ -41,6 +41,7 @@ def read_series_by_id_detalle(
     res = []
     series = db.query(tbl_series).filter(tbl_series.fkBloque == id).all()
     for serie in series:
+        finalizado = 0
         if not serie:
             raise HTTPException(status_code=404, detail="The serie doesn't exist")
         adherencias = []
@@ -54,6 +55,8 @@ def read_series_by_id_detalle(
             else:
                 ejer.adherencia = 0
             adherencias.append(ejer.adherencia)
+            if ejer.isresults == 1:
+                finalizado = 1
         if len(adherencias) > 0 and durTotal > 0:
             for i in range(len(adherencias)):
                 adherencia = adherencia + (adherencias[i] * duraciones[i] / durTotal)
@@ -72,7 +75,8 @@ def read_series_by_id_detalle(
             items=ejercicios,
             tipo=4,
             completo=0,
-            nombre=serie.fldSDescripcion
+            nombre=serie.fldSDescripcion,
+            isresults=finalizado
         ))
     return res
 

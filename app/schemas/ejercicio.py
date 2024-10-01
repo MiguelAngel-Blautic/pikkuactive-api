@@ -62,6 +62,7 @@ class EjercicioDetalles(BaseModel):
     items: List['EjercicioDetalles']
     completo: float
     nombre: str
+    isresults: int = 0
     fldFHrMean: Optional[float] = None
     fldFHrGoal: Optional[float] = None
     fldFTechniqueMean: Optional[float] = None

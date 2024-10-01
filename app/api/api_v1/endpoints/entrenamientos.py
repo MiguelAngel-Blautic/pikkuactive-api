@@ -160,6 +160,7 @@ def read_entrenamientos_by_id_detalle(
         else:
             generico = 0
         bloques = read_bloques_by_id_detalle(entrenamiento.id, generico, db)
+        finalizado = max([b.isresults for b in bloques]+[0])
         duraciones = [b.duracion for b in bloques]
         durTotal = sum(duraciones)
         adherencia = 0
@@ -194,7 +195,8 @@ def read_entrenamientos_by_id_detalle(
             items=bloques,
             tipo=2,
             completo=completo,
-            nombre=entrenamiento.fldSNombre
+            nombre=entrenamiento.fldSNombre,
+            isresults=finalizado
         ))
     return res
 
@@ -216,6 +218,7 @@ def read_entrenamientos_by_id_ent_detalle(
         else:
             generico = 0
         bloques = read_bloques_by_id_detalle(entrenamiento.id, generico, db)
+        finalizado = max([b.isresults for b in bloques]+[0])
         duraciones = [b.duracion for b in bloques]
         durTotal = sum(duraciones)
         adherencia = 0
@@ -250,7 +253,8 @@ def read_entrenamientos_by_id_ent_detalle(
             items=bloques,
             tipo=2,
             completo=completo,
-            nombre=entrenamiento.fldSNombre
+            nombre=entrenamiento.fldSNombre,
+            isresults=finalizado
         ))
     return res
 

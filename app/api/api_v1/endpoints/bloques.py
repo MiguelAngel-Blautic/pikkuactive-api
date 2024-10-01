@@ -64,6 +64,7 @@ def read_bloques_by_id_detalle(
         series = read_series_by_id_detalle(bloque.id, generico, db)
         adherencia = 0
         duraciones = [s.duracion for s in series]
+        finalizados = max([s.isresults for s in series] + [0])
         durTotal = sum(duraciones)
         adherencias = [s.adherencia for s in series]
         if len(adherencias) > 0 and durTotal > 0:
@@ -84,7 +85,8 @@ def read_bloques_by_id_detalle(
             items=series,
             tipo=3,
             completo=0,
-            nombre=bloque.fldSDescripcion
+            nombre=bloque.fldSDescripcion,
+            isresults=finalizados
         ))
     return res
 

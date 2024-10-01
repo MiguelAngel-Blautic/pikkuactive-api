@@ -114,6 +114,7 @@ def read_ejercicios_by_id_serie_detalle(
     res = []
     ejercicios = db.query(tbl_ejercicios).filter(tbl_ejercicios.fkSerie == id).all()
     for ejercicio in ejercicios:
+        finalizado = 0
         ritmo = None
         distancia = None
         hr = None
@@ -134,6 +135,13 @@ def read_ejercicios_by_id_serie_detalle(
                         adhPartial = sum([r.fldFValor for r in results]) / ejercicio.fldNRepeticiones
                     else:
                         adhPartial = 0
+            registroEst = db.query(tbl_registro_ejercicios).filter(
+                tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
+                tbl_registro_ejercicios.fkTipoDato == 0).first()
+            if registroEst:
+                results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroEst.id).all()
+                if len(results) > 0:
+                    finalizado = 1
             registroDist = db.query(tbl_registro_ejercicios).filter(
                 tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
                 tbl_registro_ejercicios.fkTipoDato == 9).first()
@@ -187,7 +195,8 @@ def read_ejercicios_by_id_serie_detalle(
             fldFDistance=distancia,
             fldFHrMean=hr,
             fldNErp=ejercicio.fldNErp,
-            fldNPeso=ejercicio.fldNPeso
+            fldNPeso=ejercicio.fldNPeso,
+            isresults=finalizado
             # fldFHrGoal=ejercicio.
         ))
     return res

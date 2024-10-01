@@ -279,7 +279,8 @@ def read_planes_by_id_calendar_detail(
             tipo=1,
             completo=completo,
             duracion = 0,
-            nombre=plan.fldSNombre
+            nombre=plan.fldSNombre,
+            isresults=0
         ))
     return res
 
