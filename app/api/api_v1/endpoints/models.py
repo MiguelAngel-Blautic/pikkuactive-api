@@ -608,7 +608,7 @@ def read_model_stadistics_image(
             datalist.append(ModelStadistics(sample=dato.fldNSample, media=dato.fldFMedia, std=dato.fldFStd))
         tiposensor = db.query(tbl_tipo_sensor).get(sensor.fkSensor)
         res.append(
-            ModelStadisticsSensor(id=sensor.id, nombre=tiposensor.fldSNombre, datos=datalist, idPosicion=tiposensor.id))
+            ModelStadisticsSensor(id=sensor.fkSensor, nombre=tiposensor.fldSNombre, datos=datalist, idPosicion=tiposensor.id))
     return res
 
 
