@@ -74,6 +74,7 @@ class EjercicioDetalles(BaseModel):
     fldFDistance: Optional[float] = None
     fldFDistanceGoal: Optional[float] = None
     fldNSeries: Optional[float] = None
+    issumultanea: int = 0
 
 
 EjercicioDetalles.update_forward_refs()

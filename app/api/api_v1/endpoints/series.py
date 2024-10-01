@@ -76,7 +76,8 @@ def read_series_by_id_detalle(
             tipo=4,
             completo=0,
             nombre=serie.fldSDescripcion,
-            isresults=finalizado
+            isresults=finalizado,
+            issumultanea=serie.fldBSimultanea
         ))
     return res
 
