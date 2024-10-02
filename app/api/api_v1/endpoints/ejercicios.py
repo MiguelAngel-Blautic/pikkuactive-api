@@ -118,6 +118,8 @@ def read_ejercicios_by_id_serie_detalle(
         ritmo = None
         distancia = None
         hr = None
+        erp = None
+        peso = None
         if generico == 0:
             ejerciciosConcretos = [ejercicio]
         else:
@@ -167,6 +169,20 @@ def read_ejercicios_by_id_serie_detalle(
                 results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroHr.id).all()
                 if len(results) > 0:
                     hr = mean([r.fldFValor for r in results])
+            registroErp = db.query(tbl_registro_ejercicios).filter(
+                tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
+                tbl_registro_ejercicios.fkTipoDato == 10).first()
+            if registroErp:
+                results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroErp.id).all()
+                if len(results) > 0:
+                    erp = mean([r.fldFValor for r in results])
+            registroPeso = db.query(tbl_registro_ejercicios).filter(
+                tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
+                tbl_registro_ejercicios.fkTipoDato == 11).first()
+            if registroPeso:
+                results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroPeso.id).all()
+                if len(results) > 0:
+                    peso = mean([r.fldFValor for r in results])
             adherencias.append(adhPartial)
         if len(adherencias) >= 1:
             adherencia = mean(adherencias)
@@ -196,7 +212,9 @@ def read_ejercicios_by_id_serie_detalle(
             fldFHrMean=hr,
             fldNErp=ejercicio.fldNErp,
             fldNPeso=ejercicio.fldNPeso,
-            isresults=finalizado
+            isresults=finalizado,
+            erp=erp,
+            peso=peso
             # fldFHrGoal=ejercicio.
         ))
     return res
