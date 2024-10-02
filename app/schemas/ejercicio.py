@@ -74,8 +74,8 @@ class EjercicioDetalles(BaseModel):
     fldFDistance: Optional[float] = None
     fldFDistanceGoal: Optional[float] = None
     fldNSeries: Optional[float] = None
-    issumultanea: int = 0,
-    erp: Optional[float] = None,
+    issumultanea: int = 0
+    erp: Optional[float] = None
     peso: Optional[float] = None
 
 
