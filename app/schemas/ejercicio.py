@@ -74,7 +74,10 @@ class EjercicioDetalles(BaseModel):
     fldFDistance: Optional[float] = None
     fldFDistanceGoal: Optional[float] = None
     fldNSeries: Optional[float] = None
+    fldNPeso: Optional[float] = None
+    fldNErp: Optional[float] = None
     issumultanea: int = 0
+    intentos: Optional[int] = None
     erp: Optional[float] = None
     peso: Optional[float] = None
 

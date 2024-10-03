@@ -120,6 +120,7 @@ def read_ejercicios_by_id_serie_detalle(
         hr = None
         erp = None
         peso = None
+        intentos = None
         if generico == 0:
             ejerciciosConcretos = [ejercicio]
         else:
@@ -127,6 +128,14 @@ def read_ejercicios_by_id_serie_detalle(
         adherencias = []
         for ec in ejerciciosConcretos:
             adhPartial = 0
+            registroInts = db.query(tbl_registro_ejercicios).filter(
+                tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
+                tbl_registro_ejercicios.fkTipoDato == 1).first()
+            if registroInts:
+                results = db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroInts.id).all()
+                if ec.fldNRepeticiones:
+                    if len(results) > 0:
+                        intentos = mean([r.fldFValor for r in results])
             registroRep = db.query(tbl_registro_ejercicios).filter(
                 tbl_registro_ejercicios.fkEjercicio == ec.id).filter(
                 tbl_registro_ejercicios.fkTipoDato == 2).first()
@@ -214,7 +223,8 @@ def read_ejercicios_by_id_serie_detalle(
             fldNPeso=ejercicio.fldNPeso,
             isresults=finalizado,
             erp=erp,
-            peso=peso
+            peso=peso,
+            intentos=intentos
             # fldFHrGoal=ejercicio.
         ))
     return res
