@@ -648,12 +648,12 @@ def update_model(
     Update own user.
     """
     model = crud.model.get(db=db, id=id)
+    movement = db.query(tbl_movement).filter(tbl_movement.fldSLabel == model.fldSName).filter(tbl_movement.fkOwner == id).first()
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
     if not (crud.user.is_superuser(current_user) or (model.fkOwner == current_user.id)):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     modelRes = crud.model.update(db, db_obj=model, obj_in=model_in)
-    movement = db.query(tbl_movement).filter(tbl_movement.fldSLabel != "Other").filter(tbl_movement.fldSLabel != "other").filter(tbl_movement.fkOwner == id).first()
     movement.fldSLabel = modelRes.fldSName
     movement.fldSDescription = modelRes.fldSName
     db.commit()
