@@ -37,7 +37,6 @@ def create_movement(
     Retrieve positions.
     """
     movement_incorrect = MovementCreate(fldSLabel=nombre, fldSDescription=nombre)
-    crud.movement.create_with_owner(db=db, obj_in=movement_incorrect, fkOwner=id)
-    db.refresh(movement_incorrect)
+    mov = crud.movement.create_with_owner(db=db, obj_in=movement_incorrect, fkOwner=id)
     db.close()
-    return movement_incorrect
+    return mov
