@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
-from app.models import tbl_movement
+from app.models import tbl_movement, tbl_model
+from app.models.tbl_model import TrainingStatus
 from app.models.tbl_position import tbl_position
 from app.schemas import MovementCreate
 
@@ -38,5 +39,8 @@ def create_movement(
     """
     movement_incorrect = MovementCreate(fldSLabel=nombre, fldSDescription=nombre)
     mov = crud.movement.create_with_owner(db=db, obj_in=movement_incorrect, fkOwner=id)
+    model = db.query(tbl_model).get(id)
+    model.fldSStatus = TrainingStatus.no_training_pending
+    db.commit()
     db.close()
     return mov

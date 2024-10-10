@@ -111,8 +111,7 @@ def completar_entrenamiento(db, df, model, version, index):
 def entrena_estadistica(id_model: int, db: Session = Depends(deps.get_db)) -> Any:
     model = db.query(models.tbl_model).filter(models.tbl_model.id == id_model).first()
     movements = (db.query(models.tbl_movement).filter(models.tbl_movement.fkOwner == model.id).
-                 filter(models.tbl_movement.fldSLabel != "Other").
-                 filter(models.tbl_movement.fldSLabel != "other").all())
+                 filter(models.tbl_movement.fldSLabel == model.fldSName).all())
     ids_movements = [mov.id for mov in movements]
     version = tbl_version_estadistica(fkOwner=model.id, fldSLabel=model.fldSName, accuracy=0)
     db.add(version)

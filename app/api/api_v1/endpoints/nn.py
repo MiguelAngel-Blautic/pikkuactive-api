@@ -39,7 +39,7 @@ def train_model2(modelo, dfs, labels, frecuencias, cantidad, nFrecuencias, versi
         combined = concatenate([x.output for x in models], axis=-1)
     print("Hoja")
     z = Dense(60, activation="tanh")(combined)
-    z = Dense(2, activation="sigmoid")(z)
+    z = Dense(len(set(labels)), activation="sigmoid")(z)
     print("Capas")
     model = Model(inputs=[x.input for x in models], outputs=z)
     print("modelo")
