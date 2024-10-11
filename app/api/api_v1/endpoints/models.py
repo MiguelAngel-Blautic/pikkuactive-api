@@ -208,7 +208,7 @@ def clonar_model(
             db.refresh(newCapture)
             datos = db.query(tbl_dato)
     db.close()
-    return model
+    return 1
 
 
 @router.get("/user/{id}", response_model=List[schemas.Model])
