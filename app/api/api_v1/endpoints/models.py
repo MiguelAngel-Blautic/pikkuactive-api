@@ -2,13 +2,15 @@ from datetime import datetime
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
+from pymysql.constants.ER import NONUNIQ_TABLE
 from sqlalchemy import or_, desc
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.api import deps
 from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, \
-    datos_estadistica, tbl_user, tbl_dispositivo_sensor, tbl_tipo_sensor, tbl_position, tbl_image_device
+    datos_estadistica, tbl_user, tbl_dispositivo_sensor, tbl_tipo_sensor, tbl_position, tbl_image_device, tbl_dato, \
+    tbl_device
 from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history, tbl_imagenes
 from app.schemas import MovementCreate, Version, Position, ImageDevice
 from app.schemas.capture import CaptureResumen
@@ -105,6 +107,81 @@ def clonar_model(
     model = crud.model.get(db=db, id=id)
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
+    newModel = tbl_model(
+        fldSName=model.fldSName,
+        fldSDescription=model.fldSDescription,
+        fldNDuration=model.fldNDuration,
+        fldDTimeCreateTime = model.fldDTimeCreateTime,
+        fkImagen = model.fkImagen,
+        fkVideo = model.fkVideo,
+        fldSVideo = model.fldSVideo,
+        fldSImage = model.fldSImage,
+        fldSStatus = model.fldSStatus,
+        fldNProgress = model.fldNProgress,
+        fldBPublico = model.fldBPublico,
+        fkCategoria = model.fkCategoria,
+        categoria = model.categoria,
+        fldFPrecio = model.fldFPrecio,
+        fldFMinValor = model.fldFMinValor,
+        fldFMaxValor = model.fldFMaxValor,
+        fldSNomValor = model.fldSNomValor,
+        fldSToken = model.fldSToken,
+        fkOwner=current_user.id,
+        fkTipo=model.fkTipo,
+        fldBRegresivo=model.fldBRegresivo,
+    )
+    db.add(newModel)
+    db.commit()
+    db.refresh(newModel)
+    diccionarioSensores = {}
+    for d in model.dispositivos:
+        newDevice = tbl_dispositivo_sensor(
+            fkPosicion = d.fkPosicion,
+            fkOwner = newModel.id,
+            fkImagen = d.fkImagen,
+            fkSensor = d.fkSensor,
+        )
+        db.add(newDevice)
+        db.commit()
+        db.refresh(newDevice)
+        diccionarioSensores[d.id] = newDevice.id
+    for m in model.movements:
+        newMovement = tbl_movement(
+            fldSLabel = m.fldSLabel,
+            fldSDescription = m.fldSDescription,
+            fldDTimeCreateTime = m.fldDTimeCreateTime,
+            fkOwner = newModel.id
+        )
+        db.add(newMovement)
+        db.commit()
+        db.refresh(newMovement)
+        captures = db.query(tbl_capture).filter(tbl_capture.fkOwner == m.id).all()
+        for c in captures:
+            newCapture = tbl_capture(
+                fldDTimeCreateTime=c.fldDTimeCreateTime,
+                fldFStart = c.fldFStart,
+                fldFMid = c.fldFMid,
+                fldFEnd = c.fldFEnd,
+                fldFValor = c.fldFValor,
+                fkOwner = newMovement.id,
+                fkGrupoNegativo = c.fkGrupoNegativo
+            )
+            db.add(newCapture)
+            db.commit()
+            db.refresh(newCapture)
+            datos = db.query(tbl_dato).filter(tbl_dato.fkCaptura == c.id).all()
+            for d in datos:
+                newDato = tbl_dato(
+                    fldNSample=d.fldNSample,
+                    fldFValor = d.fldFValor,
+                    fldFValor2 = d.fldFValor2,
+                    fldFValor3 = d.fldFValor3,
+                    fkDispositivoSensor = diccionarioSensores.get(d.fkDispositivoSensor),
+                    fkCaptura = newCapture.id
+                )
+                db.add(newDato)
+    db.commit()
+    return newModel
     devices = []
     for device in model.devices:
         devices.append(DeviceCreate(fldNNumberDevice=device.fldNNumberDevice,
@@ -117,12 +194,19 @@ def clonar_model(
     model_in = ModelCreate(fldSName=model.fldSName + "_copia",
                            fldNDuration=model.fldNDuration,
                            devices=devices,
+                           fldSNomValor='s',
                            dispositivos=dispositivos)
     modelo = crud.model.create_with_owner(db=db, obj_in=model_in, owner_id=current_user.id)
-    movement_correct = MovementCreate(fldSLabel=modelo.fldSName, fldSDescription=modelo.fldSName)
-    crud.movement.create_with_owner(db=db, obj_in=movement_correct, fkOwner=modelo.id)
-    movement_incorrect = MovementCreate(fldSLabel="Other", fldSDescription="Other")
-    crud.movement.create_with_owner(db=db, obj_in=movement_incorrect, fkOwner=modelo.id)
+    for mov in model.movements:
+        movNew = crud.movement.create_with_owner(db=db, obj_in=MovementCreate(fldSLabel=mov.fldSLabel, fldSDescription=mov.fldSLabel), fkOwner=modelo.id)
+        captures = db.query(tbl_capture).filter(tbl_capture.fkOwner == mov.id).all()
+        for c in captures:
+            newCapture = c
+            newCapture.fkOwner = movNew.id
+            newCapture.id = None
+            db.add(newCapture)
+            db.refresh(newCapture)
+            datos = db.query(tbl_dato)
     db.close()
     return model
 

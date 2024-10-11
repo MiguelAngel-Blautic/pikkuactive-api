@@ -189,8 +189,11 @@ def training_task(id_model: int):
     db.commit()
     db.refresh(model)
     try:
+        print("Data Adapter2")
         df_mpu, labels, frecuencias, cantidad, nFrecuencias = nn.data_adapter2(model, captures_mpu)
+        print("Generar negativos")
         df_mpu, labels = generar_negativos(df_mpu, labels, model.fldSName)
+        print("Data Adapter")
         version = nn.train_model2(model, df_mpu, labels, frecuencias, cantidad, nFrecuencias, version_last_mpu)
         print("Data Adapter")
         version.fkOwner = model.id

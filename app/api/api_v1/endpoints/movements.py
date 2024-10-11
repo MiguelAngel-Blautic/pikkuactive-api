@@ -42,5 +42,4 @@ def create_movement(
     model = db.query(tbl_model).get(id)
     model.fldSStatus = TrainingStatus.no_training_pending
     db.commit()
-    db.close()
     return mov
