@@ -11,7 +11,7 @@ from app.api import deps
 from app.models import tbl_model, tbl_capture, tbl_movement, sensores_estadistica, tbl_version_estadistica, \
     datos_estadistica, tbl_user, tbl_dispositivo_sensor, tbl_tipo_sensor, tbl_position, tbl_image_device, tbl_dato, \
     tbl_device
-from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history, tbl_imagenes
+from app.models.tbl_model import tbl_categorias, tbl_compra_modelo, tbl_history, tbl_imagenes, TrainingStatus
 from app.schemas import MovementCreate, Version, Position, ImageDevice
 from app.schemas.capture import CaptureResumen
 from app.schemas.device import DeviceSensor, Device, DeviceCreate, DeviceSensorCreate
@@ -116,7 +116,7 @@ def clonar_model(
         fkVideo = model.fkVideo,
         fldSVideo = model.fldSVideo,
         fldSImage = model.fldSImage,
-        fldSStatus = model.fldSStatus,
+        fldSStatus = TrainingStatus.no_training,
         fldNProgress = model.fldNProgress,
         fldBPublico = model.fldBPublico,
         fkCategoria = model.fkCategoria,
@@ -181,34 +181,7 @@ def clonar_model(
                 )
                 db.add(newDato)
     db.commit()
-    return newModel
-    devices = []
-    for device in model.devices:
-        devices.append(DeviceCreate(fldNNumberDevice=device.fldNNumberDevice,
-                                    fldNSensores=device.fldNSensores,
-                                    fkPosition=device.fkPosition))
-    dispositivos = []
-    for dispositivo in model.dispositivos:
-        dispositivos.append(DeviceSensorCreate(fkPosicion=dispositivo.fkPosicion,
-                                               fkSensor=dispositivo.fkSensor))
-    model_in = ModelCreate(fldSName=model.fldSName + "_copia",
-                           fldNDuration=model.fldNDuration,
-                           devices=devices,
-                           fldSNomValor='s',
-                           dispositivos=dispositivos)
-    modelo = crud.model.create_with_owner(db=db, obj_in=model_in, owner_id=current_user.id)
-    for mov in model.movements:
-        movNew = crud.movement.create_with_owner(db=db, obj_in=MovementCreate(fldSLabel=mov.fldSLabel, fldSDescription=mov.fldSLabel), fkOwner=modelo.id)
-        captures = db.query(tbl_capture).filter(tbl_capture.fkOwner == mov.id).all()
-        for c in captures:
-            newCapture = c
-            newCapture.fkOwner = movNew.id
-            newCapture.id = None
-            db.add(newCapture)
-            db.refresh(newCapture)
-            datos = db.query(tbl_dato)
-    db.close()
-    return 1
+    return newModel.id
 
 
 @router.get("/user/{id}", response_model=List[schemas.Model])
