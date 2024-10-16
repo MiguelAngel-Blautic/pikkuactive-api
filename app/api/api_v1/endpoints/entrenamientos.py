@@ -267,12 +267,37 @@ def read_entrenamientos_by_id_ent_detalle(
     return res
 
 
+@router.get("/detail/v2/{id}", response_model=List[schemas.EntrenamientoCompleto])
+def read_entrenamiento_detail_v2(
+    db: Session = Depends(deps.get_db),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    if current_user.fkRol == 1:
+        entrenamientos = db.query(tbl_entrenamientos).filter(tbl_entrenamientos.fkCreador == current_user.id).filter(tbl_entrenamientos.fkPlan == None).all()
+    else:
+        planes = db.query(tbl_planes).filter(tbl_planes.fkCliente == current_user.id).all()
+        entrenamientos = db.query(tbl_entrenamientos).filter(
+            tbl_entrenamientos.fkPlan.in_([p.id for p in planes])).filter(tbl_entrenamientos.fldDDia >= datetime(datetime.now().year, datetime.now().month, datetime.now().day)).all()
+    res = []
+    for ent in entrenamientos:
+        res.append(read_entrenamiento_detail(ent.id, db, current_user))
+    return res
 
 @router.get("/detail/{id}", response_model=schemas.EntrenamientoCompleto)
-def read_entrenamiento_detail(
+def read_entrenamiento_detail_server(
     id: int,
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    res = read_entrenamiento_detail(id, db, current_user)
+    db.close()
+    return res
+
+
+def read_entrenamiento_detail(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.tbl_user = Depends(deps.get_current_user),
 ) -> Any:
     entrenamiento = read_entrenamiento_by_id(db=db, id=id, current_user=current_user)
     bloques = db.query(tbl_bloques).filter(tbl_bloques.fkEntrenamiento == entrenamiento.id).all()
@@ -298,7 +323,6 @@ def read_entrenamiento_detail(
     for adicional in sensoresAdicionales:
         listaSensores.append([adicional.fldNPosicion, adicional.fldNTipoDato])
     entrenamiento.dispositivos = listaSensores
-    db.close()
     return entrenamiento
 
 
