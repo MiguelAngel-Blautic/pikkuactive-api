@@ -270,7 +270,7 @@ def read_models(
                          fldFMaxValor=m.fldFMaxValor,
                          fldSNomValor=m.fldSNomValor,
                          fldSToken=m.fldSToken))
-    return res[::-1]
+    return res
 
 
 @router.get("/marketplace/", response_model=List[schemas.Model])
