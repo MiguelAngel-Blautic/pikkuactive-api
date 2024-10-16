@@ -267,7 +267,7 @@ def read_entrenamientos_by_id_ent_detalle(
     return res
 
 
-@router.get("/detail/v2/{id}", response_model=List[schemas.EntrenamientoCompleto])
+@router.get("/detail/v2/", response_model=List[schemas.EntrenamientoCompleto])
 def read_entrenamiento_detail_v2(
     db: Session = Depends(deps.get_db),
     current_user: models.tbl_user = Depends(deps.get_current_user),
