@@ -68,7 +68,7 @@ def read_ejercicios_by_serie(
             fldNOrden=e.fldNOrden,
             fldNDescanso=e.fldNDescanso,
             fldNRepeticiones=e.fldNRepeticiones,
-            fldNDuracion=e.fldNDuracion,
+            fldNDuracion=max(10, e.fldNDuracion),
             fldNDuracionEfectiva=e.fldNDuracionEfectiva,
             fldFVelocidad=e.fldFVelocidad,
             fldFUmbral=e.fldFUmbral,
@@ -201,7 +201,7 @@ def read_ejercicios_by_id_serie_detalle(
             fldNOrden=ejercicio.fldNOrden,
             fldNDescanso=ejercicio.fldNDescanso,
             fldNRepeticiones=ejercicio.fldNRepeticiones,
-            fldNDuracion=ejercicio.fldNDuracion,
+            fldNDuracion=max(ejercicio.fldNDuracion, 10),
             fldFVelocidad=ejercicio.fldFVelocidad,
             fldFUmbral=ejercicio.fldFUmbral,
             fkModelo=ejercicio.fkModelo,
@@ -274,7 +274,7 @@ def read_ejercicios_by_id(
         fldNOrden=ejercicio.fldNOrden,
         fldNDescanso=ejercicio.fldNDescanso,
         fldNRepeticiones=ejercicio.fldNRepeticiones,
-        fldNDuracion=ejercicio.fldNDuracion,
+        fldNDuracion=max(10, ejercicio.fldNDuracion),
         fldNDuracionEfectiva=ejercicio.fldNDuracionEfectiva,
         fldFVelocidad=ejercicio.fldFVelocidad,
         fldFUmbral=ejercicio.fldFUmbral,
@@ -503,7 +503,7 @@ def create_ejercicio(
                         fldNDescanso=ejercicio_in.fldNDescanso,
                         fldNOrden=len(ejercicios)+1,
                         fldNRepeticiones=ejercicio_in.fldNRepeticiones,
-                        fldNDuracion=ejercicio_in.fldNDuracion,
+                        fldNDuracion=max(10, ejercicio_in.fldNDuracion),
                         fldNDuracionEfectiva=ejercicio_in.fldNDuracionEfectiva,
                         fldFVelocidad=ejercicio_in.fldFVelocidad,
                         fldFUmbral=ejercicio_in.fldFUmbral,
@@ -544,7 +544,7 @@ def update_ejercicio(
         raise HTTPException(status_code=404, detail="The exercise doesn't exist")
     ejercicio.fldNDescanso = ejercicio_in.fldNDescanso
     ejercicio.fldNRepeticiones = ejercicio_in.fldNRepeticiones
-    ejercicio.fldNDuracion = ejercicio_in.fldNDuracion
+    ejercicio.fldNDuracion = max(10, ejercicio_in.fldNDuracion)
     ejercicio.fldNDuracionEfectiva=ejercicio_in.fldNDuracionEfectiva
     ejercicio.fldFVelocidad = ejercicio_in.fldFVelocidad
     ejercicio.fldFUmbral = ejercicio_in.fldFUmbral
@@ -622,7 +622,7 @@ def clonar(
     for e in ejercicios:
         new = tbl_ejercicios(fkSerie=new_serie,
                             fldNDescanso=e.fldNDescanso,
-                            fldNDuracion=e.fldNDuracion,
+                            fldNDuracion=max(10, e.fldNDuracion),
                             fldNDuracionEfectiva = e.fldNDuracionEfectiva,
                             fldNRepeticiones=e.fldNRepeticiones,
                             fldFVelocidad=e.fldFVelocidad,
