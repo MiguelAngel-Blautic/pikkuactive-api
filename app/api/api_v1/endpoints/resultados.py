@@ -13,6 +13,7 @@ from app.models import tbl_user, tbl_entrena, tbl_planes, tbl_bloques, tbl_serie
     tbl_tipo_datos, tbl_resultados
 from app.models.tbl_resultados import tbl_registro_ejercicios
 from app.schemas import Resultado
+from app.schemas.resultados import DatoResultado, EjercicioResultado
 
 router = APIRouter()
 
@@ -88,6 +89,50 @@ def add_dato(
     db.refresh(resDB)
     db.close()
     return resDB
+
+@router.get("/{id}")
+def get_datos_ejercicio(
+    ejercicioId: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.tbl_user = Depends(deps.get_current_user),
+) -> Any:
+    registros = [r for r in db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == ejercicioId).all()]
+    res = []
+
+    registroEstado = [r.id for r in registros if r.fkTipoDato == 0]
+    estados = [r for r in db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroEstado[0]).all()]
+    registroRepeticiones = [r.id for r in registros if r.fkTipoDato == 6]
+    repeticiones = [r for r in db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroRepeticiones[0]).all()]
+    registroIntentos = [r.id for r in registros if r.fkTipoDato == 7]
+    intentos = [r for r in db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroIntentos[0]).all()]
+    registroVelocidad = [r.id for r in registros if r.fkTipoDato == 13]
+    velocidad = [r for r in db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroVelocidad[0]).all()]
+    registroHr = [r.id for r in registros if r.fkTipoDato == 3]
+    hr = [r for r in db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroHr[0]).all()]
+    registroAi = [r.id for r in registros if r.fkTipoDato == 12]
+    ai = [r for r in db.query(tbl_resultados).filter(tbl_resultados.fkRegistro == registroAi[0]).all()]
+
+    for e in estados:
+        repeticiones1 = [DatoResultado(value=r.fldFValor, date=r.fldDTime) for r in repeticiones if r.fldDTime <= e.fldDTime]
+        intentos1 = [DatoResultado(value=r.fldFValor, date=r.fldDTime) for r in intentos if r.fldDTime <= e.fldDTime]
+        velocidad1 = [DatoResultado(value=r.fldFValor, date=r.fldDTime) for r in velocidad if r.fldDTime <= e.fldDTime]
+        hr1 = [DatoResultado(value=r.fldFValor, date=r.fldDTime) for r in hr if r.fldDTime <= e.fldDTime]
+        ai1 = [DatoResultado(value=r.fldFValor, date=r.fldDTime) for r in ai if r.fldDTime <= e.fldDTime]
+        momentosRep = [m.date for m in repeticiones1 + intentos1]
+        reps = []
+        ints = []
+        for m in momentosRep:
+            reps.append(DatoResultado(value=len([r for r in repeticiones1 if r.date <= m]), date=m))
+            ints.append(DatoResultado(value=len([r for r in intentos1 if r.date <= m]), date=m))
+        res.append(EjercicioResultado(
+            repeticiones=reps,
+            intentos=ints,
+            velocidad=velocidad1,
+            heartRate=hr1,
+            activityIndex=ai1
+        ))
+    return res
+
 
 def clonar(
     old_ejercicio: int,

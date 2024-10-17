@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, EmailStr
 
@@ -24,6 +24,17 @@ class Resultado(BaseModel):
     fkRegistro: int
     fldFValor: float
     fldDTime: datetime
+
+class DatoResultado(BaseModel):
+    value: float
+    date: datetime
+
+class EjercicioResultado(BaseModel):
+    repeticiones: List[DatoResultado]
+    intentos: List[DatoResultado]
+    velocidad: List[DatoResultado]
+    heartRate: List[DatoResultado]
+    activityIndex: List[DatoResultado]
 
 
 class ResultadoBD(Resultado):

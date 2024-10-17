@@ -201,7 +201,8 @@ def create_serie(
                         fkBloque=serie_in.fkBloque,
                         fldNDescanso=serie_in.fldNDescanso,
                         fldNOrden=len(series)+1,
-                        fldNRepeticiones=serie_in.fldNRepeticiones)
+                        fldNRepeticiones=serie_in.fldNRepeticiones,
+                        fldBSimultanea=serie_in.fldBSimultanea)
     db.add(newSerie)
     db.commit()
     db.refresh(newSerie)
