@@ -497,6 +497,9 @@ def create_ejercicio(
     """
     Create new plan
     """
+    if ejercicio_in.fkModelo is not None:
+        if ejercicio_in.fkModelo == 0:
+            ejercicio_in.fkModelo = None
     ejercicios = read_ejercicios_by_serie(db=db, current_user=current_user, serie_id=ejercicio_in.fkSerie)
     newEjercicio = tbl_ejercicios(fkCreador=current_user.id,
                         fkSerie=ejercicio_in.fkSerie,
@@ -539,6 +542,9 @@ def update_ejercicio(
     """
     Update plan.
     """
+    if ejercicio_in.fkModelo is not None:
+        if ejercicio_in.fkModelo == 0:
+            ejercicio_in.fkModelo = None
     ejercicio = read_ejercicios_by_idDB(id=id, db=db, current_user=current_user)
     if not ejercicio:
         raise HTTPException(status_code=404, detail="The exercise doesn't exist")
