@@ -28,6 +28,7 @@ class EjercicioCreate(EjercicioBase):
 
 
 class EjercicioUpdate(EjercicioBase):
+    registros: List[int]
     pass
 
 
