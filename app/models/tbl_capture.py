@@ -20,7 +20,7 @@ class tbl_capture(Base):
     owner = relationship("tbl_movement")
     fkGrupoNegativo = Column(Integer, ForeignKey("tbl_grupo_negativo.id", ondelete="CASCADE", onupdate="CASCADE"))
     grupo = relationship("tbl_grupo_negativo", back_populates="grupo")
-    datos = relationship("tbl_dato", back_populates="captura", cascade="all,delete", order_by="tbl_dato.fldNSample")
+    datos = relationship("tbl_dato", back_populates="captura", cascade="all,delete", order_by="tbl_dato.fldNSample", primaryjoin="and_(tbl_dato.fkCaptura == tbl_capture.id, tbl_dispositivo_sensor.id == tbl_dato.fkDispositivoSensor,tbl_dispositivo_sensor.fldBActive != 0)")
 
     mpu = relationship("tbl_mpu", back_populates="owner", cascade="all,delete", order_by="tbl_mpu.fldNSample")
     ecg = relationship("tbl_ecg", back_populates="owner", cascade="all,delete", order_by="tbl_ecg.fldNSample")

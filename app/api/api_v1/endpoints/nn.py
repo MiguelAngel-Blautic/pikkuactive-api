@@ -293,20 +293,28 @@ def otro(nFrecuencias, capture, frecuencias, dfs, labels, cantidad, minimo, maxi
 
 def generar_negativos(dfs, labels, nombre):
     conteo = Counter(labels)
+    conteoL = [r for r in conteo]
     positivos = conteo[nombre]
+    totales = []
+    for n in conteo:
+        totales.append(conteo[n])
+    repeticionesTot = [(positivos // t)-1 for t in totales]
+    repeticionesPar = [positivos % t for t in totales]
     lpositivos = [i for i, valor in enumerate(labels) if valor == nombre]
     capturasInicial = len(dfs[0])
     for i in range(capturasInicial):
-        if labels[i] != nombre:
-            repeticiones = (positivos / conteo[labels[i]])-1
-            for j in range(floor(repeticiones)):
-                for k in range(len(dfs)):
-                    dfs[k].loc[len(dfs[k])] = dfs[k].loc[i]
-                    for l in range(len(dfs[k].iloc[i])):
-                        std = abs(1 - np.std(dfs[k].iloc[lpositivos, l]))
-                        factor = random.uniform(1-std, 1+std)
-                        dfs[k].iloc[len(dfs[k])-1, l] *= factor
-                labels.append(labels[i])
+        repeticiones = repeticionesTot[conteoL.index(labels[i])]
+        if repeticionesPar[conteoL.index(labels[i])] > 0:
+            repeticionesPar[conteoL.index(labels[i])] -= 1
+            repeticiones += 1
+        for j in range(repeticiones):
+            for k in range(len(dfs)):
+                dfs[k].loc[len(dfs[k])] = dfs[k].loc[i]
+                for l in range(len(dfs[k].iloc[i])):
+                    std = abs(1 - np.std(dfs[k].iloc[lpositivos, l]))
+                    factor = random.uniform(1-std, 1+std)
+                    dfs[k].iloc[len(dfs[k])-1, l] *= factor
+            labels.append(labels[i])
     #
     #
     # negativos = len([x for x in labels if x != nombre])

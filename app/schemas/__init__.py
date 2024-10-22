@@ -4,7 +4,7 @@ from .token import Token, TokenPayload
 from .user import User, UserCreate, UserInDB, UserUpdate, UserComplete, UserGenerales
 from .movement import Movement, MovementCreate, MovementInDB, MovementUpdate, MovementCaptures
 from .position import Position, PositionCreate, PositionInDB, PositionUpdate
-from .device import Device, DeviceCreate, DeviceInDB, DeviceUpdate
+from .device import Device, DeviceCreate, DeviceInDB, DeviceUpdate, DeviceSensorCreate, DeviceSensor
 from .capture import Capture, CaptureCreate, CaptureInDB, CaptureUpdate
 from .mpu import Mpu, MpuCreate, MpuInDB, MpuUpdate
 from .grupo import Grupo, GrupoCreate, GrupoInDB, GrupoUpdate

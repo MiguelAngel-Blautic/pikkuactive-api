@@ -54,7 +54,7 @@ class tbl_model(Base):
 
     movements = relationship("tbl_movement", back_populates="owner", cascade="all,delete", single_parent=True)
     devices = relationship("tbl_device", back_populates="owner", cascade="all,delete", single_parent=True)
-    dispositivos = relationship("tbl_dispositivo_sensor", back_populates="owner", cascade="all,delete", single_parent=True)
+    dispositivos = relationship("tbl_dispositivo_sensor", back_populates="owner", cascade="all,delete", single_parent=True, primaryjoin="and_(tbl_model.id == tbl_dispositivo_sensor.fkOwner, tbl_dispositivo_sensor.fldBActive != 0)")
     versions = relationship("tbl_version", back_populates="owner", cascade="all,delete", single_parent=True, order_by="tbl_version.fldDTimeCreateTime")
     versionsEst = relationship("tbl_version_estadistica", back_populates="owner", cascade="all,delete", single_parent=True, order_by="tbl_version_estadistica.fecha")
     sensoresEst = relationship("sensores_estadistica", back_populates="owner", cascade="all,delete", single_parent=True, order_by="sensores_estadistica.fldNOrden")

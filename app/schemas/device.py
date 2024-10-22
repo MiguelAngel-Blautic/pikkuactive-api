@@ -23,6 +23,7 @@ class DeviceSensor(BaseModel):
     fkPosicion: int
     fkSensor: int
     fkOwner: int
+    fldBActive: int = 1
     class Config:
         orm_mode = True
 
