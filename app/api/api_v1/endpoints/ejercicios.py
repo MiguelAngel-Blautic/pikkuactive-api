@@ -559,6 +559,15 @@ def update_ejercicio(
     ejercicio.fldNDistancia = ejercicio_in.fldNDistancia
     db.commit()
     db.refresh(ejercicio)
+    registrosOld = db.query(tbl_registro_ejercicios).filter(tbl_registro_ejercicios.fkEjercicio == ejercicio.id).all()
+    for r in registrosOld:
+        db.delete(r)
+        db.commit()
+    for r in ejercicio_in.registros:
+        new = tbl_registro_ejercicios(fkTipoDato=r,
+                                      fkEjercicio=ejercicio.id)
+        db.add(new)
+        db.commit()
     db.close()
     return ejercicio
 
