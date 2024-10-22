@@ -568,7 +568,6 @@ def update_ejercicio(
                                       fkEjercicio=ejercicio.id)
         db.add(new)
         db.commit()
-    db.close()
     return ejercicio
 
 
