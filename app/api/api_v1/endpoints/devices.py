@@ -38,8 +38,11 @@ def enable_device(
     Retrieve positions.
     """
     device = db.query(tbl_dispositivo_sensor).get(id)
-    if device is not None:
-        device.fldBActive = max(0, min(1, enable))
-        db.commit()
-        db.refresh(device)
+    if device is None:
+        raise HTTPException(status_code=404, detail="Device not found")
+    device.fldBActive = max(0, min(1, enable))
+    db.commit()
+    db.refresh(device)
+    model = db.query(tbl_model).get(device.fkOwner)
+    model.fldSStatus = TrainingStatus.no_training_pending
     return device
