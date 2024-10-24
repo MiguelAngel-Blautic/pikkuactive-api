@@ -15,6 +15,7 @@ class DeviceBase(BaseModel):
 class DeviceSensorCreate(BaseModel):
     fkPosicion: int
     fkSensor: int
+    fldBActive: int = 1
     imagen: Optional[str] = None
 
 
